@@ -10964,7 +10964,7 @@
 				)
 			)
 		)
-		(property "Value" "4.7uH SWPA4030S4R7MT"
+		(property "Value" "4.7uH SRP5030T-4R7M"
 			(at 203.2 110.49 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10985,7 +10985,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.bourns.com/docs/product-datasheets/srp5030t.pdf"
 			(at 203.2 113.03 0)
 			(hide yes)
 			(show_name no)
@@ -10996,7 +10996,18 @@
 				)
 			)
 		)
-		(property "Description" "Inductor"
+		(property "Description" "Buck inductor: Bourns SRP5030T-4R7M, 4.7uH +/-20%, DCR 53mOhm max, Irms 4.6A, Isat 6A, shielded, 5.0x5.0x3.0mm"
+			(at 203.2 113.03 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "SRP5030T-4R7M"
 			(at 203.2 113.03 0)
 			(hide yes)
 			(show_name no)

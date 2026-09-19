@@ -24,7 +24,7 @@ not yet present and are not counted here.
 | 1 | D4 | High-efficiency red LED | 0805 | Choose an LED with useful brightness at about 150µA; exact MPN remains open. |
 | 1 | D5 | Green LED | 0805 | Status LED; exact MPN remains open. |
 | 1 | D6 | SMBJ9.0A-E3/52 unidirectional TVS | SMB / DO-214AA |  |
-| 1 | L1 | 4.7µH power inductor — part/footprint conflict | Assigned: Bourns SRP5030T | Value says SWPA4030S4R7MT; footprint says SRP5030T. Resolve issue 1 before ordering or layout. |
+| 1 | L1 | Bourns SRP5030T-4R7M 4.7µH power inductor | SRP5030T, 5.0 × 5.0 × 3.0mm | 53mΩ DCR max, 4.6A Irms, 6A Isat, shielded; LCSC C2045677. Value, footprint, MPN and datasheet now agree (issue 1 resolved). |
 | 1 | F1 | 2920L300/15DR resettable fuse, 3A hold, 15V | 2920 | Provisional current rating; validate motor/fan load, temperature and pack fault current. |
 | 1 | F2 | MF-MSMF050-2 resettable fuse, 500mA hold, 15V | 1812 |  |
 | 1 | BT1 | AMASS XT30U-M battery connector | Vertical THT, 5mm pitch | Connector model inferred from assigned footprint. BT1 is the PCB connector; the pack is external. |
@@ -58,8 +58,6 @@ external 2S pack and its mating XT30 lead are separate from the 46 fitted parts.
 
 ## Ordering details to settle
 
-- **L1:** the Sunlord value and Bourns footprint describe different packages.
-  Choose the intended part and make the schematic fields and land pattern agree.
 - **D1/D2:** choose actual SMA Schottky part numbers and their ratings.
 - **Capacitors:** most voltage ratings and all exact part numbers remain unset.
   Select dielectric and effective capacitance at operating bias, especially C12

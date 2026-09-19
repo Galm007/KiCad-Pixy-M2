@@ -39,10 +39,9 @@ Diff the net list against the previous export after every structural edit. Close
 KiCad before editing `.kicad_sch` on disk — `~Pixy-M2.kicad_sch.lck` tells you the
 GUI has it open, and whichever side saves last wins.
 
-**Netlist last re-extracted: 2026-09-19, after the issue-7 battery switch, fuses and
-TVS.**
-The tables
-below are current as of that extraction.
+**Netlist last re-extracted: 2026-09-19, after the issue-1 L1 field fix.** That edit
+touched component fields only — the connectivity is unchanged since the issue-7
+battery switch, fuses and TVS. The tables below are current as of that extraction.
 
 ## Verified correct — do not re-flag these
 
@@ -106,46 +105,60 @@ partly addressed). GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — t
 
 ## Open issues
 
-Ordered by severity. **Resolved since this list was written: 2 (UVLO), 3 (U1
-footprint), 4 (dead header pins), 5 (battery sense), 7 (switch/fuses/TVS added;
+Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
+3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 7 (switch/fuses/TVS added;
 battery fuse sizing remains provisional), 11 (module variant), 13 (conveniences).**
-Item 1 has regressed into a new inconsistency and is now the only thing that
-blocks layout. Items 6, 8–10 and 12 are still open but none of them gate starting
-the PCB. Confirm the issue-7 load/fault-current budget before fabrication.
+**Nothing blocks layout any more.** Items 6, 8–10 and 12 are still open but none of
+them gate starting the PCB. Confirm the issue-7 load/fault-current budget before
+fabrication.
 
-### 1. L1 — Value and Footprint name two different parts — BLOCKS LAYOUT
+### 1. L1 — RESOLVED (2026-09-19)
 
-**Resolved:** L1 was `Inductor_SMD:L_0805_2012Metric`, which was the worst problem in
-the design. A 4.7µH 0805 part saturates somewhere around 300–700mA with DCR often
+L1 began as `Inductor_SMD:L_0805_2012Metric`, which was the worst problem in the
+design. A 4.7µH 0805 part saturates somewhere around 300–700mA with DCR often
 >300mΩ; the AP63203 is a 2A converter at ~1.4MHz, so the core would have saturated
 under load, current would have run into the IC's cycle-by-cycle limit, and the part
-would have overheated.
+would have overheated. The footprint was then corrected to the Bourns land pattern
+while the Value was left naming a Sunlord part — the half-updated state this issue
+tracked, which was worse than either end state.
 
-The footprint is now **`Inductor_SMD:L_Bourns_SRP5030T`**. The intended part is
-**Bourns SRP5030T-4R7M** — 4.7µH ±20%, DCR 53mΩ max, rated current 4.6A, shielded,
-5.0×5.0×3.0mm body. LCSC C2045677, also stocked at DigiKey/Mouser.
+**Both fields now name the same part, and the MPN and datasheet were written with
+them:**
 
-**REGRESSED — L1 is now half-updated, which is worse than either end state.** As of
-the 2026-09-19 extraction:
+| Field | Value |
+|---|---|
+| Value | `4.7uH SRP5030T-4R7M` |
+| Footprint | `Inductor_SMD:L_Bourns_SRP5030T` |
+| MPN | `SRP5030T-4R7M` |
+| Datasheet | `https://www.bourns.com/docs/product-datasheets/srp5030t.pdf` |
 
-| Field | Current value | Part it describes |
-|---|---|---|
-| Value | `4.7uH SWPA4030S4R7MT` | Sunlord SWPA4030S, **4.0×4.0**×3.0mm |
-| Footprint | `Inductor_SMD:L_Bourns_SRP5030T` | Bourns SRP5030T, **5.0×5.0**×3.0mm |
+Bourns **SRP5030T-4R7M**, verified against that datasheet rather than from memory:
+4.7µH ±20%, DCR 53mΩ max, **Irms 4.6A, Isat 6A**, shielded, 5.0×5.0×3.0mm body.
+LCSC C2045677, also stocked at DigiKey/Mouser. (The "4.6A rated current" quoted
+in earlier revisions of this file is Irms — the 20%-inductance-drop saturation
+figure is 6A.)
 
-The MPN and the land pattern are different parts of different sizes. A SWPA4030S
-soldered to an SRP5030T land pattern will not sit on its pads properly. **Pick one
-and make both fields agree before layout.** Either part works electrically —
-SWPA4030S4R7MT is ~1.6A Isat / ~92mΩ DCR, comfortably above the ~700mA peak — so
-this is purely a "which package" decision, but it has to be made explicitly.
+**The Sunlord SWPA4030S4R7MT was rejected, not lost.** It works electrically
+(~1.6A Isat, ~92mΩ DCR against a ~700mA peak) and `Inductor_SMD:L_Sunlord_SWPA4030S`
+exists in the stock library, so reversing this decision is a one-field edit. It was
+not taken because the 5×5 part has far more margin and because the layout notes
+below are already written around it; the ~1mm-per-side of board area was judged not
+worth it. The two land patterns are **not** interchangeable — Bourns is 2.0×1.8mm
+pads on a 4.5mm pitch, Sunlord 1.1×3.7mm pads on a 3.0mm pitch — so if the smaller
+part is ever chosen, both fields have to move together again.
 
 Operating margin for reference: ripple is roughly 300mA p-p at 8.4V in, steady load
-300–500mA, so peak inductor current stays under ~700mA against a 4.6A rating. DCR
-loss is ~15mW — negligible next to the ~400mW burned in D2 (issue 9).
+300–500mA, so peak inductor current stays under ~700mA. DCR loss is ~15mW —
+negligible next to the ~400mW burned in D2 (issue 9).
 
 *Correction to an earlier spec in this file's history: a "DCR ≤ 60mΩ" target at
 4.7µH in a 4×4mm package is not physically achievable. The 5030T meets it because
 it is a larger part.*
+
+**Verified:** netlist diff before/after shows only L1's own field text changing —
+no net, pin or footprint assignment anywhere else moved. ERC is unchanged at 0
+errors and the same two GPIO45/GPIO46 warnings. The sheet was rendered and the new
+Value string sits clear of TP4, C6 and the SW wire.
 
 ### 2. Undervoltage lockout — RESOLVED (2026-09-19)
 
