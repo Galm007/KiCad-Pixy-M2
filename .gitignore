@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------- KiCad state
+# Per-user editor state: window geometry, layer visibility, last-used tool.
+# Changes on every session and carries no design intent, so sharing it only
+# produces conflicts.
+*.kicad_prl
+
+# KiCad's own timestamped backup zips, rewritten on every save. Git is the
+# backup now.
+*-backups/
+
+# Lock files, present only while KiCad has the project open.
+*.lck
+
+# Autosave / rescue / recovery artefacts.
+_autosave-*
+*-rescue.kicad_sch
+*.kicad_sch-bak
+*.kicad_pcb-bak
+*.bak
+fp-info-cache
+
+# --------------------------------------------------------- generated outputs
+# All of these are derived from the .kicad_sch / .kicad_pcb sources. Committing
+# them invites a stale copy being read as authoritative.
+*.net
+gerbers/
+*.gbr
+*.gbrjob
+*.drl
+*.pos
+*.step
+*.wrl
