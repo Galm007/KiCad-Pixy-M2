@@ -10,7 +10,9 @@ and a buck converter; motors, motor drivers, IR emitters/receivers, and the IMU 
 on a daughterboard that mates through two 22-pin headers (J2, J3).
 
 Power comes from a **2S LiPo (7.4V nominal, 8.4V full charge)** via an XT30 connector,
-diode-OR'd with USB 5V, down-converted to 3.3V by an AP63203WU buck.
+F1 battery polyfuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
+and down-converted to 3.3V by an AP63203WU buck. `VBAT` is the switched, fused
+daughterboard supply; `VBUS` is downstream of the USB polyfuse F2.
 
 - Schematic: `Pixy-M2.kicad_sch` — single flat sheet, no hierarchy
 - KiCad 10.0
@@ -36,8 +38,8 @@ Diff the net list against the previous export after every structural edit. Close
 KiCad before editing `.kicad_sch` on disk — `~Pixy-M2.kicad_sch.lck` tells you the
 GUI has it open, and whichever side saves last wins.
 
-**Netlist last re-extracted: 2026-09-19, after the issue-13 conveniences (LEDs and
-test points).**
+**Netlist last re-extracted: 2026-09-19, after the issue-7 battery switch, fuses and
+TVS.**
 The tables
 below are current as of that extraction.
 
@@ -70,8 +72,12 @@ These were checked against the actual netlist and are right. If a review pass
 | `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, J3.1, J3.2, L1.2, R2.1, R12.1, TP2.1, U1.2, U3.1(FB) |
 | `VSYS` | C12.1, D1.1(K), D2.1(K), U3.3(IN) |
 | `REG_EN` | C13.1, R7.2, R8.1, R9.2, U3.2(EN) |
-| `VBAT` | BT1.1(+), D2.2(A), J2.19, J2.20, J2.21, J2.22, R7.1, R10.1, TP1.1 |
-| `VBUS` | D1.2(A), D3.2(A), J1.A4/A9/B4/B9, U2.5 |
+| `VBAT_RAW` | BT1.1(+), F1.1 |
+| `VBAT_FUSED` | F1.2, Q1.1/2/3(S), R14.1 |
+| `VBAT` | Q1.5/6/7/8(D), D2.2(A), D6.1(K), J2.19, J2.20, J2.21, J2.22, R7.1, R10.1, TP1.1 |
+| `Net-(Q1-G)` | Q1.4(G), R14.2, SW3.2(common) |
+| USB connector (`Net-(F2-Pad1)`) | J1.A4/A9/B4/B9, F2.1 |
+| `VBUS` | F2.2, D1.2(A), D3.2(A), U2.5 |
 | `CHIP_PU` | C3.1, C4.2, J3.3, R2.2, SW1.1, U1.3(EN) |
 | `GPIO0` | C5.2, SW2.1, U1.27 |
 | `VBAT_SENSE` | C14.1, R10.2, R11.1, U1.39 (GPIO1/ADC1_CH0) |
@@ -82,7 +88,8 @@ These were checked against the actual netlist and are right. If a review pass
 | `Net-(D4-A)` | D4.2(A), R12.2 |
 | `Net-(D5-A)` | D5.2(A), R13.2 |
 
-`GND` additionally carries D4.1(K), D5.1(K) and TP3.1.
+`GND` additionally carries D4.1(K), D5.1(K), TP3.1, D6.2(A) and SW3.3(ON).
+SW3.1 (OFF) is intentionally marked no-connect.
 
 `VCC_USB_5V` has been **renamed `VSYS`**. It is the diode-OR output and sits at up to
 **~8.1V** on a full pack, so the old "5V" name was actively misleading. `VBAT` and
@@ -99,10 +106,11 @@ partly addressed). GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — t
 ## Open issues
 
 Ordered by severity. **Resolved since this list was written: 2 (UVLO), 3 (U1
-footprint), 4 (dead header pins), 5 (battery sense), 11 (module variant), 13
-(conveniences).** Item 1 has regressed into a new inconsistency and is now the only
-thing that blocks layout. Items 6–10 and 12 are still open but none of them gate
-starting the PCB.
+footprint), 4 (dead header pins), 5 (battery sense), 7 (switch/fuses/TVS added;
+battery fuse sizing remains provisional), 11 (module variant), 13 (conveniences).**
+Item 1 has regressed into a new inconsistency and is now the only thing that
+blocks layout. Items 6, 8–10 and 12 are still open but none of them gate starting
+the PCB. Confirm the issue-7 load/fault-current budget before fabrication.
 
 ### 1. L1 — Value and Footprint name two different parts — BLOCKS LAYOUT
 
@@ -195,8 +203,11 @@ R9 ≥ 94k. The two constraints do not intersect, so the reverse path must be bl
   there.
 - The divider draws **58µA at 8.4V** continuously (41µA once tripped), ≈42 mAh/month.
   A 500mAh pack survives about a year on that, comparable to self-discharge, so it is
-  acceptable — but when the issue-7 power switch is added, **put this divider
-  downstream of it** and the drain goes away entirely.
+  acceptable during use. **Issue 7 now puts it downstream of Q1/SW3**, so it no
+  longer has a direct battery connection with the switch off.
+- The table's voltages now refer to **post-switch `VBAT` and post-fuse `VBUS`**.
+  Battery terminal thresholds also include F1/Q1 voltage drop under load; USB
+  margin must include F2's resistance. Neither source bypasses its fuse through EN.
 - **With USB connected, hardware UVLO is intentionally defeated** — D3/R9 hold EN up
   regardless of pack voltage. That is correct (you want to bench-run a flat board),
   but it means a low pack left connected alongside USB can still be pulled down to
@@ -260,8 +271,8 @@ That is 4 extra parts to save 12µA, on a board where the issue-2 UVLO divider
 already draws 58µA ungated and *cannot* be gated — it has to work while the MCU is
 off. Raising the divider to 470k/220k gets the drain to **12µA**, five times below
 the UVLO divider, which makes the gate pointless. The standing pair is now ~70µA
-total; the real fix for that remains the issue-7 power switch, with both dividers
-downstream of it.
+total; the issue-7 power switch now disconnects both dividers from the battery.
+MOSFET off-state leakage remains; this is not a mechanical air gap.
 
 Dropping the gate also keeps `GPIO3` free — the last full-function unused pin — and
 removes a failure mode where firmware forgets to assert the gate, reads 0V, and
@@ -278,6 +289,9 @@ concludes the pack is flat.
   before calibration, and the ESP32-S3 ADC adds its own error on top. One-point
   calibration against a metered pack voltage removes essentially all of it. Even
   uncalibrated this beats the issue-2 UVLO's ±0.15 V/cell.
+- After issue 7, sense voltage at **TP1 (`VBAT`)** when calibrating. The divider
+  measures the supply after F1/Q1, so motor current causes an additional drop
+  relative to the battery terminals. This is conservative for low-voltage cutoff.
 - R10 doubles as transient protection. Motor kickback on `VBAT` can only push
   (V−3.6)/470k into GPIO1's clamp — 56µA even at 30V — and C14's 15ms rolls off
   anything fast. No extra clamp is needed.
@@ -289,17 +303,85 @@ signals rather than bunched at the ends. That is a real improvement over the ori
 4. Motor and IR-emitter switching returns are still sharing them, so if any header
 positions free up, convert more to GND — but this is no longer blocking.
 
-### 7. No power switch, no fuse
+### 7. Power switch, fuses and TVS — IMPLEMENTED (2026-09-19)
 
-BT1 runs straight through D2 into the regulator. Add a slide switch or P-FET load
-switch plus a polyfuse in the battery line, and a ~500mA polyfuse on VBUS. Once
-motors share VBAT, add a TVS there — inductive kickback will travel back down it.
+Six components added. **F1's current rating is provisional:** the intended loads
+are two coreless motors, four IR sensors and possibly a suction fan; their exact
+part numbers, operating current and startup/stall current are not yet known.
 
-This is now also **the only remaining fix for standing drain**. Two dividers hang off
-`VBAT` permanently: R7/R8 (issue 2, 58µA) and R10/R11 (issue 5, 12µA), ~70µA total,
-roughly a year on a 500mAh pack. Neither can be gated by firmware — the UVLO one has
-to work while the MCU is off — so **put both downstream of the switch.** With the
-switch open the board draws nothing.
+```
+ BT1+ -- F1 -- VBAT_FUSED -- Q1(S -> D) -- VBAT -- D2 -- VSYS
+                    |           |          |-- J2.19-22, TP1
+                    R14         G          |-- R7/R8 UVLO
+                    |           |          |-- R10/R11 battery sense
+                    +-----------+          +-- D6(K), D6(A) -> GND
+                                |
+                           SW3 common(2)
+                           /           \
+                     OFF(1): NC    ON(3): GND
+
+ J1 VBUS pins -- F2 -- VBUS -- D1 -- VSYS
+                        |-- D3/R9 USB enable
+                        +-- U2.5 ESD clamp reference
+```
+
+| Ref | Fitted part / value | Footprint | Selection |
+|---|---|---|---|
+| F1 | Littelfuse `2920L300/15DR`, 3A 15V | `Fuse:Fuse_2920_7451Metric` | 3A hold, 5A trip at 20°C; 40A maximum fault current |
+| F2 | Bourns `MF-MSMF050-2`, 500mA 15V | `Fuse:Fuse_1812_4532Metric` | 0.5A hold, 1A trip at 23°C |
+| Q1 | AOS `AO4407A` | `Package_SO:SOIC-8_3.9x4.9mm_P1.27mm` | −30V P-FET, ±25V gate; 17mΩ max at VGS = −6V |
+| R14 | 100kΩ | `Resistor_SMD:R_0805_2012Metric` | Gate-to-source pull-up, defaults OFF |
+| SW3 | C&K `JS102011SAQN` | `Button_Switch_SMD:SW_SPDT_CK_JS102011SAQN` | Gate control only; 2–3 ON, 2–1 OFF |
+| D6 | Vishay `SMBJ9.0A-E3/52` | `Diode_SMD:D_SMB` | Unidirectional TVS, 9V standoff, 600W pulse rating |
+
+Manufacturer references: [F1](https://www.littelfuse.com/assetdocs/2920l_datasheet_update.pdf?assetguid=f237e8c2-1ed9-4c13-a738-dbe0738b3d2c),
+[F2](https://www.bourns.com/docs/product-datasheets/mf-msmf.pdf),
+[Q1](https://www.aosmd.com/sites/default/files/res/datasheets/AO4407A.pdf),
+[SW3](https://www.ckswitches.com/media/1422/js.pdf),
+[D6](https://www.vishay.com/docs/88392/smbj.pdf).
+Each specified part also has its datasheet and full MPN in the schematic fields.
+
+**Q1 orientation matters.** Source pins 1/2/3 connect to `VBAT_FUSED`; drain pins
+5/6/7/8 connect to `VBAT`; pin 4 is the gate. Its body diode blocks battery-to-load
+current when OFF. The stock `Transistor_FET:IRF7404` symbol is used only for its
+identical SO-8 pin map; the fitted part is **AO4407A**, as specified by Value, MPN
+and Datasheet. Do not order IRF7404 from the library identifier. At 3A and −6V gate
+drive, the calculated Q1 loss is ~0.15W at the datasheet's 25°C resistance; provide
+adequate copper and check temperature on the assembled board.
+
+**Both dividers, the TVS and all four battery header pins are downstream of Q1.**
+OFF removes their direct pack drain. R14 has essentially no voltage across it
+while OFF; its ~84µA at 8.4V is drawn only while ON. Off-state drain is limited by
+Q1 leakage rather than the former ~70µA divider load; do not promise literal zero.
+This single MOSFET does not provide reverse-polarity protection or bidirectional
+isolation: current can return to the battery through its body diode.
+
+**USB operation is preserved with SW3 OFF.** F2 sits before *every* USB supply
+branch, including the D3 enable path. D1/D2 still provide source OR-ing. The
+existing high-value R7 can weakly bias the disconnected `VBAT` node from USB's EN
+network; the switch does not guarantee a discharged/zero-volt daughterboard rail.
+Turning the whole board off requires removing USB as well as switching off SW3.
+
+**Current-budget check before fabrication:** verify steady load at the actual
+fuse temperature, both motor stalls, fan startup, pack short-circuit capability,
+and the copper/header/wiring ratings. F1 is a thermal PPTC, not a hard 3A limiter:
+its specified maximum trip time is 20s at 8A, and its hold current falls to about
+2.31A at 60°C. Its 40A maximum fault-current rating must also suit the selected
+pack. Do not increase F1 just to accommodate a fan without checking the entire
+power path. F2 similarly does not enforce a USB host's negotiated current budget;
+keep USB-only loads within that budget, including its voltage drop and derating.
+
+**D6 protects the switched motor rail.** Cathode pin 1 is on `VBAT`, anode pin 2
+on GND. Its 9V standoff exceeds the 8.4V full pack; specified breakdown is
+10–11.1V and clamp is 15.4V at 39A for a 10/1000µs pulse. It is a transient clamp,
+not a continuous braking-energy sink. Daughterboard devices must tolerate that
+clamp plus layout overshoot; retain local motor recirculation/bulk capacitance.
+Capacitor voltage ratings (issue 8) still need resolving.
+
+**Verified:** netlist comparison confirms only the intended source splits and
+new protection/control connections; all other existing nets and header mappings
+are unchanged. ERC remains 0 errors and the same two GPIO45/GPIO46 warnings.
+The rendered sheet was inspected for wiring and field overlaps.
 
 ### 8. Capacitor voltage ratings are unspecified everywhere
 
@@ -414,6 +496,14 @@ existing island rather than allowed to grow it.
 
 ## Layout constraints (for when layout starts)
 
+- Put **F1 immediately after BT1** and F2 immediately after J1's joined VBUS pins.
+  Keep unfused copper short; every downstream branch must go through its fuse.
+- Put **SW3 at an accessible edge**, marked BAT ON/OFF (USB can still power the
+  controller). Route only Q1 gate control to it, not motor current. Keep R14 close
+  to Q1 and connect all three source and all four drain pads with adequate copper.
+- Place **D6 near J2.19–22**, across switched `VBAT` and a short, wide GND return.
+  Keep its surge-current loop away from the ADC and MCU ground paths. Size the
+  battery/return copper for the final load and F1's fault-clearing interval.
 - **Antenna keep-out is non-negotiable.** The module's antenna must overhang a board
   edge with zero copper on every layer in the keep-out region — no traces, no pours,
   no components.

@@ -4835,12 +4835,967 @@
 			)
 			(embedded_fonts no)
 		)
-	)
-	(junction
-		(at 156.21 83.82)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "03dac2a9-6645-4015-a529-288c013e9565")
+		(symbol "Device:Polyfuse"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "F"
+				(at -2.54 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Polyfuse"
+				(at 2.54 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 1.27 -5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Resettable fuse, polymeric positive temperature coefficient"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "resettable fuse PTC PPTC polyfuse polyswitch"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "*polyfuse* *PTC*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Polyfuse_0_1"
+				(polyline
+					(pts
+						(xy -1.524 2.54)
+						(xy -1.524 1.524)
+						(xy 1.524 -1.524)
+						(xy 1.524 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -0.762 2.54)
+					(end 0.762 -2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54)
+						(xy 0 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Polyfuse_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Device:D_Zener"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "D"
+				(at 0 2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "D_Zener"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Zener diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "diode"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "TO-???* *_Diode_* *SingleDiode* D_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "D_Zener_0_1"
+				(polyline
+					(pts
+						(xy -1.27 -1.27)
+						(xy -1.27 1.27)
+						(xy -0.762 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0)
+						(xy -1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27)
+						(xy 1.27 1.27)
+						(xy -1.27 0)
+						(xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "D_Zener_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Transistor_FET:IRF7404"
+			(pin_names
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "Q"
+				(at 5.08 1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "IRF7404"
+				(at 5.08 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+				(at 5.08 -1.905 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+						(italic yes)
+					)
+					(justify left)
+				)
+			)
+			(property "Datasheet" "http://www.infineon.com/dgdl/irf7404.pdf?fileId=5546d462533600a4015355fa2b5b1b9e"
+				(at 5.08 -3.81 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Description" "-6.7A Id, -20V Vds, P-Channel HEXFET Power MOSFET, SO-8"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "P-Channel MOSFET"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "SOIC*3.9x4.9mm*P1.27mm*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "IRF7404_0_1"
+				(polyline
+					(pts
+						(xy 0.254 1.905)
+						(xy 0.254 -1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.254 0)
+						(xy -2.54 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 2.286)
+						(xy 0.762 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 1.778)
+						(xy 3.302 1.778)
+						(xy 3.302 -1.778)
+						(xy 0.762 -1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 0.508)
+						(xy 0.762 -0.508)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 -1.27)
+						(xy 0.762 -2.286)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 1.651 0)
+					(radius 2.794)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.286 0)
+						(xy 1.27 0.381)
+						(xy 1.27 -0.381)
+						(xy 2.286 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 2.54)
+						(xy 2.54 1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.54 1.778)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(circle
+					(center 2.54 -1.778)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 -2.54)
+						(xy 2.54 0)
+						(xy 0.762 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.794 -0.508)
+						(xy 2.921 -0.381)
+						(xy 3.683 -0.381)
+						(xy 3.81 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.302 -0.381)
+						(xy 2.921 0.254)
+						(xy 3.683 0.254)
+						(xy 3.302 -0.381)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "IRF7404_1_1"
+				(pin passive line
+					(at 2.54 -5.08 90)
+					(length 2.54)
+					(name "S"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 -5.08 90)
+					(length 2.54)
+					(hide yes)
+					(name "S"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 -5.08 90)
+					(length 2.54)
+					(hide yes)
+					(name "S"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "G"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 5.08 270)
+					(length 2.54)
+					(name "D"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 5.08 270)
+					(length 2.54)
+					(hide yes)
+					(name "D"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 5.08 270)
+					(length 2.54)
+					(hide yes)
+					(name "D"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 5.08 270)
+					(length 2.54)
+					(hide yes)
+					(name "D"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Switch:SW_SPDT"
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "SW"
+				(at 0 5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "SW_SPDT"
+				(at 0 -5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 -7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Switch, single pole double throw"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "switch single-pole double-throw spdt ON-ON"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "SW_SPDT_0_1"
+				(circle
+					(center -2.032 0)
+					(radius 0.4572)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.651 0.254)
+						(xy 1.651 2.286)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 2.54)
+					(radius 0.4572)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.032 -2.54)
+					(radius 0.4572)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "SW_SPDT_1_1"
+				(rectangle
+					(start -3.175 3.81)
+					(end 3.175 -3.81)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at 5.08 2.54 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 -2.54 180)
+					(length 2.54)
+					(name "C"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 	)
 	(junction
 		(at 156.21 106.68)
@@ -5293,16 +6248,6 @@
 			(type default)
 		)
 		(uuid "35f8d315-0772-4254-903f-742184eccc62")
-	)
-	(wire
-		(pts
-			(xy 156.21 81.28) (xy 156.21 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "36642fe3-2753-443e-a4d8-1f973d4148c8")
 	)
 	(wire
 		(pts
@@ -5946,16 +6891,6 @@
 	)
 	(wire
 		(pts
-			(xy 60.96 137.16) (xy 87.63 137.16)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c4a38347-a16f-4624-9b80-2757e32ee0a5")
-	)
-	(wire
-		(pts
 			(xy 127 55.88) (xy 129.54 55.88)
 		)
 		(stroke
@@ -6325,7 +7260,7 @@
 		(uuid "1480accb-3c91-4a95-a920-d4095cc38cad")
 	)
 	(label "VBAT"
-		(at 156.21 95.25 90)
+		(at 156.21 93.98 90)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7075,7 +8010,7 @@
 		(uuid "da7d7820-e6c3-44bb-990a-d4fa7fda261e")
 	)
 	(label "VBUS"
-		(at 68.58 137.16 0)
+		(at 80.01 137.16 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8455,7 +9390,7 @@
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
-		(at 156.21 83.82 90)
+		(at 147.32 85.09 90)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -8466,7 +9401,7 @@
 		(fields_autoplaced yes)
 		(uuid "345a9937-249e-435b-a1fe-663db5711e13")
 		(property "Reference" "#FLG01"
-			(at 154.305 83.82 0)
+			(at 145.415 85.09 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8477,7 +9412,7 @@
 			)
 		)
 		(property "Value" "PWR_FLAG"
-			(at 152.4 83.8199 90)
+			(at 143.51 85.0899 90)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8488,7 +9423,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 156.21 83.82 0)
+			(at 147.32 85.09 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8499,7 +9434,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 156.21 83.82 0)
+			(at 147.32 85.09 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -8510,7 +9445,7 @@
 			)
 		)
 		(property "Description" "Special symbol for telling ERC where power comes from"
-			(at 156.21 83.82 0)
+			(at 147.32 85.09 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9174,7 +10109,7 @@
 	)
 	(symbol
 		(lib_id "Device:Battery")
-		(at 156.21 88.9 180)
+		(at 147.32 78.74 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -9184,30 +10119,10 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "64dbbd54-5ae9-47a6-9a7d-43ca14c9e00e")
-		(property "Reference" "BT1"
-			(at 160.02 88.2014 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "7.4V"
-			(at 160.02 90.7414 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
+		(property "Reference" "BT1" (at 143.51 77.47 0) (effects (font (size 1.27 1.27)) (justify right)))
+		(property "Value" "7.4V" (at 143.51 80.01 0) (effects (font (size 1.27 1.27)) (justify right)))
 		(property "Footprint" "Connector_AMASS:AMASS_XT30U-M_1x02_P5.0mm_Vertical"
-			(at 156.21 90.424 90)
+			(at 147.32 80.264 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9218,7 +10133,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 156.21 90.424 90)
+			(at 147.32 80.264 90)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9229,7 +10144,7 @@
 			)
 		)
 		(property "Description" "Multiple-cell battery"
-			(at 156.21 88.9 0)
+			(at 147.32 78.74 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9240,7 +10155,7 @@
 			)
 		)
 		(property "Sim.Device" "V"
-			(at 156.21 88.9 0)
+			(at 147.32 78.74 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9251,7 +10166,7 @@
 			)
 		)
 		(property "Sim.Type" "DC"
-			(at 156.21 88.9 0)
+			(at 147.32 78.74 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9262,7 +10177,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=+ 2=-"
-			(at 156.21 88.9 0)
+			(at 147.32 78.74 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11920,7 +12835,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 156.21 81.28 180)
+		(at 147.32 87.63 0)
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
@@ -11931,7 +12846,7 @@
 		(fields_autoplaced yes)
 		(uuid "e4cbab08-fb39-4b98-813a-46c2216f0bb4")
 		(property "Reference" "#PWR011"
-			(at 156.21 74.93 0)
+			(at 147.32 81.28 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11941,18 +12856,9 @@
 				)
 			)
 		)
-		(property "Value" "GND"
-			(at 156.21 76.2 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
+		(property "Value" "GND" (at 147.32 91.44 0) (effects (font (size 1.27 1.27))))
 		(property "Footprint" ""
-			(at 156.21 81.28 0)
+			(at 147.32 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11963,7 +12869,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 156.21 81.28 0)
+			(at 147.32 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11974,7 +12880,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 156.21 81.28 0)
+			(at 147.32 87.63 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
@@ -13187,6 +14093,913 @@
 				)
 			)
 		)
+	)
+	(wire
+		(pts
+			(xy 147.32 83.82)
+			(xy 147.32 85.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3491c2be-bae5-443a-968c-44b937cf2087")
+	)
+	(wire
+		(pts
+			(xy 147.32 85.09)
+			(xy 147.32 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6731d9cc-4c29-461a-ac6f-9bbe17c79de2")
+	)
+	(junction
+		(at 147.32 85.09)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0b007c54-e390-4b35-8c9d-0fa9209832e7")
+	)
+	(wire
+		(pts
+			(xy 147.32 73.66)
+			(xy 157.48 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6042b03f-04e5-4070-ba79-73eae4f10b3f")
+	)
+	(label "VBAT_RAW"
+		(at 147.32 73.66 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "283977a6-ef41-4b2e-b9ef-ff73a7fe65b1")
+	)
+	(symbol
+		(lib_id "Device:Polyfuse")
+		(at 161.29 73.66 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "23a04e10-09c1-4829-82b8-814e200a2154")
+		(property "Reference" "F1"
+			(at 161.29 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "3A 15V"
+			(at 161.29 68.58 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Fuse:Fuse_2920_7451Metric"
+			(at 161.29 73.66 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.littelfuse.com/assetdocs/2920l_datasheet_update.pdf?assetguid=f237e8c2-1ed9-4c13-a738-dbe0738b3d2c"
+			(at 161.29 73.66 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Battery PPTC: 3A hold / 5A trip at 20C, 15V, 40A maximum fault current. Provisional; verify motor/fan load and pack fault current."
+			(at 161.29 73.66 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "2920L300/15DR"
+			(at 161.29 73.66 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "77aeece4-8efb-4f8c-836d-b770be0d1c91")
+		)
+		(pin "2"
+			(uuid "cdbfdf32-043d-4ae0-b019-71470250392b")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "F1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 165.1 73.66)
+			(xy 173.99 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a74a178a-1725-4a48-831d-917824302b3e")
+	)
+	(wire
+		(pts
+			(xy 173.99 73.66)
+			(xy 180.34 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "97a12b73-d3c7-46f5-af59-c5426d0e73b9")
+	)
+	(junction
+		(at 173.99 73.66)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0de155ee-98f8-4786-9073-086c09966716")
+	)
+	(label "VBAT_FUSED"
+		(at 173.99 73.66 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "fe2a9497-75cd-4915-a91d-ce063e1901da")
+	)
+	(symbol
+		(lib_id "Transistor_FET:IRF7404")
+		(at 185.42 76.2 90)
+		(mirror y)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "bac3fe0e-d9c9-448a-8afd-e044fdf91e0c")
+		(property "Reference" "Q1"
+			(at 185.42 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AO4407A"
+			(at 185.42 68.58 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+			(at 185.42 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.aosmd.com/sites/default/files/res/datasheets/AO4407A.pdf"
+			(at 185.42 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "P-channel load switch; -30V VDS, +/-25V VGS, 17mOhm max at VGS=-6V. Pin-compatible IRF7404 symbol; fit AO4407A."
+			(at 185.42 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "AO4407A"
+			(at 185.42 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "a6a34562-8059-4e05-802a-8a52970ebabb")
+		)
+		(pin "2"
+			(uuid "487a29d2-4bb0-435f-a6df-f6841a950a4a")
+		)
+		(pin "3"
+			(uuid "e787c0f5-ef1f-4abb-81b0-0b0435365271")
+		)
+		(pin "4"
+			(uuid "da1890e8-bc8d-4145-8657-1e38fa378908")
+		)
+		(pin "5"
+			(uuid "0907f6a3-9a0c-4de2-a566-bcb083e797e4")
+		)
+		(pin "6"
+			(uuid "b4c59152-9506-4ec6-b36f-5193ee206df6")
+		)
+		(pin "7"
+			(uuid "19c70114-b28a-4765-bbe5-7e4cd3fa77e5")
+		)
+		(pin "8"
+			(uuid "0c6aef2f-638c-452f-9a74-7581900d8bf9")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "Q1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 190.5 73.66)
+			(xy 210.82 73.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a244c450-cd12-474f-9e96-14b3bae56931")
+	)
+	(label "VBAT"
+		(at 210.82 73.66 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "4950249a-43e4-4dcc-b679-7901ac7958f0")
+	)
+	(symbol
+		(lib_id "Device:R_US")
+		(at 173.99 83.82 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "db328e6f-840d-4f10-9616-b9b728f001ed")
+		(property "Reference" "R14"
+			(at 171.45 82.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "100kOhm"
+			(at 171.45 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 173.99 83.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 173.99 83.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Gate-source pull-up: battery load switch defaults OFF."
+			(at 173.99 83.82 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "81bbeed2-28ff-4be3-89cb-59e287f52812")
+		)
+		(pin "2"
+			(uuid "e9aae455-159d-464d-88a3-b2bf08082ef3")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "R14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 173.99 73.66)
+			(xy 173.99 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9d96b20e-bc77-4b7b-8c72-e53cbd58e660")
+	)
+	(wire
+		(pts
+			(xy 173.99 87.63)
+			(xy 185.42 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4165808b-ef63-4e57-a0f9-55b16a6a9a82")
+	)
+	(wire
+		(pts
+			(xy 185.42 81.28)
+			(xy 185.42 87.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3db84b24-4535-440e-994e-39971344a615")
+	)
+	(wire
+		(pts
+			(xy 185.42 87.63)
+			(xy 185.42 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bfd3bd5c-953d-42ba-b64f-f9c4ab41afb2")
+	)
+	(junction
+		(at 185.42 87.63)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5d481abc-7b43-49c4-b734-713b539c55c4")
+	)
+	(wire
+		(pts
+			(xy 185.42 92.71)
+			(xy 193.04 92.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "76d50ca5-ef5d-44ae-b81c-9c0c83bd830b")
+	)
+	(symbol
+		(lib_id "Switch:SW_SPDT")
+		(at 198.12 92.71 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "7ed3bd24-c28d-4f7d-8cb4-9cfdb239c9bb")
+		(property "Reference" "SW3"
+			(at 198.12 81.915 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "JS102011SAQN"
+			(at 198.12 84.455 0)
+			(effects
+				(font
+					(size 1.02 1.02)
+				)
+			)
+		)
+		(property "Footprint" "Button_Switch_SMD:SW_SPDT_CK_JS102011SAQN"
+			(at 198.12 92.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.ckswitches.com/media/1422/js.pdf"
+			(at 198.12 92.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Battery ON/OFF, gate control only. 2-3 ON; 2-1 OFF. USB remains powered."
+			(at 198.12 92.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "JS102011SAQN"
+			(at 198.12 92.71 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "d19c2403-dad0-40a0-8c10-1637d950a1b0")
+		)
+		(pin "2"
+			(uuid "3fc394a8-7763-491e-9f02-e8da68e6e016")
+		)
+		(pin "3"
+			(uuid "c79ce99c-c068-4d2e-be9e-d901ede5e94f")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "SW3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 203.2 90.17)
+		(uuid "bb8002b0-4276-4158-bef5-2936cc904630")
+	)
+	(wire
+		(pts
+			(xy 203.2 95.25)
+			(xy 203.2 99.06)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "948d4913-7cfa-4ec7-a656-59e8f9b1f0f1")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 203.2 99.06 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "6fde9741-759d-4f80-a266-fcb781751ec6")
+		(property "Reference" "#PWR025"
+			(at 203.2 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+			(hide yes)
+		)
+		(property "Value" "GND"
+			(at 203.2 102.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 203.2 99.06 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 203.2 99.06 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 203.2 99.06 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e8f09455-eb5d-4e3d-ab68-8d8956c6b47f")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR025")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(text "OFF"
+		(at 205.74 90.17 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "022100bc-6b98-40bc-9766-ea6338787291")
+	)
+	(text "ON"
+		(at 205.74 95.25 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "1c180792-46da-462f-a87d-8ac19ebd3cc5")
+	)
+	(text "F1 provisional: verify motor / fan current before fabrication."
+		(at 142.24 17.78 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "337b4559-df94-4745-9a65-bbc1e7dfcab3")
+	)
+	(text "SW3 switches battery only; USB can still power the controller."
+		(at 142.24 20.32 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "d9375c84-52ba-46ef-b8f0-bb5714a1bd65")
+	)
+	(wire
+		(pts
+			(xy 60.96 137.16)
+			(xy 66.04 137.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f1df6e7c-c020-436f-9431-54fcdd010b07")
+	)
+	(wire
+		(pts
+			(xy 73.66 137.16)
+			(xy 87.63 137.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f1061b38-94b2-4a1c-bec4-2a940bd96839")
+	)
+	(symbol
+		(lib_id "Device:Polyfuse")
+		(at 69.85 137.16 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "bdc3c345-5ecd-4687-be8c-1c49ac2d9b17")
+		(property "Reference" "F2"
+			(at 69.85 129.54 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "500mA 15V"
+			(at 69.85 132.08 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Fuse:Fuse_1812_4532Metric"
+			(at 69.85 137.16 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.bourns.com/docs/product-datasheets/mf-msmf.pdf"
+			(at 69.85 137.16 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "USB PPTC: 0.5A hold / 1A trip at 23C, 15V, 100A maximum fault current."
+			(at 69.85 137.16 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "MF-MSMF050-2"
+			(at 69.85 137.16 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "53e69745-ceef-46fd-8181-446c41f89d0d")
+		)
+		(pin "2"
+			(uuid "68bfd5b2-7fe1-4fc1-9c2b-9297dc25db6b")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "F2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:D_Zener")
+		(at 246.38 173.99 270)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "19f849f3-ccec-4f2f-b5e2-5c15cbc5dc81")
+		(property "Reference" "D6"
+			(at 250.19 172.72 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "SMBJ9.0A"
+			(at 250.19 175.26 270)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Diode_SMD:D_SMB"
+			(at 246.38 173.99 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.vishay.com/docs/88392/smbj.pdf"
+			(at 246.38 173.99 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unidirectional 600W TVS: 9V standoff, 10-11.1V breakdown, 15.4V clamp at 39A (10/1000us). K=1, A=2."
+			(at 246.38 173.99 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "SMBJ9.0A-E3/52"
+			(at 246.38 173.99 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "cf699ee9-06f7-477b-9199-129fc5ef68df")
+		)
+		(pin "2"
+			(uuid "1d4a1349-89c7-4a8d-8b47-028aea37a109")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "D6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 246.38 170.18)
+			(xy 246.38 166.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c81def01-a791-40c7-b4d4-c3b5de713951")
+	)
+	(label "VBAT"
+		(at 246.38 166.37 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "5be07517-a6fd-4ed9-968b-7620c22d4a7c")
+	)
+	(wire
+		(pts
+			(xy 246.38 177.8)
+			(xy 246.38 181.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e360f035-b225-47d7-9064-90a16fd4c737")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 246.38 181.61 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "59e2c9fb-3574-4230-8038-b1cc59453199")
+		(property "Reference" "#PWR026"
+			(at 246.38 181.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+			(hide yes)
+		)
+		(property "Value" "GND"
+			(at 246.38 185.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 246.38 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 246.38 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 246.38 181.61 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "8cac7eae-9005-43dc-9259-57403fd99aaa")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR026")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(text "D6: place at J2 battery pins, short GND return."
+		(at 231.14 190.5 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "4c5e8db7-9887-49ac-8caa-3b43d9dc29e9")
 	)
 	(sheet_instances
 		(path "/"
