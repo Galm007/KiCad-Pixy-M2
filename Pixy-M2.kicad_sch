@@ -4668,6 +4668,18 @@
 		(color 0 0 0 0)
 		(uuid "3a0080d2-bf2c-4bfe-81a5-54958e58a49e")
 	)
+	(junction
+		(at 180.34 160.02)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a21fce5a-2959-4479-81b6-bb069cf7e3a3")
+	)
+	(junction
+		(at 203.2 160.02)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6bf21ea9-e410-4026-bfa2-fb43701bd6b1")
+	)
 	(wire
 		(pts
 			(xy 41.91 20.32) (xy 41.91 25.4)
@@ -5778,6 +5790,86 @@
 		)
 		(uuid "a0b64552-7942-4bf2-9bbc-e3de9412e23d")
 	)
+	(wire
+		(pts
+			(xy 180.34 146.05) (xy 180.34 148.59)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d614bc55-8425-4b34-9fee-f9b1578d6812")
+	)
+	(wire
+		(pts
+			(xy 180.34 156.21) (xy 180.34 160.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "17927ff4-a958-4193-bb5e-4c43025a2332")
+	)
+	(wire
+		(pts
+			(xy 180.34 160.02) (xy 203.2 160.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5b93e3e2-837a-4e06-85b6-85871cbe1482")
+	)
+	(wire
+		(pts
+			(xy 203.2 160.02) (xy 208.28 160.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5212375f-3ea3-4b68-b861-d965ed25f3ca")
+	)
+	(wire
+		(pts
+			(xy 180.34 160.02) (xy 180.34 163.83)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "684dd636-2b7a-43fa-9c3b-7af7b0e0bfa8")
+	)
+	(wire
+		(pts
+			(xy 180.34 171.45) (xy 180.34 173.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "90729ed1-2c0d-4b14-8fee-795769aa5380")
+	)
+	(wire
+		(pts
+			(xy 203.2 160.02) (xy 203.2 163.83)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8ab7373c-1bcc-4869-a944-268e98cfc62a")
+	)
+	(wire
+		(pts
+			(xy 203.2 171.45) (xy 203.2 173.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d035bde7-daeb-436f-9373-5fcee8a790fd")
+	)
 	(label "GPIO5"
 		(at 231.14 40.64 0)
 		(effects
@@ -6707,6 +6799,26 @@
 			(justify left bottom)
 		)
 		(uuid "1480accb-3c91-4a95-a920-d4095cc38cad")
+	)
+	(label "VBAT"
+		(at 180.34 146.05 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "cd6340fd-8d54-424d-a565-059f3328fb5e")
+	)
+	(label "VBAT_SENSE"
+		(at 208.28 160.02 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "297819e7-4465-4f9f-8a2f-31d4f1fce85d")
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")
@@ -11366,6 +11478,408 @@
 			(project "Pixy-M2"
 				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
 					(reference "D3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_US")
+		(at 180.34 152.4 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "1ea33134-349f-44da-87e9-351a2ce536c0")
+		(property "Reference" "R10"
+			(at 182.88 151.13 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "470kOhm 1%"
+			(at 182.88 153.67 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 180.34 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 180.34 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor, US symbol"
+			(at 180.34 152.4 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "06b97c9a-2119-45a8-9b34-92ce9aae4fbe")
+		)
+		(pin "2"
+			(uuid "50c82efc-2414-45fe-b952-b93508b37967")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "R10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_US")
+		(at 180.34 167.64 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "203edb4e-fc74-49d4-b4cb-49748b3241c1")
+		(property "Reference" "R11"
+			(at 182.88 166.37 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "220kOhm 1%"
+			(at 182.88 168.91 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 180.34 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 180.34 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Resistor, US symbol"
+			(at 180.34 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "7a56c9d1-238c-4494-b6dd-5e0ef16bd4ff")
+		)
+		(pin "2"
+			(uuid "5b72b9e4-f2fb-4be2-bc6f-f407a5f85360")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "R11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 203.2 167.64 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "23e6c051-cb2e-4b71-a792-0f7101f43803")
+		(property "Reference" "C14"
+			(at 207.01 166.37 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "0.1uF 50V"
+			(at 207.01 168.91 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 203.2 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 203.2 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Unpolarized capacitor"
+			(at 203.2 167.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "795514a3-256d-4899-b922-5f2531ce2ceb")
+		)
+		(pin "2"
+			(uuid "0e95500d-f48a-4ec1-9461-63ca6d3d48ac")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "C14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 180.34 173.99 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b9b23185-c1a9-4107-b987-60629240211d")
+		(property "Reference" "#PWR020"
+			(at 180.34 180.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 180.34 179.07 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 180.34 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 180.34 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 180.34 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "816672d8-783b-4c7a-9b75-b3a30097de8d")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR020")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 203.2 173.99 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "aace70ae-c000-44e9-bbbd-f973be85aaa4")
+		(property "Reference" "#PWR021"
+			(at 203.2 180.34 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 203.2 179.07 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 203.2 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 203.2 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 203.2 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "9d288f78-77e0-4089-86ce-56565b6e5bca")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
