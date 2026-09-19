@@ -3,7 +3,7 @@
 	(generator "eeschema")
 	(generator_version "10.0")
 	(uuid "fefb2c5c-cd05-4562-bf27-32a51f81fd04")
-	(paper "A4")
+	(paper "A3")
 	(lib_symbols
 		(symbol "Connector:Conn_01x22_Pin"
 			(pin_names
@@ -5786,6 +5786,319 @@
 						)
 					)
 					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "Connector_Generic_MountingPin:Conn_01x06_MountingPin"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "J"
+				(at 0 7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x06_MountingPin"
+				(at 1.27 -10.16 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Generic connectable mounting pin connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??-1MP*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Conn_01x06_MountingPin_1_1"
+				(rectangle
+					(start -1.27 6.35)
+					(end 1.27 -8.89)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 5.207)
+					(end 0 4.953)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -4.953)
+					(end 0 -5.207)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -7.493)
+					(end 0 -7.747)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.016 -9.652) (xy 1.016 -9.652)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(text "Mounting"
+					(at 0 -9.271 0)
+					(effects
+						(font
+							(size 0.381 0.381)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 5.08 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -7.62 0)
+					(length 3.81)
+					(name "Pin_6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -12.7 90)
+					(length 3.048)
+					(name "MountPin"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "MP"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -15011,6 +15324,1728 @@
 			(justify left)
 		)
 		(uuid "4c5e8db7-9887-49ac-8caa-3b43d9dc29e9")
+	)
+	(symbol
+		(lib_id "Connector_Generic_MountingPin:Conn_01x06_MountingPin")
+		(at 370.84 40.64 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "5ecb8bc4-c8ef-48e2-a95f-7a0096145e32")
+		(property "Reference" "J4"
+			(at 370.84 33.02 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SM06B-SRSS-TB"
+			(at 374.65 50.8 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal"
+			(at 370.84 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/eSH.pdf"
+			(at 370.84 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ToF sensor 1 (GY-VL53L0XV2, off-board): 1 VCC, 2 GND, 3 SCL, 4 SDA, 5 GPIO1 (n/c), 6 XSHUT=GPIO4."
+			(at 370.84 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "SM06B-SRSS-TB(LF)(SN)"
+			(at 370.84 40.64 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "7415f071-e107-4af7-ae0b-2205c898f157")
+		)
+		(pin "2"
+			(uuid "bc0e601c-3c2a-4acd-a636-1b2f4e57b5e9")
+		)
+		(pin "3"
+			(uuid "67634e34-25a1-42a1-be77-5f780c3be0cf")
+		)
+		(pin "4"
+			(uuid "5dfd53ce-9b76-474d-942f-d0f25ec4a036")
+		)
+		(pin "5"
+			(uuid "f92599cb-9a85-40c5-8d0a-5fa92ca987bc")
+		)
+		(pin "6"
+			(uuid "edee1239-50ba-4138-8194-8f526f00335f")
+		)
+		(pin "MP"
+			(uuid "30de53bc-9851-445d-a7e8-7825d1097bd6")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "ESP_3V3"
+		(at 365.76 35.56 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "fbfa8fad-5800-4b5c-8ebd-7f341ef4e6dc")
+	)
+	(label "GND"
+		(at 365.76 38.1 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "8fb9bb5b-0a95-402f-8fd9-948c47476f38")
+	)
+	(label "GPIO9"
+		(at 365.76 40.64 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b9b4f638-e4e7-4a7e-9f12-d12cffff4911")
+	)
+	(label "GPIO8"
+		(at 365.76 43.18 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "af72401b-660e-42d8-aec5-8df399a1c525")
+	)
+	(no_connect
+		(at 365.76 45.72)
+		(uuid "757c8ab9-4696-4fdb-876f-798db8eadb38")
+	)
+	(text "INT"
+		(at 363.22 45.72 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify right bottom)
+		)
+		(uuid "0a291ede-d402-49f1-b1ba-c7330b97387c")
+	)
+	(label "GPIO4"
+		(at 365.76 48.26 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "e3404900-d439-411d-b1dc-4c0b52b1962d")
+	)
+	(wire
+		(pts
+			(xy 370.84 53.34) (xy 370.84 55.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e9fda51e-bdd4-4d20-8a0f-4f58c7f5caff")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 370.84 55.88 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "75c2aa70-fba5-429f-8f02-3171c080cf1d")
+		(property "Reference" "#PWR027"
+			(at 370.84 62.23 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 370.84 60.96 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 370.84 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 370.84 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 370.84 55.88 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "75ef5531-2742-4fb1-be16-89d964e30c3d")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR027")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic_MountingPin:Conn_01x06_MountingPin")
+		(at 370.84 76.2 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4bdf9446-dab8-455c-8fbd-e87fbfda9e61")
+		(property "Reference" "J5"
+			(at 370.84 68.58 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SM06B-SRSS-TB"
+			(at 374.65 86.36 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal"
+			(at 370.84 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/eSH.pdf"
+			(at 370.84 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ToF sensor 2 (GY-VL53L0XV2, off-board): 1 VCC, 2 GND, 3 SCL, 4 SDA, 5 GPIO1 (n/c), 6 XSHUT=GPIO5."
+			(at 370.84 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "SM06B-SRSS-TB(LF)(SN)"
+			(at 370.84 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e884ac88-a4c8-4a11-ae88-01a04077c23b")
+		)
+		(pin "2"
+			(uuid "023c3272-4777-452b-b5ae-b12ef5e668d7")
+		)
+		(pin "3"
+			(uuid "1bad809a-1125-4cd0-974c-fbc8e6e6bca6")
+		)
+		(pin "4"
+			(uuid "525f1187-3fd8-4bac-b82a-accdda35fb61")
+		)
+		(pin "5"
+			(uuid "8962eb49-a158-4402-9328-9077c802e561")
+		)
+		(pin "6"
+			(uuid "093d3b70-e7c1-4c51-89d7-ed5659b12fd2")
+		)
+		(pin "MP"
+			(uuid "14c27bc4-76c9-4110-8259-acd17079eaa8")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "J5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "ESP_3V3"
+		(at 365.76 71.12 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c32837cc-4f4e-4dcf-990c-3181b00cff33")
+	)
+	(label "GND"
+		(at 365.76 73.66 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a1e69852-3a1d-4edf-860c-f86b3ecf3c26")
+	)
+	(label "GPIO9"
+		(at 365.76 76.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "841605fe-f716-441f-8093-17315155d32a")
+	)
+	(label "GPIO8"
+		(at 365.76 78.74 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "043b1838-e7c9-4870-9c9a-3b6b86c78aa0")
+	)
+	(no_connect
+		(at 365.76 81.28)
+		(uuid "420ba33e-edca-4724-b777-a5d77d035d65")
+	)
+	(text "INT"
+		(at 363.22 81.28 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify right bottom)
+		)
+		(uuid "39f61b38-874b-42f0-b51c-b2afcae31b40")
+	)
+	(label "GPIO5"
+		(at 365.76 83.82 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "95b97b82-b533-44ba-9c68-d40745881ccb")
+	)
+	(wire
+		(pts
+			(xy 370.84 88.9) (xy 370.84 91.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "834acee8-77c2-46ca-b890-f8e5a1dae384")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 370.84 91.44 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "e33edebc-b610-4792-94c6-6abcf83546ed")
+		(property "Reference" "#PWR028"
+			(at 370.84 97.79 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 370.84 96.52 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 370.84 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 370.84 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 370.84 91.44 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ac4b07ff-8dfa-447a-b2b1-9a945e4d02b5")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic_MountingPin:Conn_01x06_MountingPin")
+		(at 370.84 111.76 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "d2b9b5ef-d4e9-4e96-89e4-b36d2c888088")
+		(property "Reference" "J6"
+			(at 370.84 104.14 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SM06B-SRSS-TB"
+			(at 374.65 121.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal"
+			(at 370.84 111.76 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/eSH.pdf"
+			(at 370.84 111.76 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ToF sensor 3 (GY-VL53L0XV2, off-board): 1 VCC, 2 GND, 3 SCL, 4 SDA, 5 GPIO1 (n/c), 6 XSHUT=GPIO6."
+			(at 370.84 111.76 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "SM06B-SRSS-TB(LF)(SN)"
+			(at 370.84 111.76 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "eafb51a6-1cf2-4c02-8bf9-13328bececa6")
+		)
+		(pin "2"
+			(uuid "075023d2-8e68-47bc-97b7-88a60cbc923b")
+		)
+		(pin "3"
+			(uuid "ef2062d7-073c-492a-bfd4-e5a06a356c5c")
+		)
+		(pin "4"
+			(uuid "e3b21f1c-1152-4733-8e4a-f4aef4196ce9")
+		)
+		(pin "5"
+			(uuid "0b326623-8aae-4e26-af83-73a33349dec2")
+		)
+		(pin "6"
+			(uuid "d845eeed-0245-4dad-9e7e-a90b9604f349")
+		)
+		(pin "MP"
+			(uuid "dcf9a448-b5ef-486c-a009-ecab4098e68b")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "J6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "ESP_3V3"
+		(at 365.76 106.68 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "39c848d2-8725-4828-aa29-fc0bb8176586")
+	)
+	(label "GND"
+		(at 365.76 109.22 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "4b09d704-062c-4e35-86be-dd4cca6bedf0")
+	)
+	(label "GPIO9"
+		(at 365.76 111.76 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "5f5686e6-f41b-49fe-bb11-f6a5f2f51d2f")
+	)
+	(label "GPIO8"
+		(at 365.76 114.3 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "30da7eef-5125-433d-9866-79298b49f80a")
+	)
+	(no_connect
+		(at 365.76 116.84)
+		(uuid "f5fb483f-00f7-4b99-8cc4-ed418b0b1473")
+	)
+	(text "INT"
+		(at 363.22 116.84 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify right bottom)
+		)
+		(uuid "f4c94f02-26a7-4161-8cf3-8a92c67eb74e")
+	)
+	(label "GPIO6"
+		(at 365.76 119.38 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "767f7001-1f92-4a86-b98a-29c8b48e7845")
+	)
+	(wire
+		(pts
+			(xy 370.84 124.46) (xy 370.84 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "71bee59a-d8eb-4691-beb4-edfcf0d878e4")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 370.84 127 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "a1099fd1-6212-4ee1-894b-19610fec1f96")
+		(property "Reference" "#PWR029"
+			(at 370.84 133.35 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 370.84 132.08 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 370.84 127 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 370.84 127 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 370.84 127 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1d407c36-cf08-41bc-9f95-703e27838767")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR029")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector_Generic_MountingPin:Conn_01x06_MountingPin")
+		(at 370.84 147.32 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "93141920-5f2d-4f40-95f4-f6d8e1fc07b4")
+		(property "Reference" "J7"
+			(at 370.84 139.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SM06B-SRSS-TB"
+			(at 374.65 157.48 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal"
+			(at 370.84 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/eSH.pdf"
+			(at 370.84 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ToF sensor 4 (GY-VL53L0XV2, off-board): 1 VCC, 2 GND, 3 SCL, 4 SDA, 5 GPIO1 (n/c), 6 XSHUT=GPIO7."
+			(at 370.84 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "SM06B-SRSS-TB(LF)(SN)"
+			(at 370.84 147.32 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1e4328e6-1c1c-4b05-a261-bf11ff0a735e")
+		)
+		(pin "2"
+			(uuid "7df8517d-dc3f-4766-8042-b171bd28c7ea")
+		)
+		(pin "3"
+			(uuid "3d4da585-cdd4-4df6-b4c1-ebc404d13c73")
+		)
+		(pin "4"
+			(uuid "9ea43d04-f120-4015-95b4-7eadcaa3559d")
+		)
+		(pin "5"
+			(uuid "ebb3269a-d1cb-4d2c-a616-ce42fef1a69f")
+		)
+		(pin "6"
+			(uuid "8c455de4-afdb-484c-82af-4dd77ca1845a")
+		)
+		(pin "MP"
+			(uuid "80d4a695-852d-4a9e-b272-4522964fa30b")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "J7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "ESP_3V3"
+		(at 365.76 142.24 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "8b80c674-cb92-46b7-a0dc-3463b147b9d8")
+	)
+	(label "GND"
+		(at 365.76 144.78 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a88796be-d217-4aef-89a1-1180eb953308")
+	)
+	(label "GPIO9"
+		(at 365.76 147.32 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "93d75a9a-7bc5-453c-b991-a0fd320e58db")
+	)
+	(label "GPIO8"
+		(at 365.76 149.86 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "a631583c-3acc-4e2f-ad99-8e06019bc7bd")
+	)
+	(no_connect
+		(at 365.76 152.4)
+		(uuid "79f2a7bd-f787-4e40-8f4b-16e6604d7d55")
+	)
+	(text "INT"
+		(at 363.22 152.4 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify right bottom)
+		)
+		(uuid "1ab77850-191e-4a67-a9f3-e74b30892496")
+	)
+	(label "GPIO7"
+		(at 365.76 154.94 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "988cb1d2-dd1e-4c4c-ad05-6f29a5f9edbf")
+	)
+	(wire
+		(pts
+			(xy 370.84 160.02) (xy 370.84 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0be1072d-ee77-4db5-b1bb-67c9198815fd")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 370.84 162.56 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "c266e492-b1d3-4270-9b78-9bd395e43521")
+		(property "Reference" "#PWR030"
+			(at 370.84 168.91 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 370.84 167.64 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 370.84 162.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 370.84 162.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 370.84 162.56 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "073df2f2-ff3d-4981-a378-2221bf55ae11")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR030")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_US")
+		(at 307.34 170.18 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "4d1f4902-9f78-4011-9a93-fb9775c04cac")
+		(property "Reference" "R15"
+			(at 307.34 167.64 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "2.2kOhm"
+			(at 307.34 165.1 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 307.34 170.18 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 307.34 170.18 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "I2C SDA pull-up to 3V3. One pair per bus, at the host end."
+			(at 307.34 170.18 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "e4032ec1-25e8-43e0-ab62-a0c74be3cbfb")
+		)
+		(pin "2"
+			(uuid "21833cfc-5197-4253-b938-16ffb92b3a9f")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "R15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 303.53 170.18) (xy 299.72 170.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6f56dace-f435-4793-a13b-f2ff6376f532")
+	)
+	(label "ESP_3V3"
+		(at 299.72 170.18 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3c8ab69e-e9f6-4314-b202-75ebbacdafda")
+	)
+	(wire
+		(pts
+			(xy 311.15 170.18) (xy 314.96 170.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "68ebffa5-2c9e-4132-875b-832253f72b2d")
+	)
+	(label "GPIO8"
+		(at 314.96 170.18 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3c37abdc-bd29-45cf-933f-3265418c35b3")
+	)
+	(symbol
+		(lib_id "Device:R_US")
+		(at 307.34 182.88 90)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "42c4c61e-182e-4c61-8f64-b6f3438a8e23")
+		(property "Reference" "R16"
+			(at 307.34 180.34 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "2.2kOhm"
+			(at 307.34 177.8 90)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+			(at 307.34 182.88 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 307.34 182.88 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "I2C SCL pull-up to 3V3. One pair per bus, at the host end."
+			(at 307.34 182.88 90)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "ad523cd8-517e-4a87-951d-e0fd88ab479c")
+		)
+		(pin "2"
+			(uuid "9bbf7688-834f-4afb-8c42-5ab568d684da")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "R16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 303.53 182.88) (xy 299.72 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fd6c2874-2797-4b49-91a4-3ed10969b918")
+	)
+	(label "ESP_3V3"
+		(at 299.72 182.88 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "77e3ef27-f922-437b-a32b-a1a75983e936")
+	)
+	(wire
+		(pts
+			(xy 311.15 182.88) (xy 314.96 182.88)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "184ac4e0-6425-48b2-9ee8-35423f3f7262")
+	)
+	(label "GPIO9"
+		(at 314.96 182.88 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "b7035626-642d-45e6-92d9-1b81d4bb78c7")
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 332.74 173.99 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "f591d98c-7a90-4828-a306-d48a7c1b6882")
+		(property "Reference" "C15"
+			(at 336.55 172.72 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "10uF 16V"
+			(at 336.55 175.26 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 332.74 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 332.74 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ToF rail reservoir at J4-J7: 40mA VCSEL peak per sensor."
+			(at 332.74 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1c08d046-9499-4cbb-89e0-f0a0224cbabc")
+		)
+		(pin "2"
+			(uuid "4cb91793-b6a1-4ed1-a463-e95025f734bb")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "C15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 332.74 170.18) (xy 332.74 166.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d6f60579-d910-4039-a5ab-6f3bf4def6a7")
+	)
+	(label "ESP_3V3"
+		(at 332.74 166.37 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a03134c4-e8bc-4b94-a2fb-6fa655aec045")
+	)
+	(wire
+		(pts
+			(xy 332.74 177.8) (xy 332.74 181.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e266535a-9e4e-43f9-a3d8-834a9287e301")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 332.74 181.61 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "b215eef9-2e78-4616-a6c7-8c95240e855e")
+		(property "Reference" "#PWR031"
+			(at 332.74 187.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 332.74 186.69 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 332.74 181.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 332.74 181.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 332.74 181.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b30912df-abe8-4626-bdd0-5739840d7cbe")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR031")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 353.06 173.99 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "6bae06a8-5433-440a-acff-3812ac3b3029")
+		(property "Reference" "C16"
+			(at 356.87 172.72 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "0.1uF 16V"
+			(at 356.87 175.26 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 353.06 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 353.06 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "ToF rail HF decoupling at J4-J7."
+			(at 353.06 173.99 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "bc7d9844-f2fe-424e-8beb-9214109dde8f")
+		)
+		(pin "2"
+			(uuid "4c7ce46b-6eda-46b4-8cb9-21ac544ea415")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "C16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 353.06 170.18) (xy 353.06 166.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "28fcc9ba-dded-4112-a8d7-97dc5019f541")
+	)
+	(label "ESP_3V3"
+		(at 353.06 166.37 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "dfe68df3-a5f0-4e8c-9d9e-98409df841fe")
+	)
+	(wire
+		(pts
+			(xy 353.06 177.8) (xy 353.06 181.61)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c8568884-74d6-47b9-80de-4b4ea1394abf")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 353.06 181.61 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "d35f2cc2-f109-469f-b370-5281335e2f90")
+		(property "Reference" "#PWR032"
+			(at 353.06 187.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 353.06 186.69 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 353.06 181.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 353.06 181.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 353.06 181.61 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "d1257fc2-bbf5-4a89-a9d9-59187382ee58")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(text "VL53L0X ToF modules (GY-VL53L0XV2) on cables. J4-J7 match the module header 1:1:"
+		(at 292.1 13.97 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "451e2234-9144-4843-8625-25688f06d7b9")
+	)
+	(text "1 VCC, 2 GND, 3 SCL (GPIO9), 4 SDA (GPIO8), 5 GPIO1 = sensor interrupt, not used, 6 XSHUT."
+		(at 292.1 16.51 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "d121d2c4-6484-42b9-ad11-4353a0545f60")
+	)
+	(text "The module pulls XSHUT up to its own 2V8 rail, so all four wake enabled at address 0x29."
+		(at 292.1 19.05 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "81cd1deb-c1eb-49dd-9ab8-b1aeb1129ad0")
+	)
+	(text "Firmware must pull every XSHUT low first, then release one at a time and re-address it."
+		(at 292.1 21.59 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "abc97774-4608-44ca-bec4-1a52f6dc1003")
+	)
+	(text "Drive GPIO4-7 OPEN-DRAIN: low to shut a sensor down, float to let the module pull it up."
+		(at 292.1 24.13 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "28bf6306-1886-46c0-a621-bf9811e0210a")
+	)
+	(text "Module VIN 3.0-5.0V, regulates to 2.8V on board. Firmware must set 2V8 I/O (reg 0x89 bit 0)."
+		(at 292.1 26.67 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "cc47cab2-61ab-48fc-9124-61d26b114f90")
+	)
+	(text "R15/R16: I2C bus pull-ups, fitted once per bus at the host - VL53L0X datasheet Fig. 3."
+		(at 292.1 192.02 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "4ecb5437-07eb-4b7c-8e40-46da8a6fae3c")
+	)
+	(text "C15/C16: local reservoir for the four modules; ~19mA average each while ranging, 40mA VCSEL peak."
+		(at 292.1 194.56 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "335a1f47-b4c3-4efc-bca2-4b68043d0fb9")
 	)
 	(sheet_instances
 		(path "/"

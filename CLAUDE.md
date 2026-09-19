@@ -6,8 +6,9 @@ Context for a Claude Code session working on this KiCad project via the KiCad MC
 
 Controller PCB for a micromouse robot. An **ESP32-S3-WROOM-1** module is soldered
 directly to this board. The board carries the MCU, USB-C programming/power port,
-and a buck converter; motors, motor drivers, IR emitters/receivers, and the IMU live
-on a daughterboard that mates through two 22-pin headers (J2, J3).
+a buck converter, and four JST-SH connectors (J4–J7) for **off-board VL53L0X
+time-of-flight wall sensors**; motors, motor drivers and the IMU live on a
+daughterboard that mates through two 22-pin headers (J2, J3).
 
 Power comes from a **2S LiPo (7.4V nominal, 8.4V full charge)** via an XT30 connector,
 F1 battery polyfuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
@@ -39,9 +40,9 @@ Diff the net list against the previous export after every structural edit. Close
 KiCad before editing `.kicad_sch` on disk — `~Pixy-M2.kicad_sch.lck` tells you the
 GUI has it open, and whichever side saves last wins.
 
-**Netlist last re-extracted: 2026-09-19, after the issue-1 L1 field fix.** That edit
-touched component fields only — the connectivity is unchanged since the issue-7
-battery switch, fuses and TVS. The tables below are current as of that extraction.
+**Netlist last re-extracted: 2026-09-19, after the issue-14 ToF sensor connectors.**
+The tables below are current as of that extraction. The schematic sheet was also
+changed from A4 to **A3** to make room for the sensor block.
 
 ## Verified correct — do not re-flag these
 
@@ -58,8 +59,12 @@ These were checked against the actual netlist and are right. If a review pass
   pins 3/4 on D+, pin 5 on VBUS, pin 2 on GND.
 - **Shield.** J1.SH via R5 (1M) ‖ C8 (4.7nF) to GND.
 - **All four VBUS and all four GND pins of J1 are tied together.**
-- **All 41 module pins land on a net.** Three of them land on a *single-pin* net
-  though — `GPIO3`, `GPIO45`, `GPIO46` — see issue 12.
+- **All 41 module pins land on a net.** Two of them land on a *single-pin* net
+  though — `GPIO45` and `GPIO46` — see issue 12. (`GPIO3` was the third until the
+  issue-13 status LED took it.)
+- **I2C is GPIO8 (SDA) / GPIO9 (SCL)**, pulled up by R15/R16 and shared by the four
+  ToF connectors. Each connector also has its own XSHUT line — `GPIO4`–`GPIO7`, one
+  per sensor. This is deliberate, not redundant: see issue 14.
 - **U3's EN is independently driven** (issue 2). `VSYS` carries U3.3 (IN) only; EN is
   on `REG_EN`. If a review reports EN tied to IN, it is reading a stale netlist.
 - **Boot/reset.** SW1 pulls CHIP_PU low (R2 10k pull-up, C3 1µF, C4 0.1µF debounce);
@@ -69,7 +74,7 @@ These were checked against the actual netlist and are right. If a review pass
 
 | Net | Members |
 |---|---|
-| `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, J3.1, J3.2, L1.2, R2.1, R12.1, TP2.1, U1.2, U3.1(FB) |
+| `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, C15.1, C16.1, J3.1, J3.2, J4.1, J5.1, J6.1, J7.1, L1.2, R2.1, R12.1, R15.1, R16.1, TP2.1, U1.2, U3.1(FB) |
 | `VSYS` | C12.1, D1.1(K), D2.1(K), U3.3(IN) |
 | `REG_EN` | C13.1, R7.2, R8.1, R9.2, U3.2(EN) |
 | `VBAT_RAW` | BT1.1(+), F1.1 |
@@ -88,8 +93,21 @@ These were checked against the actual netlist and are right. If a review pass
 | `Net-(D4-A)` | D4.2(A), R12.2 |
 | `Net-(D5-A)` | D5.2(A), R13.2 |
 
-`GND` additionally carries D4.1(K), D5.1(K), TP3.1, D6.2(A) and SW3.3(ON).
-SW3.1 (OFF) is intentionally marked no-connect.
+`GND` additionally carries D4.1(K), D5.1(K), TP3.1, D6.2(A), SW3.3(ON), C15.2,
+C16.2 and, for each of J4–J7, both pin 2 and the `MP` mounting pegs.
+SW3.1 (OFF) is intentionally marked no-connect, as are **J4.5–J7.5** (the modules'
+interrupt pin — issue 14).
+
+The four ToF connector nets (issue 14):
+
+| Net | Members |
+|---|---|
+| `GPIO9` (SCL, conn. pin 3) | U1.17, J3.15, J4.3, J5.3, J6.3, J7.3, R16.2 |
+| `GPIO8` (SDA, conn. pin 4) | U1.12, J3.14, J4.4, J5.4, J6.4, J7.4, R15.2 |
+| `GPIO4` (XSHUT 1, conn. pin 6) | U1.4, J3.4, J4.6 |
+| `GPIO5` (XSHUT 2, conn. pin 6) | U1.5, J3.5, J5.6 |
+| `GPIO6` (XSHUT 3, conn. pin 6) | U1.6, J3.6, J6.6 |
+| `GPIO7` (XSHUT 4, conn. pin 6) | U1.7, J3.8, J7.6 |
 
 `VCC_USB_5V` has been **renamed `VSYS`**. It is the diode-OR output and sits at up to
 **~8.1V** on a full pack, so the old "5V" name was actively misleading. `VBAT` and
@@ -103,11 +121,18 @@ pins are gone (issue 4 resolved). J3 carries GPIO4–18, 3V3, CHIP_PU, and GND o
 partly addressed). GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — though
 `GPIO3` now drives the issue-13 status LED, so only GPIO45/46 are truly unused.
 
+**`GPIO4`–`GPIO9` are now claimed by the ToF sensors (issue 14) and are still on
+J3.4/5/6/8/14/15.** They were not removed from the header — J3 is a plain GPIO
+breakout and the daughterboard IMU will want the same I2C bus — but a daughterboard
+must not *drive* any of those six pins. Six of J3's fifteen GPIOs are spoken for;
+all fourteen of J2's remain free.
+
 ## Open issues
 
 Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
 3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 7 (switch/fuses/TVS added;
-battery fuse sizing remains provisional), 11 (module variant), 13 (conveniences).**
+battery fuse sizing remains provisional), 11 (module variant), 13 (conveniences),
+14 (ToF wall sensors).**
 **Nothing blocks layout any more.** Items 6, 8–10 and 12 are still open but none of
 them gate starting the PCB. Confirm the issue-7 load/fault-current budget before
 fabrication.
@@ -508,6 +533,120 @@ the SW-island note in "Layout constraints". It is a 1.5mm pad, deliberately the
 smallest in the `TestPoint` library, but it still has to be placed as a stub off the
 existing island rather than allowed to grow it.
 
+### 14. VL53L0X wall sensors — IMPLEMENTED (2026-09-19)
+
+Four **VL53L0X** time-of-flight modules replace the IR emitter/receiver pairs the
+original architecture note assumed. **The sensors are off-board**: this PCB carries
+only the connectors, the shared bus pull-ups and the local rail decoupling, so the
+modules can be aimed mechanically at the maze walls. Eight parts added.
+
+**The fitted module is the GY-VL53L0XV2 (silkscreen `HW-842`)** and J4–J7 reproduce
+its 6-pin header **in the module's own order**, so the cable is a straight-through
+1:1 loom with no crossovers to get wrong:
+
+| Conn. pin | Module silkscreen | Net |
+|---:|---|---|
+| 1 | VCC | `ESP_3V3` |
+| 2 | GND | `GND` |
+| 3 | SCL | `GPIO9` |
+| 4 | SDA | `GPIO8` |
+| 5 | GPIO1 | **no-connect** (sensor interrupt, not used) |
+| 6 | XSHUT | `GPIO4` / `GPIO5` / `GPIO6` / `GPIO7` |
+
+```
+   ESP_3V3 --[R15 2.2k]-- GPIO8 (SDA) --> J4.4  J5.4  J6.4  J7.4
+   ESP_3V3 --[R16 2.2k]-- GPIO9 (SCL) --> J4.3  J5.3  J6.3  J7.3
+
+   GPIO4 --> J4.6    GPIO5 --> J5.6    GPIO6 --> J6.6    GPIO7 --> J7.6   (XSHUT)
+
+   ESP_3V3 --+--[C15 10uF]-- GND       ESP_3V3 --> J4.1  J5.1  J6.1  J7.1
+             +--[C16 100nF]-- GND      GND     --> J4.2  J5.2  J6.2  J7.2
+                                               and the MP mounting pegs
+```
+
+| Ref | Value | Footprint | Role |
+|---|---|---|---|
+| J4–J7 | `SM06B-SRSS-TB` | `Connector_JST:JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal` | one per sensor |
+| R15 | 2.2kOhm | `Resistor_SMD:R_0805_2012Metric` | SDA pull-up |
+| R16 | 2.2kOhm | `Resistor_SMD:R_0805_2012Metric` | SCL pull-up |
+| C15 | 10uF 16V | `Capacitor_SMD:C_0805_2012Metric` | ToF rail reservoir |
+| C16 | 0.1uF 16V | `Capacitor_SMD:C_0603_1608Metric` | ToF rail HF decoupling |
+
+The two `MP` mounting pegs are tied to GND. **Pin 5 carries a no-connect flag**, so
+the pad and the cable conductor exist but go nowhere on this board — wiring the
+interrupts later is a trace change, not a connector change.
+
+**Every VL53L0X powers up at I2C address 0x29 and the address is volatile**, so four
+on one bus is only possible with a per-sensor XSHUT. Firmware holds all four low,
+then releases one at a time and writes a new address to register 0x8A before moving
+on. This repeats on every power cycle — nothing is stored in the device.
+
+**GPIO4–GPIO7 float at reset, and the module pulls XSHUT up.** Verified against the
+ESP32-S3 datasheet v2.2 Table 2-1: GPIO4–8 have a *blank* "At Reset" and "After
+Reset" column — no internal pull-up, no pull-down, input buffer disabled. The
+GY-VL53L0XV2 pulls XSHUT (active low) up to its own regulated rail, so **all four
+sensors come out of reset enabled and all four answer to 0x29 at once.** That is the
+state firmware inherits; it is not a fault, but nothing works until firmware resolves
+it. Two consequences:
+
+- **Drive GPIO4–7 as open-drain outputs, not push-pull** (`GPIO_MODE_OUTPUT_OD`).
+  Pull low to shut a sensor down; release to high-Z and let the module's own pull-up
+  enable it. This matters: the module's XSHUT sits on a 2.8V rail, and the datasheet
+  says high levels "have to be equal to AVDD in 2V8 mode" — a push-pull 3.3V drive
+  is inside the 3.6V absolute maximum but outside that. Open-drain sidesteps it
+  entirely and costs nothing.
+- **Drive them low as firmware's first act**, before any I2C traffic, so the bus is
+  not contended by four devices at the same address.
+- Do **not** add a pull-down on this board to "fix" the float — it would divide
+  against the module's pull-up and park XSHUT at an indeterminate level.
+
+**3.3V is in spec; no 2.8V rail or level shifter is needed on this board.** The
+datasheet gives AVDD 2.6/2.8/3.5V recommended with a 3.6V absolute maximum, and ST
+support states plainly: *"Go ahead and use 3v3… just try to keep the voltage less
+than 3.5."* The GY-VL53L0XV2 takes 3.0–5.0V on VCC, regulates it to 2.8V itself and
+level-shifts SCL/SDA to the VCC rail — which is exactly why R15/R16 pull up to
+`ESP_3V3` and not to some other reference.
+
+**Leave the driver's 2V8 I/O mode on.** Table 7 note 4: *"The default API mode is
+1V8."* The part's pads have to be told they are running from a 2.6–3.5V supply
+rather than 1.8V; it is a single write to register 0x89
+(`VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV`) bit 0, which `VL53L0X_DataInit()` performs and
+Pololu's driver exposes as `io_2v8` — **on by default in both**. So this is "do not
+turn it off" rather than "remember to add it". Nothing is damaged either way (abs
+max on SCL/SDA/XSHUT/GPIO1 is 3.6V); 1V8 mode just leaves the pads mis-configured
+for the rail they are actually on.
+
+**R15/R16 = 2.2kΩ, and they belong here rather than on the modules.** The datasheet
+says pull-ups are *"typically fitted only once per bus, near the host"* and
+recommends 1.5–2kΩ for AVDD 2.8V at 400kHz; 2.2k is that value scaled to 3.3V. It
+sinks 1.5mA against a 4mA VOL spec, and at ~100pF of bus plus cable it gives a
+~190ns rise, inside fast mode's 300ns. **If the fitted modules carry their own 10k
+pull-ups**, four in parallel with this pair lands near 1.2kΩ — 2.8mA, still legal,
+but re-check it against the module's actual schematic. 4.7k here would have been
+too slow for 400kHz on its own.
+
+**GPIO1 (the modules' open-drain interrupt) is deliberately not wired** — the
+datasheet sanctions it: *"GPIO1 to be left unconnected if not used."* Firmware polls
+the status register, which is normal for continuous-mode ranging at ≤50Hz. The
+connector still carries the pin because it mirrors the module header, so adding
+interrupts later means running four traces to four of J2's free GPIOs (or wired-OR
+to one, since the outputs are open-drain) — the connector and cable already fit.
+
+**Current budget:** 19mA average per sensor while ranging and **40mA peak** during
+the VCSEL pulse, so ~76mA average and up to 160mA of pulsed load on `ESP_3V3` if all
+four fire together. That is nothing to the 2A AP63203, but it is why C15 exists: the
+modules' own caps sit on the far side of the cable inductance.
+
+**Not covered here:** there is no ESD protection on the sensor cables, and no way to
+power-cycle a hung module — XSHUT is the sanctioned reset and it is wired, so this
+is a considered omission rather than an oversight.
+
+**Verified:** netlist diff shows exactly the intended additions — `ESP_3V3`, `GND`,
+`GPIO4`–`GPIO9` gained the new members and **no other net changed**, with no
+auto-named `Net-(…)` strays. ERC is unchanged at 0 errors and the same two
+GPIO45/GPIO46 warnings. The sheet was rendered and inspected: no overlapping text,
+and the block sits clear of the A3 border and title block.
+
 ## Layout constraints (for when layout starts)
 
 - Put **F1 immediately after BT1** and F2 immediately after J1's joined VBUS pins.
@@ -547,6 +686,22 @@ existing island rather than allowed to grow it.
   edge — not under the daughterboard, which mates over J2/J3 and will hide anything
   between them. Same for D5. Neither is timing- or noise-critical, so they are free
   placement; just keep both out of the antenna keep-out.
+- **J4–J7 go at the board edges, facing the walls they sense**, with their cable
+  exits pointing outward — they are side-entry parts, so the connector body sets the
+  cable direction. Keep them out from under the daughterboard, which mates over
+  J2/J3. Keep all four out of the antenna keep-out.
+- Put **C15 in the middle of the four connectors**, not next to the regulator: it is
+  there to serve the pulsed VCSEL load at the cable ends. C16 goes hard against
+  whichever connector is furthest from C15.
+- Route **SDA/SCL as a pair with a ground reference**, and keep R15/R16 near U1
+  rather than out at the connectors — "once per bus, near the host". The XSHUT lines
+  are DC and need no care beyond not running them alongside the SW node.
+- **Silkscreen J4–J7 with pin 1 and the sensor position** (FL/FR/L/R, or whatever the
+  mechanical design calls them), and silkscreen which XSHUT GPIO each one carries —
+  the address assignment order is a firmware constant that has to match the wiring.
+  Pin 1 is **VCC**, not GND: the connector follows the module's header order, so a
+  cable built "the usual way round" with GND first will put 3.3V into the sensor's
+  ground pin. Mark pin 1 unambiguously on the silkscreen.
 - **Silkscreen the test points** with their net names (VBAT, 3V3, GND, SW). An
   unlabelled 1.5mm pad is not a test point. Per issue 12, also silkscreen the header
   pins that carry strapping pins.
