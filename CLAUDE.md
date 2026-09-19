@@ -18,9 +18,10 @@ diode-OR'd with USB 5V, down-converted to 3.3V by an AP63203WU buck.
 
 ## Current status
 
-The schematic is complete. **ERC reports 0 errors and 3 warnings.** All three are
-`isolated_pin_label` (label on a single-pin net): `GPIO3`, `GPIO45`, `GPIO46` — the
-three unused strapping pins, see issue 12. Even so, ERC proves very little here: most issues below survive it, because
+The schematic is complete. **ERC reports 0 errors and 2 warnings.** Both are
+`isolated_pin_label` (label on a single-pin net): `GPIO45` and `GPIO46` — the two
+remaining unused strapping pins, see issue 12. (`GPIO3` cleared when the issue-13
+status LED took it.) Even so, ERC proves very little here: most issues below survive it, because
 ERC does not check footprint assignment, component ratings, saturation current, or
 whether a labelled header pin actually goes anywhere.
 
@@ -35,7 +36,8 @@ Diff the net list against the previous export after every structural edit. Close
 KiCad before editing `.kicad_sch` on disk — `~Pixy-M2.kicad_sch.lck` tells you the
 GUI has it open, and whichever side saves last wins.
 
-**Netlist last re-extracted: 2026-09-19, after the battery sense divider (issue 5).**
+**Netlist last re-extracted: 2026-09-19, after the issue-13 conveniences (LEDs and
+test points).**
 The tables
 below are current as of that extraction.
 
@@ -65,17 +67,22 @@ These were checked against the actual netlist and are right. If a review pass
 
 | Net | Members |
 |---|---|
-| `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, J3.1, J3.2, L1.2, R2.1, U1.2, U3.1(FB) |
+| `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, J3.1, J3.2, L1.2, R2.1, R12.1, TP2.1, U1.2, U3.1(FB) |
 | `VSYS` | C12.1, D1.1(K), D2.1(K), U3.3(IN) |
 | `REG_EN` | C13.1, R7.2, R8.1, R9.2, U3.2(EN) |
-| `VBAT` | BT1.1(+), D2.2(A), J2.19, J2.20, J2.21, J2.22, R7.1, R10.1 |
+| `VBAT` | BT1.1(+), D2.2(A), J2.19, J2.20, J2.21, J2.22, R7.1, R10.1, TP1.1 |
 | `VBUS` | D1.2(A), D3.2(A), J1.A4/A9/B4/B9, U2.5 |
 | `CHIP_PU` | C3.1, C4.2, J3.3, R2.2, SW1.1, U1.3(EN) |
 | `GPIO0` | C5.2, SW2.1, U1.27 |
 | `VBAT_SENSE` | C14.1, R10.2, R11.1, U1.39 (GPIO1/ADC1_CH0) |
 | `Net-(D3-K)` | D3.1(K), R9.1 |
-| SW node (unnamed) | C6.2, L1.1, U3.5 |
+| SW node (`Net-(U3-SW)`) | C6.2, L1.1, TP4.1, U3.5 |
 | BST (unnamed) | C6.1, U3.6 |
+| `GPIO3` | R13.1, U1.15 |
+| `Net-(D4-A)` | D4.2(A), R12.2 |
+| `Net-(D5-A)` | D5.2(A), R13.2 |
+
+`GND` additionally carries D4.1(K), D5.1(K) and TP3.1.
 
 `VCC_USB_5V` has been **renamed `VSYS`**. It is the diode-OR output and sits at up to
 **~8.1V** on a full pack, so the old "5V" name was actively misleading. `VBAT` and
@@ -86,14 +93,16 @@ Header assignments have moved on from the original extraction. J2 carries GPIO2,
 35–44, 47, 48, GND on 1/6/12/18, and **VBAT on 19–22**; the dead `GPIO19`/`GPIO20`
 pins are gone (issue 4 resolved). J3 carries GPIO4–18, 3V3, CHIP_PU, and GND on
 7/12/17/22. There are now **8 ground pins across the two headers**, not 4 (issue 6
-partly addressed). GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all.
+partly addressed). GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — though
+`GPIO3` now drives the issue-13 status LED, so only GPIO45/46 are truly unused.
 
 ## Open issues
 
 Ordered by severity. **Resolved since this list was written: 2 (UVLO), 3 (U1
-footprint), 4 (dead header pins), 5 (battery sense), 11 (module variant).** Item 1
-has regressed into a new inconsistency and is now the only thing that blocks layout.
-Items 6–10, 12 and 13 are still open but none of them gate starting the PCB.
+footprint), 4 (dead header pins), 5 (battery sense), 11 (module variant), 13
+(conveniences).** Item 1 has regressed into a new inconsistency and is now the only
+thing that blocks layout. Items 6–10 and 12 are still open but none of them gate
+starting the PCB.
 
 ### 1. L1 — Value and Footprint name two different parts — BLOCKS LAYOUT
 
@@ -332,12 +341,15 @@ broken out on J2.14/13/11) are consumed by octal PSRAM only on `-R8` parts, so o
 N16 they are genuinely free. Do not substitute an `-N8R8` or `-N16R8` part without
 deleting those three header pins.
 
-### 12. Three unused strapping pins are left floating
+### 12. Two unused strapping pins are left floating
 
-Stale as written: GPIO45 and GPIO46 are **not** on the headers any more. Together
-with GPIO3 they are simply unconnected on the module (U1.26, U1.16, U1.15), which is
-what the three remaining ERC warnings are about. Internal weak pulldowns cover the
-floating case, so the board boots — this is tidiness, not a fault.
+Stale as written: GPIO45 and GPIO46 are **not** on the headers any more. They are
+simply unconnected on the module (U1.26, U1.16), which is what the two remaining ERC
+warnings are about. Internal weak pulldowns cover the floating case, so the board
+boots — this is tidiness, not a fault.
+
+**GPIO3 is no longer one of them.** It now drives the issue-13 status LED (U1.15 →
+R13 → D5 → GND), which is exactly the use the table below sanctions.
 
 Researched while choosing a gate pin for issue 5; recorded so the next person does
 not have to repeat it. **If any of these are ever used, the risk is not equal:**
@@ -346,16 +358,59 @@ not have to repeat it. **If any of these are ever used, the risk is not equal:**
 |---|---|---|
 | GPIO45 | VDD_SPI voltage select | **Sets flash rail to 1.8V — board will not boot.** Treat as unusable. |
 | GPIO46 | ROM UART print control | GPIO46=1 **with GPIO0=0 is an invalid combination** with undefined behaviour — and GPIO0 is the BOOT button (SW2), so this bites exactly when someone is trying to flash. |
-| GPIO3 | JTAG signal source | Harmless. No effect unless the `JTAG_SEL_ENABLE` eFuse is burned, and its safe state is low. The only one of the three safe to repurpose. |
+| GPIO3 | JTAG signal source | Harmless. No effect unless the `JTAG_SEL_ENABLE` eFuse is burned, and its safe state is low. The only one of the three safe to repurpose — **now used** by the status LED. |
 
 GPIO0 is also a strapping pin and is used correctly (SW2 boot button). Worth a
 silkscreen note on the headers at minimum.
 
-### 13. Missing conveniences
+### 13. Missing conveniences — RESOLVED (2026-09-19)
 
-- Power LED on 3V3 with a **10k** series resistor (not 1k — battery life matters)
-- At least one status LED on a spare GPIO
-- Test points on VBAT, 3V3, GND, and the SW node
+All three are built. Nine parts added: D4/R12, D5/R13, TP1–TP4.
+
+```
+   ESP_3V3 --[R12 10k]--|>|-- GND        D4 = red    ~150uA
+   GPIO3   --[R13 2.2k]-|>|-- GND        D5 = green  ~550uA when lit
+```
+
+| Ref | Value | Footprint | Net |
+|---|---|---|---|
+| R12 | 10kOhm | `Resistor_SMD:R_0805_2012Metric` | ESP_3V3 → D4 |
+| D4 | Red | `LED_SMD:LED_0805_2012Metric` | power indicator |
+| R13 | 2.2kOhm | `Resistor_SMD:R_0805_2012Metric` | GPIO3 → D5 |
+| D5 | Green | `LED_SMD:LED_0805_2012Metric` | status indicator |
+| TP1 | VBAT | `TestPoint:TestPoint_Pad_D1.5mm` | `VBAT` |
+| TP2 | 3V3 | `TestPoint:TestPoint_Pad_D1.5mm` | `ESP_3V3` |
+| TP3 | GND | `TestPoint:TestPoint_Pad_D1.5mm` | `GND` |
+| TP4 | SW | `TestPoint:TestPoint_Pad_D1.5mm` | `Net-(U3-SW)` |
+
+**The power LED must be a high-efficiency red part.** 10k was specified, and that
+constrains the colour rather than the other way round: at 3.3V a 10k resistor only
+delivers (3.3 − Vf)/10k, so a 3.0–3.2V pure-green InGaN part would get ~10µA and
+effectively not light. Red (Vf ≈ 1.7–1.9V at these currents) gives **~150µA**, which
+is dim but clearly visible indoors on a modern part. Do not substitute blue/white/
+pure-green without raising the rail current budget or dropping the resistor.
+
+**~150µA is not free.** It does not add to the issue-7 standing-drain problem — D4
+hangs off `ESP_3V3`, so it dies with the rail when the regulator is off or UVLO
+trips, unlike the two `VBAT` dividers. But it **will dominate deep sleep**: an
+ESP32-S3 in deep sleep draws ~10µA, so the power LED is ~15× the MCU. If firmware
+ever relies on deep sleep for pack life, D4 is the first thing to cut — fit it DNP,
+or move it behind a GPIO.
+
+**D5 is wired active-high (GPIO3 → R13 → anode, cathode to GND) deliberately.** At
+reset GPIO3 is high-Z with an internal ~45kΩ pulldown and the LED cannot conduct
+below its Vf, so the pin sits at 0V — which is GPIO3's safe strapping state (see
+issue 12). An active-low arrangement (3V3 → LED → GPIO) would have held the pin near
+the rail at reset. Firmware drives GPIO3 **high** to light it.
+
+2.2k for the status LED rather than 10k: it is firmware-gated so it costs nothing
+when off, and ~550µA through a modern green 0805 is unambiguously visible, where
+10k would have been marginal. Well inside the ESP32-S3's 40mA per-pin limit.
+
+**TP4 is on the SW node and that is in tension with the layout rules below** — see
+the SW-island note in "Layout constraints". It is a 1.5mm pad, deliberately the
+smallest in the `TestPoint` library, but it still has to be placed as a stub off the
+existing island rather than allowed to grow it.
 
 ## Layout constraints (for when layout starts)
 
@@ -368,6 +423,12 @@ silkscreen note on the headers at minimum.
 - Keep the **SW copper island small** — it is the primary radiator. Note the SRP5030T
   is a 5×5mm part, so its SW-side pad is already a substantial copper area. Place the
   inductor tight against U3 and do not let that pad grow into a pour.
+- **TP4 sits on that same SW island, so it fights the rule above.** Hang it off the
+  U3.5–L1.1 run as a short stub on the *quiet* side, away from the L1 pad; do not
+  centre the island on it and do not widen the trace to reach it. If the island ends
+  up marginal, TP4 is the part to drop — the scope probe can go on the L1 pad
+  instead. Keep its ground return short: TP3 (GND) should be within probe-tip reach
+  of TP4, otherwise the measurement it exists for will be worthless.
 - Route the **FB trace** back to the output caps away from SW and L1.
 - Keep the **`REG_EN` node away from SW and L1**. It is a ~20kΩ-impedance node sitting
   1.2V above a comparator threshold, so it is easy to couple into. Put R8 and C13
@@ -378,6 +439,13 @@ silkscreen note on the headers at minimum.
   route it as a long thin trace beside a switching node.
 - USB D+/D− as a **90Ω differential pair** over unbroken ground reference.
 - Ground the module's thermal pad with a via array.
+- **D4 (power LED) goes where a user can see it**, near the USB-C port or a board
+  edge — not under the daughterboard, which mates over J2/J3 and will hide anything
+  between them. Same for D5. Neither is timing- or noise-critical, so they are free
+  placement; just keep both out of the antenna keep-out.
+- **Silkscreen the test points** with their net names (VBAT, 3V3, GND, SW). An
+  unlabelled 1.5mm pad is not a test point. Per issue 12, also silkscreen the header
+  pins that carry strapping pins.
 
 ## Working notes for this session
 
@@ -401,6 +469,11 @@ silkscreen note on the headers at minimum.
   Watch for wires crossing a point where two other wires meet end-to-end: KiCad
   treats that endpoint as a connection, so a crossing there silently shorts two nets.
   Symbol *fields* inherit the symbol's rotation — a field on a 90°-rotated part needs
-  its own angle set to 90 to render horizontally.
+  its own angle set to 90 to render horizontally. **Field `justify` rotates with it
+  too, and flips:** on a 90°-rotated symbol `justify left` renders *right*-justified,
+  so the stored `(at x y)` becomes the text's right-hand edge and the text grows
+  leftward into the symbol. Write `justify right` to get text starting at the anchor.
+  This was caught on D4/D5, whose Value text landed on top of the LED body the first
+  time round; it is invisible in a netlist diff, so render and look.
 - Ask before deleting header pins or renaming nets — pin assignments may be
   constrained by a daughterboard design not visible in this project.
