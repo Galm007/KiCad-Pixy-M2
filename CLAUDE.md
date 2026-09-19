@@ -5,7 +5,7 @@ Context for a Claude Code session working on this KiCad project via the KiCad MC
 ## What this board is
 
 Controller PCB for a micromouse robot. An **ESP32-S3-WROOM-1** module is soldered
-directly to this board. The board carries the MCU, USB-C programming/charging port,
+directly to this board. The board carries the MCU, USB-C programming/power port,
 and a buck converter; motors, motor drivers, IR emitters/receivers, and the IMU live
 on a daughterboard that mates through two 22-pin headers (J2, J3).
 
@@ -13,6 +13,7 @@ Power comes from a **2S LiPo (7.4V nominal, 8.4V full charge)** via an XT30 conn
 F1 battery polyfuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
 and down-converted to 3.3V by an AP63203WU buck. `VBAT` is the switched, fused
 daughterboard supply; `VBUS` is downstream of the USB polyfuse F2.
+The 2S pack is charged separately; no onboard battery charger is required.
 
 - Schematic: `Pixy-M2.kicad_sch` — single flat sheet, no hierarchy
 - KiCad 10.0
