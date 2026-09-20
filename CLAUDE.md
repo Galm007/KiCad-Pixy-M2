@@ -848,15 +848,36 @@ a standalone edit** — do it and the board has no motor interface at all and ~2
 ERC warnings. The sequence is: choose the parts, add them, move the nets onto them,
 *then* delete whatever header pins are left over.
 
-None of these decisions exist in this project yet, and each one blocks the next:
+**Direction settled 2026-09-20; exact parts still outstanding.** Three of the five
+decisions below have answers now. They are recorded here rather than implemented —
+the schematic is untouched — so the next session starts from them instead of
+re-asking.
 
-| Decision needed | What it gates |
-|---|---|
-| Motor part number, gear ratio, stall current, rated voltage | Driver selection, F1 sizing (issue 17), `VBAT` copper width, bulk cap sizing |
-| Motor driver part | GPIO count (PWM+DIR vs. dual-PWM), thermal copper area, whether current sense is wanted |
-| Encoder type — magnetic on-shaft vs. optical | GPIO count, and whether the encoders can sit on this PCB at all or need a stub/flex at the motor |
-| IMU part and bus | Whether it joins the ToF I2C on GPIO8/9 or takes its own SPI (4 more pins) |
-| Suction fan — fitted or not | F1 sizing, a third driver channel, and the fan's own inrush |
+| Decision | Status | What it gates |
+|---|---|---|
+| Motor part number, gear ratio, stall current, rated voltage | **Class chosen: high-power, ≥3A stall each.** Exact part still needed | Driver selection, F1 sizing (issue 17), `VBAT` copper width, bulk cap sizing |
+| Motor driver part | Open — must suit ≥3A stall, so not a DRV8833/TB6612 class part | GPIO count (PWM+DIR vs. dual-PWM), thermal copper area, whether current sense is wanted |
+| Encoder type | Open, but **likely on-board magnetic** — see below | GPIO count, and whether the encoders can sit on this PCB at all or need a stub/flex at the motor |
+| IMU part and bus | **Dedicated SPI**, not the ToF I2C | ~4 GPIOs plus an interrupt; free budget drops 23 → ~19 |
+| Suction fan | **Planned, fitted** | F1 sizing, a third driver channel, and the fan's own inrush |
+
+**The motor class is the consequential answer.** At ≥3A stall per motor, two motors
+plus a fan is a fundamentally different power path from the one currently on the
+board — see issue 17, which is no longer a "confirm the budget" item but a "F1 is
+too small" item.
+
+**Encoders are probably this board's problem.** Motors in the ≥3A class rarely ship
+with an integrated encoder the way an N20 gearmotor does, so the likely path is
+on-board magnetic encoders (AS5047P class) aimed at a shaft magnet. That turns the
+encoder from an electrical choice into a **mechanical** one: the IC has to sit at a
+fixed, small distance under the magnet on the motor shaft, which constrains where the
+board can be relative to the motors — on top of every other outline constraint below.
+Settle this with the chassis, not on the schematic.
+
+**Choosing SPI for the IMU also protects the ToF bus.** GPIO8/9 already carry four
+VL53L0X sensors at 400kHz (issue 14); adding a gyro that wants high-rate reads would
+have made sensor timing and gyro timing contend with each other, which matters
+precisely during the fast turns where both are needed.
 
 **Mechanical gate, not just electrical:** with the motors on this board, the outline
 is now set by the chassis — wheel positions, motor body clearance, ground clearance —
@@ -900,6 +921,36 @@ count and thermal relief on this PCB**, so it has become a layout input.
 Answer it before routing the power path, not before fabrication. F1's provisional 3A
 hold was chosen without knowing the motors; if the real stall current moves it, the
 copper sized around it moves too.
+
+### F1 is undersized — established 2026-09-20
+
+The issue-15 answers settle this without needing the exact motor part. F1 is a
+**3A-hold / 5A-trip PPTC whose hold current falls to about 2.31A at 60°C**. Two
+motors at **≥3A stall each is ≥6A**, before the fan's startup inrush. That is not a
+marginal call:
+
+- A **stall against a maze wall trips F1**, which is the exact moment the robot most
+  needs to keep running to reverse out.
+- **Hard acceleration on both motors** plausibly exceeds the 60°C hold current even
+  without a stall.
+- F1's specified **20s maximum trip time at 8A** means a genuine fault also clears
+  slowly, so the fuse is neither protecting fast nor holding reliably at this load.
+
+Three things move together when it is resized, and none should be changed alone:
+
+- **F1 itself**, and its 40A maximum fault-current rating must still suit the pack —
+  a low-impedance 2S LiPo can deliver far more than that into a hard short.
+- **Q1 (AO4407A, 17mΩ at VGS = −6V).** At 6A that is ~0.61W in a SOIC-8, so it needs
+  real copper on all three source and all four drain pads, not a token pour.
+- **The `VBAT` copper and D6.** The TVS is a 600W transient clamp, not a continuous
+  braking-energy sink; ≥3A motors regenerating into it is a larger event than the
+  part was chosen for.
+
+**Do not simply fit a bigger polyfuse.** Raising F1 raises the fault current every
+downstream part must survive, and issue 7 already warns against sizing it up to
+accommodate a fan without re-checking the whole path. A higher-current PPTC, or a
+different protection strategy altogether (an eFuse or a current-sense shunt with
+firmware cutout), should be chosen deliberately alongside the motor part number.
 
 ## Board stackup — 4 layers (decided 2026-09-20)
 
