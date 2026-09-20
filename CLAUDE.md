@@ -28,12 +28,14 @@ The 2S pack is charged separately; no onboard battery charger is required.
 ## Current status
 
 The **controller section** of the schematic is complete — MCU, USB, power path,
-protection and ToF connectors. **ERC reports 0 errors and 2 warnings.** Both are
-`isolated_pin_label` (label on a single-pin net): `GPIO45` and `GPIO46` — the two
-remaining unused strapping pins, see issue 12. (`GPIO3` cleared when the issue-13
-status LED took it.) Even so, ERC proves very little here: most issues below survive it, because
-ERC does not check footprint assignment, component ratings, saturation current, or
-whether a labelled header pin actually goes anywhere.
+protection and ToF connectors. **ERC reports 0 errors and 0 warnings** as of
+2026-09-20, when issue 12 put no-connect flags on GPIO45/GPIO46 and cleared the last
+two `isolated_pin_label` warnings.
+
+**A clean ERC is worth almost nothing here, and is now easier to misread than it was
+when it showed 2 warnings.** Most issues below survive it: ERC does not check
+footprint assignment, component ratings, saturation current, or whether a labelled
+header pin actually goes anywhere. Treat 0/0 as the floor, not as evidence.
 
 Extract the netlist mechanically rather than reading the schematic image:
 
@@ -71,9 +73,11 @@ These were checked against the actual netlist and are right. If a review pass
   pins 3/4 on D+, pin 5 on VBUS, pin 2 on GND.
 - **Shield.** J1.SH via R5 (1M) ‖ C8 (4.7nF) to GND.
 - **All four VBUS and all four GND pins of J1 are tied together.**
-- **All 41 module pins land on a net.** Two of them land on a *single-pin* net
-  though — `GPIO45` and `GPIO46` — see issue 12. (`GPIO3` was the third until the
-  issue-13 status LED took it.)
+- **All 41 module pins are accounted for.** 39 land on a real net; `GPIO45` (U1.26)
+  and `GPIO46` (U1.16) carry **explicit no-connect flags** and are deliberately
+  unconnected — issue 12. Do not "fix" them by attaching anything: both are
+  strapping pins and driving either one high at reset is harmful. (`GPIO3` was a
+  third dangling pin until the issue-13 status LED took it.)
 - **I2C is GPIO8 (SDA) / GPIO9 (SCL)**, pulled up by R15/R16 and shared by the four
   ToF connectors. Each connector also has its own XSHUT line — `GPIO4`–`GPIO7`, one
   per sensor. This is deliberate, not redundant: see issue 14.
@@ -108,7 +112,8 @@ These were checked against the actual netlist and are right. If a review pass
 `GND` additionally carries D4.1(K), D5.1(K), TP3.1, D6.2(A), SW3.3(ON), C15.2,
 C16.2 and, for each of J4–J7, both pin 2 and the `MP` mounting pegs.
 SW3.1 (OFF) is intentionally marked no-connect, as are **J4.5–J7.5** (the modules'
-interrupt pin — issue 14).
+interrupt pin — issue 14) and **U1.26 / U1.16** (GPIO45 / GPIO46 — issue 12).
+Seven no-connect flags in total; all seven are deliberate.
 
 The four ToF connector nets (issue 14):
 
@@ -129,8 +134,9 @@ revert to `Net-(D1-A)` style names.
 Header assignments have moved on from the original extraction. J2 carries GPIO2, 21,
 35–44, 47, 48, GND on 1/6/12/18, and **VBAT on 19–22**; the dead `GPIO19`/`GPIO20`
 pins are gone (issue 4 resolved). J3 carries GPIO4–18, 3V3, CHIP_PU, and GND on
-7/12/17/22. GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — though
-`GPIO3` now drives the issue-13 status LED, so only GPIO45/46 are truly unused.
+7/12/17/22. GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — `GPIO3` drives
+the issue-13 status LED, and GPIO45/46 are explicitly no-connect (issue 12), so they
+are unused by design and are **not** part of the free-GPIO budget below.
 
 **These two headers are now placeholders.** With the daughterboard gone they no
 longer terminate anything real; they are the parking spot for 29 GPIOs until the
@@ -154,14 +160,17 @@ pins to anything (issue 15).
 Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
 3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 6 (dissolved by the
 single-board decision), 7 (switch/fuses/TVS added; battery fuse sizing remains
-provisional), 11 (module variant), 13 (conveniences), 14 (ToF wall sensors).**
+provisional), 11 (module variant), 12 (strapping pins), 13 (conveniences),
+14 (ToF wall sensors).**
 
 **Layout is blocked again, deliberately.** The 2026-09-20 single-board decision means
 the part count and the board outline are not yet known, so there is nothing stable to
 place. **Issue 15 now gates layout** — the motor drivers, encoders and IMU have to
-exist in the schematic first. Issues 8–10, 12 and 16 do not gate starting layout;
+exist in the schematic first. Issues 8–10 and 16 do not gate starting layout;
 issue 17's current budget gates *routing* the power path, which is earlier than the
 pre-fabrication deadline it used to have.
+
+**Still open: 8, 9, 10, 15, 16, 17.** Of those only 15 blocks layout.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -291,9 +300,9 @@ No component in the design is missing a footprint.
 The `5V0`, `GPIO19` and `GPIO20` header pins are gone. J2.19–22 now carry `VBAT` and
 J3.21 carries `GPIO14`. No header pin is on a single-pin net.
 
-Still dangling, but on the module rather than a header: `GPIO3` (U1.15), `GPIO45`
-(U1.26), `GPIO46` (U1.16). These are the three remaining ERC warnings and are
-covered by issue 12.
+Still unconnected, but on the module rather than a header: `GPIO45` (U1.26) and
+`GPIO46` (U1.16), both now carrying no-connect flags — issue 12, resolved.
+`GPIO3` (U1.15) was the third until the issue-13 status LED took it.
 
 ### 5. Battery sense — RESOLVED (2026-09-19)
 
@@ -502,15 +511,30 @@ to the on-board peripherals. Do not substitute an `-N8R8` or `-N16R8` part witho
 first freeing those three pins from whatever issue 15 assigns them to — the budget
 drops to 20.
 
-### 12. Two unused strapping pins are left floating
+### 12. Unused strapping pins — RESOLVED (2026-09-20)
 
-Stale as written: GPIO45 and GPIO46 are **not** on the headers any more. They are
-simply unconnected on the module (U1.26, U1.16), which is what the two remaining ERC
-warnings are about. Internal weak pulldowns cover the floating case, so the board
-boots — this is tidiness, not a fault.
+GPIO45 (U1.26) and GPIO46 (U1.16) were unconnected on the module with a net label on
+each, which is what the two `isolated_pin_label` ERC warnings were about. **Both now
+carry explicit no-connect flags and the labels are gone.** ERC is 0 errors, 0
+warnings.
 
-**GPIO3 is no longer one of them.** It now drives the issue-13 status LED (U1.15 →
-R13 → D5 → GND), which is exactly the use the table below sanctions.
+This was always tidiness rather than a fault — the ESP32-S3's internal weak
+pulldowns hold both pins at their safe state, so the board boots either way. What the
+flags buy is *intent*: an unconnected pin and a pin someone forgot to wire look
+identical in a netlist, and these two must stay unconnected. The flag is the only
+thing in the file that says so.
+
+**Explicit 10k pulldowns were considered and rejected.** They would also have cleared
+the warnings, and the failure mode they defend against is severe (see the table) —
+but the internal pulldown is ~45kΩ, so pulling either pin above V_IH would take a
+leakage path under ~15kΩ, which is gross contamination rather than a plausible
+board-level fault. Espressif's own reference designs leave both pins floating. Two
+parts and two more things to place, to defend a failure the module already defends
+against, is the same trade this project rejected in issue 5. **Do not re-add them
+without a new reason.**
+
+**GPIO3 is no longer one of these.** It drives the issue-13 status LED (U1.15 → R13 →
+D5 → GND), which is exactly the use the table below sanctions.
 
 Researched while choosing a gate pin for issue 5; recorded so the next person does
 not have to repeat it. **If any of these are ever used, the risk is not equal:**
@@ -524,6 +548,17 @@ not have to repeat it. **If any of these are ever used, the risk is not equal:**
 GPIO0 is also a strapping pin and is used correctly (SW2 boot button). Worth a
 silkscreen note wherever a strapping pin is exposed — on whatever debug header
 survives issue 15, and on any test point that lands on one.
+
+**Layout note:** GPIO45 and GPIO46 are now floating copper — module pad, no trace.
+Do not route anything past them, do not let a pour create a large island on either,
+and do not add a test point to either. They are already correct; the only way they
+become a problem is if layout attaches something to them.
+
+**Verified:** netlist diff shows exactly two changes and nothing else — `/GPIO45` and
+`/GPIO46` became `unconnected-(U1-GPIO45-Pad26)` and `unconnected-(U1-GPIO46-Pad16)`.
+Net count is unchanged at 64; no other net, pin or footprint moved. ERC went from 2
+warnings to 0/0. The sheet was rendered and inspected: both NC markers sit on the
+right pins, and every neighbouring label (GPIO14/17/18/21/38/47/48) is intact.
 
 ### 13. Missing conveniences — RESOLVED (2026-09-19)
 

@@ -7722,16 +7722,6 @@
 		)
 		(uuid "35687eec-e63c-43ec-a40e-051ec571f54c")
 	)
-	(label "GPIO45"
-		(at 127 109.22 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "3620b66f-c5fc-4a0d-bfb4-e57b876bac83")
-	)
 	(label "GPIO11"
 		(at 127 88.9 0)
 		(effects
@@ -8211,16 +8201,6 @@
 			(justify left bottom)
 		)
 		(uuid "bc959bed-68ce-401c-bc55-3790a4a9c7b2")
-	)
-	(label "GPIO46"
-		(at 127 111.76 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "bccf246d-2f9f-4184-a836-2172edb7ea10")
 	)
 	(label "GPIO21"
 		(at 127 104.14 0)
@@ -14917,6 +14897,14 @@
 	(no_connect
 		(at 203.2 90.17)
 		(uuid "bb8002b0-4276-4158-bef5-2936cc904630")
+	)
+	(no_connect
+		(at 127 109.22)
+		(uuid "e41d0985-e096-4c40-bde8-52c8f614780f")
+	)
+	(no_connect
+		(at 127 111.76)
+		(uuid "b12ae0e9-87ef-417b-9359-3679bf16617d")
 	)
 	(wire
 		(pts
