@@ -11404,7 +11404,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "D_Schottky"
+		(property "Value" "MBRA340T3G"
 			(at 158.75 101.9174 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11426,7 +11426,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.onsemi.com/pdf/datasheet/mbra340t3-d.pdf"
 			(at 156.21 100.33 0)
 			(hide yes)
 			(show_name no)
@@ -11437,11 +11437,20 @@
 				)
 			)
 		)
-		(property "Description" "Schottky diode"
+		(property "Description" "40V 3A Schottky barrier rectifier, DO-214AC/SMA. VF 0.450V max at 3.0A/25C; IFSM 100A; IR 0.3mA at 40V/25C. K=1, A=2."
 			(at 156.21 100.33 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "MBRA340T3G"
+			(at 156.21 100.33 0)
+			(hide yes)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11723,7 +11732,7 @@
 				)
 			)
 		)
-		(property "Value" "D_Schottky"
+		(property "Value" "MBRA340T3G"
 			(at 98.1075 133.35 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -11744,7 +11753,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.onsemi.com/pdf/datasheet/mbra340t3-d.pdf"
 			(at 97.79 137.16 0)
 			(hide yes)
 			(show_name no)
@@ -11755,11 +11764,20 @@
 				)
 			)
 		)
-		(property "Description" "Schottky diode"
+		(property "Description" "40V 3A Schottky barrier rectifier, DO-214AC/SMA. VF 0.450V max at 3.0A/25C; IFSM 100A; IR 0.3mA at 40V/25C. K=1, A=2."
 			(at 97.79 137.16 0)
 			(hide yes)
 			(show_name no)
 			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "MPN" "MBRA340T3G"
+			(at 97.79 137.16 0)
+			(hide yes)
 			(effects
 				(font
 					(size 1.27 1.27)

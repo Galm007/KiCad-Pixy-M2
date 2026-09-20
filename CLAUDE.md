@@ -160,17 +160,17 @@ pins to anything (issue 15).
 Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
 3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 6 (dissolved by the
 single-board decision), 7 (switch/fuses/TVS added; battery fuse sizing remains
-provisional), 10 (USB series resistors), 11 (module variant), 12 (strapping pins),
-13 (conveniences), 14 (ToF wall sensors).**
+provisional), 9 (OR-ing diodes), 10 (USB series resistors), 11 (module variant),
+12 (strapping pins), 13 (conveniences), 14 (ToF wall sensors).**
 
 **Layout is blocked again, deliberately.** The 2026-09-20 single-board decision means
 the part count and the board outline are not yet known, so there is nothing stable to
 place. **Issue 15 now gates layout** — the motor drivers, encoders and IMU have to
-exist in the schematic first. Issues 8, 9 and 16 do not gate starting layout;
+exist in the schematic first. Issues 8 and 16 do not gate starting layout;
 issue 17's current budget gates *routing* the power path, which is earlier than the
 pre-fabrication deadline it used to have.
 
-**Still open: 8, 9, 15, 16, 17.** Of those only 15 blocks layout.
+**Still open: 8, 15, 16, 17.** Of those only 15 blocks layout.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -482,18 +482,57 @@ put it in the Value field, where a reviewer sees it on the schematic sheet.
 - Everything else: state the rating explicitly, minimum 16V on anything touching
   VBAT or the OR node.
 
-### 9. Diodes are generic symbols with no part numbers
+### 9. OR-ing diodes D1/D2 — RESOLVED (2026-09-20)
 
-D1 and D2 still have Value `D_Schottky` in `Diode_SMD:D_SMA`. D2 carries the entire
-system current from the battery — at 1A that is ~400mW dissipated and ~0.4V of
-headroom thrown away.
+Both were Value `D_Schottky` with an empty Datasheet field. **Both are now
+onsemi `MBRA340T3G`**, same part in both positions — identical requirements,
+identical footprint, one fewer BOM line and reel.
 
-**Fix:** spec a real part (≥3A, ≥30V, low Vf), or replace D2 with a P-FET
-ideal-diode controller. D1 can stay a diode but still needs a real part number.
+| Field | Value |
+|---|---|
+| Value | `MBRA340T3G` |
+| Footprint | `Diode_SMD:D_SMA` (unchanged) |
+| MPN | `MBRA340T3G` |
+| Datasheet | `https://www.onsemi.com/pdf/datasheet/mbra340t3-d.pdf` |
 
-**D3 is already specified** — `BAT54W` / `Diode_SMD:D_SOD-123`, with a datasheet
+Verified against that datasheet (MBRA340T3/D Rev. 12) rather than from memory:
+SMA / CASE 403D (DO-214AC), **VRRM 40V**, **IO 3.0A at TL = 100°C**, IFSM 100A,
+**VF 0.450V max at 3.0A / 25°C** (0.390V at 100°C), IR 0.3mA at 40V / 25°C,
+TJ −55 to +150°C, RθJL 15°C/W, RθJA 81°C/W. LCSC C26178.
+
+**Correction: this issue's original premise was wrong.** It said "D2 carries the
+entire system current from the battery — at 1A that is ~400mW", and on that basis
+floated replacing D2 with a P-FET ideal-diode controller. The netlist says otherwise.
+`VSYS` has exactly four members — `C12.1, D1.1(K), D2.1(K), U3.3(IN)` — so **D2 feeds
+the buck input and nothing else.** Motor current on `VBAT` reaches J2.19–22 in
+parallel with D2 and never passes through it.
+
+Actual worst case: the 3.3V rail carries the module, four ToF sensors (76mA average,
+160mA pulsed) and the LEDs, ~0.7A. Reflected to a 6V low pack at 90% efficiency that
+is **~0.43A**, where the curve gives VF ≈ 0.30–0.33V — about **140mW**, some 11°C of
+rise on RθJA. **The ideal-diode controller is unnecessary. Do not re-propose it**
+unless something puts a real load on `VSYS`.
+
+**Why 40V and not 30V.** D6 clamps `VBAT` at 15.4V during a motor transient, and that
+propagates to `VSYS` through D2, so D1 can see ~15V reverse with USB absent. 40V
+keeps a comfortable margin over that.
+
+**Package trap, recorded so the next person does not repeat it.** "SS34" is the
+obvious commodity answer and it is **wrong for this footprint**: Vishay's SS34 is
+**SMC (DO-214AB)**, not SMA. In Vishay's numbering the first digit is the current
+class and the package scales with it — SS1x is SMA, SS2x is SMB, SS3x is SMC. Other
+manufacturers sell an "SS34" in SMA, so the part number alone does not pin the
+package down. MBRA340T3G is unambiguously SMA.
+
+**Reverse leakage is not zero**, and it lands on an existing caveat: 0.3mA at 40V and
+25°C (much less at the ~5V this circuit actually applies, but not nothing). D2's
+cathode is `VSYS` and its anode is `VBAT`, so with USB powering the board and SW3 OFF,
+leakage flows toward `VBAT` — one more reason issue 7's "the switch does not guarantee
+a discharged/zero-volt motor rail" is true.
+
+**D3 was already specified** — `BAT54W` / `Diode_SMD:D_SOD-123`, with a datasheet
 field. It carries ~70µA, so it has no thermal or Vf constraint worth revisiting.
-Follow its pattern when fixing D1 and D2.
+D1/D2 now follow its pattern, with an MPN field as well.
 
 ### 10. Series resistors on USB D+/D− — RESOLVED (2026-09-20)
 
