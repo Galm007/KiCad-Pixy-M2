@@ -4,25 +4,31 @@ Context for a Claude Code session working on this KiCad project via the KiCad MC
 
 ## What this board is
 
-Controller PCB for a micromouse robot. An **ESP32-S3-WROOM-1** module is soldered
-directly to this board. The board carries the MCU, USB-C programming/power port,
-a buck converter, and four JST-SH connectors (J4–J7) for **off-board VL53L0X
-time-of-flight wall sensors**; motors, motor drivers and the IMU live on a
-daughterboard that mates through two 22-pin headers (J2, J3).
+Controller PCB for a micromouse robot — a **single-board design**. An
+**ESP32-S3-WROOM-1** module is soldered directly to it. The board carries the MCU,
+USB-C programming/power port, a buck converter, four JST-SH connectors (J4–J7) for
+**off-board VL53L0X time-of-flight wall sensors**, and — once the parts are chosen —
+the **motor drivers, encoders and IMU on the board itself**.
+
+**There is no daughterboard.** Decided 2026-09-20, before layout started. It replaces
+the earlier two-board architecture in which motors, motor drivers and the IMU mated
+through two 22-pin headers (J2, J3). Those headers are still in the schematic and
+have not been removed yet — see issue 15.
 
 Power comes from a **2S LiPo (7.4V nominal, 8.4V full charge)** via an XT30 connector,
 F1 battery polyfuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
 and down-converted to 3.3V by an AP63203WU buck. `VBAT` is the switched, fused
-daughterboard supply; `VBUS` is downstream of the USB polyfuse F2.
+motor/high-current supply; `VBUS` is downstream of the USB polyfuse F2.
 The 2S pack is charged separately; no onboard battery charger is required.
 
 - Schematic: `Pixy-M2.kicad_sch` — single flat sheet, no hierarchy
 - KiCad 10.0
-- **PCB layout has not been started.**
+- **PCB layout has not been started.** It will be **4 layers** — see "Board stackup".
 
 ## Current status
 
-The schematic is complete. **ERC reports 0 errors and 2 warnings.** Both are
+The **controller section** of the schematic is complete — MCU, USB, power path,
+protection and ToF connectors. **ERC reports 0 errors and 2 warnings.** Both are
 `isolated_pin_label` (label on a single-pin net): `GPIO45` and `GPIO46` — the two
 remaining unused strapping pins, see issue 12. (`GPIO3` cleared when the issue-13
 status LED took it.) Even so, ERC proves very little here: most issues below survive it, because
@@ -43,6 +49,12 @@ GUI has it open, and whichever side saves last wins.
 **Netlist last re-extracted: 2026-09-19, after the issue-14 ToF sensor connectors.**
 The tables below are current as of that extraction. The schematic sheet was also
 changed from A4 to **A3** to make room for the sensor block.
+
+**As of the 2026-09-20 single-board decision the schematic is no longer complete as
+a whole.** The motor drivers, encoders and IMU that used to live off-board do not
+exist in it yet, and J2/J3 still stand in for them. See issue 15. Expect the sheet
+to need more room again — possibly A2, or a move to hierarchical sheets, once the
+power stage stops being the only high-part-count block.
 
 ## Verified correct — do not re-flag these
 
@@ -117,25 +129,39 @@ revert to `Net-(D1-A)` style names.
 Header assignments have moved on from the original extraction. J2 carries GPIO2, 21,
 35–44, 47, 48, GND on 1/6/12/18, and **VBAT on 19–22**; the dead `GPIO19`/`GPIO20`
 pins are gone (issue 4 resolved). J3 carries GPIO4–18, 3V3, CHIP_PU, and GND on
-7/12/17/22. There are now **8 ground pins across the two headers**, not 4 (issue 6
-partly addressed). GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — though
+7/12/17/22. GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — though
 `GPIO3` now drives the issue-13 status LED, so only GPIO45/46 are truly unused.
 
-**`GPIO4`–`GPIO9` are now claimed by the ToF sensors (issue 14) and are still on
-J3.4/5/6/8/14/15.** They were not removed from the header — J3 is a plain GPIO
-breakout and the daughterboard IMU will want the same I2C bus — but a daughterboard
-must not *drive* any of those six pins. Six of J3's fifteen GPIOs are spoken for;
-all fourteen of J2's remain free.
+**These two headers are now placeholders.** With the daughterboard gone they no
+longer terminate anything real; they are the parking spot for 29 GPIOs until the
+on-board motor drivers, encoders and IMU exist to claim them. Do not treat the
+J2/J3 pin assignments below as an interface contract any more — issue 15.
+
+**`GPIO4`–`GPIO9` are claimed by the ToF sensors (issue 14) and are also still on
+J3.4/5/6/8/14/15.** Nothing attached to J3 may *drive* any of those six.
+`GPIO8`/`GPIO9` remain a shared I2C bus — an on-board IMU can sit on it as a second
+device rather than consuming its own pins.
+
+**Free GPIO budget for the on-board peripherals: 23.** J2's 14 (GPIO2, 21, 35–44,
+47, 48) plus J3's 9 that the ToF sensors did not take (GPIO10–18). A typical
+two-motor micromouse spends roughly 13–15 of those — two driver channels, two
+quadrature encoders, an IMU interrupt, a fan, and a driver fault/sleep line or two —
+so the budget is comfortable but not unlimited. Count it properly before promising
+pins to anything (issue 15).
 
 ## Open issues
 
 Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
-3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 7 (switch/fuses/TVS added;
-battery fuse sizing remains provisional), 11 (module variant), 13 (conveniences),
-14 (ToF wall sensors).**
-**Nothing blocks layout any more.** Items 6, 8–10 and 12 are still open but none of
-them gate starting the PCB. Confirm the issue-7 load/fault-current budget before
-fabrication.
+3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 6 (dissolved by the
+single-board decision), 7 (switch/fuses/TVS added; battery fuse sizing remains
+provisional), 11 (module variant), 13 (conveniences), 14 (ToF wall sensors).**
+
+**Layout is blocked again, deliberately.** The 2026-09-20 single-board decision means
+the part count and the board outline are not yet known, so there is nothing stable to
+place. **Issue 15 now gates layout** — the motor drivers, encoders and IMU have to
+exist in the schematic first. Issues 8–10, 12 and 16 do not gate starting layout;
+issue 17's current budget gates *routing* the power path, which is earlier than the
+pre-fabrication deadline it used to have.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -335,12 +361,19 @@ concludes the pack is flat.
   (V−3.6)/470k into GPIO1's clamp — 56µA even at 30V — and C14's 15ms rolls off
   anything fast. No extra clamp is needed.
 
-### 6. Ground pins — improved, still thin
+### 6. Ground pins — DISSOLVED (2026-09-20)
 
-Now **8** across 44 positions: J2.1/6/12/18 and J3.7/12/17/22, interleaved among the
-signals rather than bunched at the ends. That is a real improvement over the original
-4. Motor and IR-emitter switching returns are still sharing them, so if any header
-positions free up, convert more to GND — but this is no longer blocking.
+Was: 8 GND pins across the 44 header positions (J2.1/6/12/18, J3.7/12/17/22) carrying
+motor and sensor return current between two boards — "improved over the original 4,
+still thin".
+
+**The single-board decision removes the question.** Motor return current now flows in
+the L2 ground plane instead of through header pins, which is a change of kind rather
+than degree. Nothing to do here.
+
+If a reduced debug header survives issue 15, give it a ground pin next to each signal
+group as ordinary good practice — but it carries no power return, so the old concern
+does not transfer to it.
 
 ### 7. Power switch, fuses and TVS — IMPLEMENTED (2026-09-19)
 
@@ -398,10 +431,14 @@ isolation: current can return to the battery through its body diode.
 **USB operation is preserved with SW3 OFF.** F2 sits before *every* USB supply
 branch, including the D3 enable path. D1/D2 still provide source OR-ing. The
 existing high-value R7 can weakly bias the disconnected `VBAT` node from USB's EN
-network; the switch does not guarantee a discharged/zero-volt daughterboard rail.
+network; the switch does not guarantee a discharged/zero-volt motor rail.
 Turning the whole board off requires removing USB as well as switching off SW3.
+**With motors now on this board, that matters more than it did** — SW3 OFF plus USB
+in must not leave a driver's inputs floating against a weakly-biased `VBAT`. Give the
+drivers a defined disabled state (see issue 15).
 
-**Current-budget check before fabrication:** verify steady load at the actual
+**Current-budget check — now needed before *routing*, not just before fabrication
+(issue 17):** verify steady load at the actual
 fuse temperature, both motor stalls, fan startup, pack short-circuit capability,
 and the copper/header/wiring ratings. F1 is a thermal PPTC, not a hard 3A limiter:
 its specified maximum trip time is 20s at 8A, and its hold current falls to about
@@ -413,8 +450,9 @@ keep USB-only loads within that budget, including its voltage drop and derating.
 **D6 protects the switched motor rail.** Cathode pin 1 is on `VBAT`, anode pin 2
 on GND. Its 9V standoff exceeds the 8.4V full pack; specified breakdown is
 10–11.1V and clamp is 15.4V at 39A for a 10/1000µs pulse. It is a transient clamp,
-not a continuous braking-energy sink. Daughterboard devices must tolerate that
-clamp plus layout overshoot; retain local motor recirculation/bulk capacitance.
+not a continuous braking-energy sink. On-board devices must tolerate that clamp plus
+layout overshoot, and the local motor recirculation/bulk capacitance that used to be
+the daughterboard's job is **now this schematic's job** — see issue 16.
 Capacitor voltage ratings (issue 8) still need resolving.
 
 **Verified:** netlist comparison confirms only the intended source splits and
@@ -458,9 +496,11 @@ through. Replace with 0Ω or remove.
 
 U1's Value is now **`ESP32-S3-WROOM-1-N16`**: 16MB flash, **no PSRAM**. That is the
 outcome the design needed — **GPIO35, GPIO36 and GPIO37** (module pins 28/29/30,
-broken out on J2.14/13/11) are consumed by octal PSRAM only on `-R8` parts, so on an
-N16 they are genuinely free. Do not substitute an `-N8R8` or `-N16R8` part without
-deleting those three header pins.
+currently parked on J2.14/13/11) are consumed by octal PSRAM only on `-R8` parts, so
+on an N16 they are genuinely free, and they count toward the 23-GPIO budget available
+to the on-board peripherals. Do not substitute an `-N8R8` or `-N16R8` part without
+first freeing those three pins from whatever issue 15 assigns them to — the budget
+drops to 20.
 
 ### 12. Two unused strapping pins are left floating
 
@@ -482,7 +522,8 @@ not have to repeat it. **If any of these are ever used, the risk is not equal:**
 | GPIO3 | JTAG signal source | Harmless. No effect unless the `JTAG_SEL_ENABLE` eFuse is burned, and its safe state is low. The only one of the three safe to repurpose — **now used** by the status LED. |
 
 GPIO0 is also a strapping pin and is used correctly (SW2 boot button). Worth a
-silkscreen note on the headers at minimum.
+silkscreen note wherever a strapping pin is exposed — on whatever debug header
+survives issue 15, and on any test point that lands on one.
 
 ### 13. Missing conveniences — RESOLVED (2026-09-19)
 
@@ -647,16 +688,130 @@ auto-named `Net-(…)` strays. ERC is unchanged at 0 errors and the same two
 GPIO45/GPIO46 warnings. The sheet was rendered and inspected: no overlapping text,
 and the block sits clear of the A3 border and title block.
 
+
+### 15. On-board peripherals do not exist yet — BLOCKS LAYOUT (2026-09-20)
+
+The single-board decision deleted the daughterboard from the plan but not from the
+schematic. J2 and J3 are still there, 29 GPIOs still terminate on them, and there is
+no motor driver, encoder or IMU anywhere in the design. **Deleting the headers is not
+a standalone edit** — do it and the board has no motor interface at all and ~29 new
+ERC warnings. The sequence is: choose the parts, add them, move the nets onto them,
+*then* delete whatever header pins are left over.
+
+None of these decisions exist in this project yet, and each one blocks the next:
+
+| Decision needed | What it gates |
+|---|---|
+| Motor part number, gear ratio, stall current, rated voltage | Driver selection, F1 sizing (issue 17), `VBAT` copper width, bulk cap sizing |
+| Motor driver part | GPIO count (PWM+DIR vs. dual-PWM), thermal copper area, whether current sense is wanted |
+| Encoder type — magnetic on-shaft vs. optical | GPIO count, and whether the encoders can sit on this PCB at all or need a stub/flex at the motor |
+| IMU part and bus | Whether it joins the ToF I2C on GPIO8/9 or takes its own SPI (4 more pins) |
+| Suction fan — fitted or not | F1 sizing, a third driver channel, and the fan's own inrush |
+
+**Mechanical gate, not just electrical:** with the motors on this board, the outline
+is now set by the chassis — wheel positions, motor body clearance, ground clearance —
+*and* it must still satisfy the antenna keep-out, four outward-facing ToF connectors,
+an accessible SW3 and a reachable USB-C port. Check the combined footprint before
+committing to the outline; this is the constraint most likely to force a rethink.
+
+**Keep a small debug/expansion header.** Not 44 pins, but do not go to zero. Six to
+ten spare GPIOs plus 3V3/GND costs almost nothing and is the difference between
+bodging a fix and respinning the whole board — which is exactly the modularity the
+single-board decision gave up. Size it once the peripherals above are placed and the
+real GPIO surplus is known.
+
+### 16. Motor noise now shares the board with the ADC and the buck (2026-09-20)
+
+New, and created by the single-board decision. Motor switching used to be physically
+on another PCB; it is now inches from U1, from the 150kΩ `VBAT_SENSE` node and from
+the buck's feedback. Three consequences:
+
+- **`VBAT_SENSE` (issue 5) will see real motor sag and real switching noise.** Its
+  15ms RC helps a lot, but firmware should average across whole PWM periods rather
+  than trusting a single conversion, and should not sample during a stall event and
+  conclude the pack is flat.
+- **Motor recirculation and bulk capacitance are now this schematic's parts.** Issue
+  7 told the daughterboard to "retain local motor recirculation/bulk capacitance";
+  there is no daughterboard, so that bulk cap has to be added here, next to the
+  drivers, on `VBAT`, rated per issue 8 (≥16V, and derate for DC bias).
+- **That bulk capacitance interacts with F1 inrush and D2's forward drop.** Size it
+  together with issues 8 and 9 rather than in isolation — a large bulk cap on a
+  polyfuse is an inrush problem, and D2 is already the biggest loss in the path.
+
+The mitigation is placement, not plane splitting — see "Board stackup".
+
+### 17. F1 and the `VBAT` path now carry motor current on *this* board (2026-09-20)
+
+A promotion of issue 7's open item rather than a new fault. The current budget was
+already outstanding, but with motors off-board it only had to be right before
+*ordering parts*. Now the same number also sets **trace width, copper weight, via
+count and thermal relief on this PCB**, so it has become a layout input.
+
+Answer it before routing the power path, not before fabrication. F1's provisional 3A
+hold was chosen without knowing the motors; if the real stall current moves it, the
+copper sized around it moves too.
+
+## Board stackup — 4 layers (decided 2026-09-20)
+
+Decided together with dropping the daughterboard. Two layers cannot carry on-board
+motor drivers, a clean ADC reference, a 1.4MHz buck and a 90Ω USB pair at the same
+time. The extra layers are bought primarily for **L2**.
+
+| Layer | Use |
+|---|---|
+| **L1** (top) | components; short high-speed runs — USB D+/D− pair, the SW island, the motor-driver power loops |
+| **L2** | **unbroken GND plane** — the whole reason for going to 4 layers |
+| **L3** | power pours: `VBAT` (motor rail) and `ESP_3V3`, as separate regions |
+| **L4** (bottom) | secondary signal routing plus a GND pour stitched to L2 |
+
+**L2 is never split, cut, or routed through.** No signal traces on L2; no plane split
+under the USB pair, the SW node, the ToF I2C pair or `VBAT_SENSE`. A split plane
+forces return current around the gap and causes worse problems than the separation it
+appears to buy.
+
+**Partition by placement, not by plane splits.** Motor drivers, D6 and the battery
+input go in one region; U1, the ADC nodes and the ToF I2C go in another. Keeping the
+high-di/dt return currents physically out from under the quiet circuitry is what
+makes a single plane work — it is the job the 8 header ground pins used to do badly
+(old issue 6).
+
+- Assume a standard 1.6mm 4-layer stackup with **thin L1↔L2 prepreg** (~0.2mm on
+  JLCPCB's JLC04161H-7628 and its equivalents elsewhere). That tight spacing is what
+  makes the 90Ω pair achievable with sane trace geometry and keeps every L1 return
+  path directly beneath its trace.
+- **Compute the USB pair geometry against the fab's actual stackup** with their
+  impedance calculator. Do not carry a number over from another board. On ~0.2mm
+  prepreg it lands somewhere near 0.2mm trace / 0.15mm gap — treat that as a starting
+  point to verify, not as a specification.
+- **The antenna keep-out must now be cut out of four layers, including both pours.**
+  This is the main new risk the stackup introduces: it is far easier to let a ground
+  or power pour flood under the antenna than it was to forget a trace. Define the
+  keep-out as a board-level rule area so the pours respect it automatically, and
+  verify it on all four layers before fab.
+- Stitch L2 to the L4 ground pour generously — especially around the SW island, the
+  motor-driver return paths and the module's thermal pad.
+- 1oz outer copper is fine for signals, but **check the `VBAT` and motor-return
+  copper against the final stall current** (issue 17). If the motor path is tight,
+  widen on L1/L4 or specify 2oz outers; do not rely on L3's pour alone to carry it.
+
 ## Layout constraints (for when layout starts)
+
+Read "Board stackup" first — several rules below assume the L2 plane exists.
 
 - Put **F1 immediately after BT1** and F2 immediately after J1's joined VBUS pins.
   Keep unfused copper short; every downstream branch must go through its fuse.
 - Put **SW3 at an accessible edge**, marked BAT ON/OFF (USB can still power the
   controller). Route only Q1 gate control to it, not motor current. Keep R14 close
   to Q1 and connect all three source and all four drain pads with adequate copper.
-- Place **D6 near J2.19–22**, across switched `VBAT` and a short, wide GND return.
-  Keep its surge-current loop away from the ADC and MCU ground paths. Size the
-  battery/return copper for the final load and F1's fault-clearing interval.
+- Place **D6 next to the motor drivers** — it used to be "near J2.19–22", but the
+  load it protects is now on this board. Put it across switched `VBAT` with a short,
+  wide GND return, in the motor region of the partition. Keep its surge-current loop
+  away from the ADC and MCU ground paths. Size the battery/return copper for the
+  final load and F1's fault-clearing interval (issue 17).
+- **Put the motor drivers, their bulk capacitance and D6 in one corner**, as far
+  from U1, `VBAT_SENSE` and the ToF I2C as the outline allows, with their power loops
+  closed locally on L1 over the L2 plane. This placement *is* the noise strategy
+  (issue 16) — there is no plane split to fall back on.
 - **Antenna keep-out is non-negotiable.** The module's antenna must overhang a board
   edge with zero copper on every layer in the keep-out region — no traces, no pours,
   no components.
@@ -683,13 +838,16 @@ and the block sits clear of the A3 border and title block.
 - USB D+/D− as a **90Ω differential pair** over unbroken ground reference.
 - Ground the module's thermal pad with a via array.
 - **D4 (power LED) goes where a user can see it**, near the USB-C port or a board
-  edge — not under the daughterboard, which mates over J2/J3 and will hide anything
-  between them. Same for D5. Neither is timing- or noise-critical, so they are free
-  placement; just keep both out of the antenna keep-out.
+  edge. With the daughterboard gone nothing shadows the board any more, so the old
+  "not under the mezzanine" caveat is void — but the chassis, wheels and motors will
+  now obstruct parts of the board instead, so check visibility against the mechanics.
+  Same for D5. Neither is timing- or noise-critical, so placement is otherwise free;
+  just keep both out of the antenna keep-out.
 - **J4–J7 go at the board edges, facing the walls they sense**, with their cable
   exits pointing outward — they are side-entry parts, so the connector body sets the
-  cable direction. Keep them out from under the daughterboard, which mates over
-  J2/J3. Keep all four out of the antenna keep-out.
+  cable direction. Keep all four out of the antenna keep-out. The daughterboard no
+  longer competes for edge space, but the motors, wheels and the drivers' thermal
+  copper now do — edge budget is the scarce resource in this layout, not area.
 - Put **C15 in the middle of the four connectors**, not next to the regulator: it is
   there to serve the pulsed VCSEL load at the cable ends. C16 goes hard against
   whichever connector is furthest from C15.
@@ -703,8 +861,8 @@ and the block sits clear of the A3 border and title block.
   cable built "the usual way round" with GND first will put 3.3V into the sensor's
   ground pin. Mark pin 1 unambiguously on the silkscreen.
 - **Silkscreen the test points** with their net names (VBAT, 3V3, GND, SW). An
-  unlabelled 1.5mm pad is not a test point. Per issue 12, also silkscreen the header
-  pins that carry strapping pins.
+  unlabelled 1.5mm pad is not a test point. Per issue 12, also silkscreen any exposed
+  strapping pin on whatever debug header survives issue 15.
 
 ## Working notes for this session
 
@@ -734,5 +892,8 @@ and the block sits clear of the A3 border and title block.
   leftward into the symbol. Write `justify right` to get text starting at the anchor.
   This was caught on D4/D5, whose Value text landed on top of the LED body the first
   time round; it is invisible in a netlist diff, so render and look.
-- Ask before deleting header pins or renaming nets — pin assignments may be
-  constrained by a daughterboard design not visible in this project.
+- **Ask before deleting header pins or renaming nets.** The old reason — a
+  daughterboard design not visible in this project — is gone, but the rule stands for
+  a new one: J2/J3 are now the parking spot for 29 GPIOs, and removing pins before
+  the issue-15 peripherals exist strands nets and buries real ERC warnings under
+  noise. Delete them as part of moving nets onto real parts, not ahead of it.
