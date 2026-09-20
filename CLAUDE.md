@@ -160,17 +160,18 @@ pins to anything (issue 15).
 Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
 3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 6 (dissolved by the
 single-board decision), 7 (switch/fuses/TVS added; battery fuse sizing remains
-provisional), 9 (OR-ing diodes), 10 (USB series resistors), 11 (module variant),
-12 (strapping pins), 13 (conveniences), 14 (ToF wall sensors).**
+provisional), 8 (capacitor ratings), 9 (OR-ing diodes), 10 (USB series resistors),
+11 (module variant), 12 (strapping pins), 13 (conveniences), 14 (ToF wall sensors).**
 
 **Layout is blocked again, deliberately.** The 2026-09-20 single-board decision means
 the part count and the board outline are not yet known, so there is nothing stable to
 place. **Issue 15 now gates layout** — the motor drivers, encoders and IMU have to
-exist in the schematic first. Issues 8 and 16 do not gate starting layout;
+exist in the schematic first. Issue 16 does not gate starting layout;
 issue 17's current budget gates *routing* the power path, which is earlier than the
 pre-fabrication deadline it used to have.
 
-**Still open: 8, 15, 16, 17.** Of those only 15 blocks layout.
+**Still open: 15, 16, 17.** Of those only 15 blocks layout, and all three are
+waiting on the same missing input — the motor, driver, encoder and IMU parts.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -469,18 +470,76 @@ new protection/control connections; all other existing nets and header mappings
 are unchanged. ERC remains 0 errors and the same two GPIO45/GPIO46 warnings.
 The rendered sheet was inspected for wiring and field overlaps.
 
-### 8. Capacitor voltage ratings are unspecified everywhere
+### 8. Capacitor voltage ratings — RESOLVED (2026-09-20)
 
-Only **C13** (`0.1uF 50V`, added with the issue-2 UVLO network) carries a rating. On
-a system that reaches 8.4V every cap needs one explicitly. Follow C13's precedent:
-put it in the Value field, where a reviewer sees it on the schematic sheet.
+**Every capacitor now states its rating in the Value field**, following C13's
+precedent so a reviewer sees it on the sheet rather than having to open a BOM.
 
-- **C12** is the urgent one — it sits on the ~8.1V OR node (`VSYS`). Spec **≥25V**, and note that a 25V 10µF 0805 derates to roughly 3–4µF at
-  that bias. The AP63203 wants ~2×10µF *effective* input capacitance: add a second
-  bulk cap plus a 100nF right at U3.3.
-- **C7, C11** (22µF 0805, 3.3V rail): spec 10V or 16V to survive DC-bias derating.
-- Everything else: state the rating explicitly, minimum 16V on anything touching
-  VBAT or the OR node.
+| Ref | Value | Footprint | Net / role |
+|---|---|---|---|
+| C1 | `10uF 16V` | 0805 | `ESP_3V3` bulk |
+| C2 | `0.1uF 16V` | 0603 | `ESP_3V3` decoupling |
+| C3 | `1uF 16V` | 0603 | CHIP_PU debounce |
+| C4 | `0.1uF 16V` | 0603 | CHIP_PU |
+| C5 | `0.1uF 16V` | 0603 | GPIO0 |
+| C6 | `0.1uF 25V` | 0603 | bootstrap, BST–SW |
+| C7 | `22uF 16V` | 0805 | 3.3V output |
+| C8 | `4.7nF 1kV` | **1206** | USB shield — see below |
+| C11 | `22uF 16V` | 0805 | 3.3V output |
+| C12 | `22uF 25V` | **1206** | `VSYS` input bulk — see below |
+| C13 | `0.1uF 50V` | 0603 | UVLO (unchanged) |
+| C14 | `0.1uF 50V` | 0603 | ADC filter (unchanged) |
+| C15 | `10uF 16V` | 0805 | ToF rail (unchanged) |
+| C16 | `0.1uF 16V` | 0603 | ToF rail (unchanged) |
+| **C17** | `0.1uF 25V` | 0603 | **new** — `VSYS` HF bypass at U3.3 |
+
+**C6 at 25V is margin, not necessity.** The datasheet's abs-max for VBST is
+`VSW − 0.3` to `VSW + 6.0`, so the cap only ever sees ≤6V *across* it even though
+both its terminals ride a node that swings to VIN. 16V would have done; 25V is free
+in an 0603.
+
+**C12: one 22µF 1206 rather than two 10µF 0805s.** Checked against the AP63203
+datasheet (DS41326 Rev 3-2) rather than against this issue's own note, **which was
+wrong**: it claimed "the AP63203 wants ~2×10µF *effective* input capacitance". It
+does not. Table 2 specifies **C1 (input) = 10µF** for the 3.3V part, and the Input
+Capacitor section says *"using a ceramic capacitor greater than 10µF is sufficient
+for most applications."* The `2 × 22µF` figure in that table is the **output**, which
+C7 ‖ C11 already match exactly.
+
+Meeting a 10µF *effective* target at 8.4V bias is the real constraint. A 25V 10µF
+0805 derates to roughly 3–4µF there, so two of them would have delivered ~7–9µF —
+still short. A 25V 22µF 1206 retains roughly 11–13µF at that bias, so **one part
+meets the recommendation where two smaller ones did not**, with one fewer placement
+inside the loop the layout rules demand be kept tight. The package grew 0805 → 1206;
+that is the cost, and it is worth it.
+
+The datasheet also asks for an RMS rating above half the maximum load current. This
+rail carries the module, four ToF sensors and the LEDs — ~0.7A, so ~0.35A — which any
+1206 ceramic clears easily.
+
+**C17 is the high-frequency bypass** the pin-3 description calls for (*"bypass VIN to
+GND with a suitably large capacitor"*), and the layout section says **"place the VIN
+capacitors as close to the device as possible"** — plural. C12 is the bulk; C17 is the
+part that must sit hard against U3.3, closer than C12 if they compete.
+
+**C8 is the one this issue's own guidance got wrong.** The original note said
+"everything else: minimum 16V". C8 is the USB shield cap — R5 (1M) ‖ C8 from `J1.SH`
+to GND — and it is an **ESD path**, not a bias node. During a strike R5 does nothing
+and C8 takes the charge. An IEC 61000-4-2 8kV contact discharge dumps a 150pF source
+into it, so the shield node divides as 8kV × 150pF / (150pF + 4.7nF) ≈ **250V across
+C8**. A 16V or 50V part is destroyed. **1kV** gives 4× margin.
+
+That rating is not available at 4.7nF in 0603 — high-voltage dielectric needs the
+volume — so **the footprint moved to 1206 with it**. Value and Footprint moved
+together deliberately: leaving `4.7nF 1kV` on an 0603 pad would have been exactly the
+half-updated component this project's working notes warn about.
+
+**Verified:** netlist diff against the previous commit shows exactly two changes —
+`C17.1` joined `/VSYS` and `C17.2` joined `GND`. Net count steady at **62**, no new
+auto-named `Net-(…)` strays, every other net byte-identical. ERC stays 0 errors,
+0 warnings. The sheet was rendered and inspected three times: the first placement put
+C17's GND label through R7's value text, the second left C12's label reading as if it
+belonged to C17, and the third is clean. Both were invisible to the netlist diff.
 
 ### 9. OR-ing diodes D1/D2 — RESOLVED (2026-09-20)
 
@@ -884,6 +943,13 @@ makes a single plane work — it is the job the 8 header ground pins used to do 
 - 1oz outer copper is fine for signals, but **check the `VBAT` and motor-return
   copper against the final stall current** (issue 17). If the motor path is tight,
   widen on L1/L4 or specify 2oz outers; do not rely on L3's pour alone to carry it.
+- **The AP63203 datasheet asks for 2oz on both outer layers** and for the ground
+  layer to sit directly under the device for heat spreading (DS41326 §PCB Layout,
+  items 1–3). L2 already provides the latter. The 2oz request is made at the part's
+  full 2A; this rail draws ~0.7A, so 1oz is defensible — but if 2oz is taken for the
+  motor path anyway, U3 gets it for free.
+- Give the input and output capacitors' **GND pads their own via stitching to L2**,
+  which the same datasheet section asks for by name.
 
 ## Layout constraints (for when layout starts)
 

@@ -7274,6 +7274,32 @@
 	)
 	(wire
 		(pts
+			(xy 156.21 118.11) (xy 143.51 118.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dad6a1f9-bbf4-42bf-999c-cb5f72358254")
+	)
+	(wire
+		(pts
+			(xy 143.51 125.73) (xy 143.51 128.27)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f5ce9c87-384d-4c98-a413-37715689962c")
+	)
+	(junction
+		(at 156.21 118.11)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6be91a37-ef3d-435d-88a8-fbf423e68780")
+	)
+	(wire
+		(pts
 			(xy 156.21 130.81) (xy 156.21 133.35)
 		)
 		(stroke
@@ -8564,7 +8590,7 @@
 		(fields_autoplaced yes)
 		(uuid "12d95b55-4847-4f7b-8adc-e61622e9306e")
 		(property "Reference" "C12"
-			(at 160.02 125.7299 0)
+			(at 160.02 130.81 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8574,8 +8600,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10uF"
-			(at 160.02 128.2699 0)
+		(property "Value" "22uF 25V"
+			(at 160.02 133.35 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -8585,7 +8611,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
 			(at 157.1752 130.81 0)
 			(hide yes)
 			(show_name no)
@@ -8976,7 +9002,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF"
+		(property "Value" "22uF 16V"
 			(at 229.87 120.6499 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9602,7 +9628,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.1uF"
+		(property "Value" "0.1uF 16V"
 			(at 58.42 30.4799 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -9924,7 +9950,7 @@
 				)
 			)
 		)
-		(property "Value" "0.1uF"
+		(property "Value" "0.1uF 25V"
 			(at 190.5 118.11 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10161,7 +10187,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "0.1uF"
+		(property "Value" "0.1uF 16V"
 			(at 182.88 38.0999 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10243,7 +10269,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "0.1uF"
+		(property "Value" "0.1uF 16V"
 			(at 182.88 59.6899 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10576,7 +10602,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10uF"
+		(property "Value" "10uF 16V"
 			(at 45.72 30.4799 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -10658,7 +10684,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "22uF"
+		(property "Value" "22uF 16V"
 			(at 218.44 120.6499 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12396,7 +12422,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "1uF 16V"
 			(at 144.78 43.1799 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12812,6 +12838,165 @@
 		)
 	)
 	(symbol
+		(lib_id "Device:C")
+		(at 143.51 121.92 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "6ddd5698-d02a-4b1f-b760-907d530ca381")
+		(property "Reference" "C17"
+			(at 140.97 120.65 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Value" "0.1uF 25V"
+			(at 140.97 123.19 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 143.51 121.92 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 143.51 121.92 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "VSYS high-frequency bypass. Place hard against U3.3 (IN)."
+			(at 143.51 121.92 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "080db7bf-6382-40de-af78-9083bcdc13fc")
+		)
+		(pin "2"
+			(uuid "1b9a3e93-7818-4c51-ae92-09f8abf02b2b")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "C17")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 143.51 128.27 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "76d52185-e4aa-4b3f-b9f4-58cd807ba4ca")
+		(property "Reference" "#PWR033"
+			(at 143.51 134.62 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 143.51 133.35 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 143.51 128.27 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 143.51 128.27 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 143.51 128.27 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "bc3132d5-aa24-4585-ae00-1615591024c7")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR033")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 156.21 133.35 0)
 		(unit 1)
@@ -12912,7 +13097,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "4.7nF"
+		(property "Value" "4.7nF 1kV"
 			(at 26.67 182.8799 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -12923,7 +13108,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "Capacitor_SMD:C_1206_3216Metric"
 			(at 23.8252 185.42 0)
 			(hide yes)
 			(show_name no)
