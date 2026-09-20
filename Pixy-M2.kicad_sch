@@ -6664,16 +6664,6 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 168.91) (xy 99.06 171.45)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4b25f917-33b7-4555-a432-27a3e163225b")
-	)
-	(wire
-		(pts
 			(xy 87.63 137.16) (xy 93.98 137.16)
 		)
 		(stroke
@@ -6821,16 +6811,6 @@
 			(type default)
 		)
 		(uuid "684dd636-2b7a-43fa-9c3b-7af7b0e0bfa8")
-	)
-	(wire
-		(pts
-			(xy 111.76 168.91) (xy 111.76 171.45)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "69b391dd-f9b0-4cb9-b8c7-d071715cbbd4")
 	)
 	(wire
 		(pts
@@ -7154,7 +7134,7 @@
 	)
 	(wire
 		(pts
-			(xy 111.76 161.29) (xy 111.76 152.4)
+			(xy 111.76 171.45) (xy 111.76 152.4)
 		)
 		(stroke
 			(width 0)
@@ -7414,7 +7394,7 @@
 	)
 	(wire
 		(pts
-			(xy 99.06 154.94) (xy 99.06 161.29)
+			(xy 99.06 154.94) (xy 99.06 171.45)
 		)
 		(stroke
 			(width 0)
@@ -10496,88 +10476,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_US")
-		(at 99.06 165.1 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6a9031d0-9dfe-459f-abda-bcd0ee3bee3a")
-		(property "Reference" "R4"
-			(at 101.6 163.8299 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "22Ohm"
-			(at 101.6 166.3699 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 100.076 165.354 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 99.06 165.1 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Resistor, US symbol"
-			(at 99.06 165.1 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "3cd8e710-9598-4031-a925-f2e623580ef5")
-		)
-		(pin "2"
-			(uuid "248974af-cf47-4fe1-85b0-d0917d3c75f3")
-		)
-		(instances
-			(project "Pixy-M2"
-				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
-					(reference "R4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 81.28 124.46 0)
 		(unit 1)
@@ -10906,88 +10804,6 @@
 			(project "Pixy-M2"
 				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
 					(reference "U3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_US")
-		(at 111.76 165.1 180)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8afc9ddf-de95-412f-917a-d0e7e9eb54d5")
-		(property "Reference" "R3"
-			(at 114.3 163.8299 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "22Ohm"
-			(at 114.3 166.3699 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 110.744 164.846 90)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 111.76 165.1 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Resistor, US symbol"
-			(at 111.76 165.1 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "f46a6f2e-4eea-40f6-9cd2-87cd8ddf5ae1")
-		)
-		(pin "2"
-			(uuid "e04f97bd-1ec0-4230-8bef-e8befe14e0e2")
-		)
-		(instances
-			(project "Pixy-M2"
-				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
-					(reference "R3")
 					(unit 1)
 				)
 			)

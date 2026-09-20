@@ -160,17 +160,17 @@ pins to anything (issue 15).
 Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
 3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 6 (dissolved by the
 single-board decision), 7 (switch/fuses/TVS added; battery fuse sizing remains
-provisional), 11 (module variant), 12 (strapping pins), 13 (conveniences),
-14 (ToF wall sensors).**
+provisional), 10 (USB series resistors), 11 (module variant), 12 (strapping pins),
+13 (conveniences), 14 (ToF wall sensors).**
 
 **Layout is blocked again, deliberately.** The 2026-09-20 single-board decision means
 the part count and the board outline are not yet known, so there is nothing stable to
 place. **Issue 15 now gates layout** — the motor drivers, encoders and IMU have to
-exist in the schematic first. Issues 8–10 and 16 do not gate starting layout;
+exist in the schematic first. Issues 8, 9 and 16 do not gate starting layout;
 issue 17's current budget gates *routing* the power path, which is earlier than the
 pre-fabrication deadline it used to have.
 
-**Still open: 8, 9, 10, 15, 16, 17.** Of those only 15 blocks layout.
+**Still open: 8, 9, 15, 16, 17.** Of those only 15 blocks layout.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -495,11 +495,28 @@ ideal-diode controller. D1 can stay a diode but still needs a real part number.
 field. It carries ~70µA, so it has no thermal or Vf constraint worth revisiting.
 Follow its pattern when fixing D1 and D2.
 
-### 10. Unnecessary series resistors on USB D+/D−
+### 10. Series resistors on USB D+/D− — RESOLVED (2026-09-20)
 
-R3 and R4 (22Ω) sit between U2 and the module's USB pins. The ESP32-S3's internal
-USB PHY is impedance-matched; Espressif's reference designs connect straight
-through. Replace with 0Ω or remove.
+R3 and R4 (22Ω) sat between U2 and the module's USB pins. The ESP32-S3's internal
+USB PHY is impedance-matched and Espressif's reference designs connect straight
+through, so they did nothing. **Both are deleted** and U2 now drives U1 directly:
+`/USB_D+` is `{U1.14, U2.4}`, `/USB_D-` is `{U1.13, U2.6}`.
+
+**Deleted rather than set to 0Ω.** Both options were sanctioned by the original note.
+Removal won because two 0805 jumper pads are a discontinuity in the 90Ω differential
+pair the layout rules call for, sitting exactly where routing is tightest — next to
+the USB-C connector. The pair carries Full Speed (12 Mbps), so the discontinuity
+would have been harmless in practice; this is about keeping the pair clean and the
+BOM short, not about fixing a signal-integrity fault. **If a future spin wants series
+resistors back for rework or EMI, re-adding them is a schematic edit, not a
+respin-level change** — but do not add them "just in case".
+
+**Verified:** netlist diff shows exactly four changes and nothing else — `/USB_D+`
+and `/USB_D-` absorbed U2.4 and U2.6, and the auto-named `Net-(R3-Pad2)` /
+`Net-(R4-Pad1)` disappeared. **Net count 64 → 62**, which is the expected drop.
+ERC stays 0 errors, 0 warnings. The sheet was rendered and inspected: both runs go
+straight from U2 to their labels with no junction dot picked up on the way — the
+wire-through-a-junction hazard this project has hit twice did not recur.
 
 ### 11. Module variant — RESOLVED
 
