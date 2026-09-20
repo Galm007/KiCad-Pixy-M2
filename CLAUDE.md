@@ -149,11 +149,22 @@ J3.4/5/6/8/14/15.** Nothing attached to J3 may *drive* any of those six.
 device rather than consuming its own pins.
 
 **Free GPIO budget for the on-board peripherals: 23.** J2's 14 (GPIO2, 21, 35–44,
-47, 48) plus J3's 9 that the ToF sensors did not take (GPIO10–18). A typical
-two-motor micromouse spends roughly 13–15 of those — two driver channels, two
-quadrature encoders, an IMU interrupt, a fan, and a driver fault/sleep line or two —
-so the budget is comfortable but not unlimited. Count it properly before promising
-pins to anything (issue 15).
+47, 48) plus J3's 9 that the ToF sensors did not take (GPIO10–18).
+
+Against the issue-15 loadout (high-speed N20s with integrated encoders, SPI IMU,
+suction fan) the provisional spend is **15–17**:
+
+| Function | Pins |
+|---|---:|
+| Two motor driver channels (PWM+DIR or dual-PWM) | 4 |
+| Two quadrature encoders, 2 each | 4 |
+| IMU on dedicated SPI (SCLK, MOSI, MISO, CS) + interrupt | 5 |
+| Suction fan drive | 1–2 |
+| Driver nSLEEP / nFAULT | 1–2 |
+
+That leaves **6–8 spare**, which is almost exactly the debug/expansion header issue
+15 argues for — so the header costs nothing that is otherwise wanted. Count it
+properly against real parts before promising pins to anything.
 
 ## Open issues
 
@@ -855,24 +866,43 @@ re-asking.
 
 | Decision | Status | What it gates |
 |---|---|---|
-| Motor part number, gear ratio, stall current, rated voltage | **Class chosen: high-power, ≥3A stall each.** Exact part still needed | Driver selection, F1 sizing (issue 17), `VBAT` copper width, bulk cap sizing |
-| Motor driver part | Open — must suit ≥3A stall, so not a DRV8833/TB6612 class part | GPIO count (PWM+DIR vs. dual-PWM), thermal copper area, whether current sense is wanted |
-| Encoder type | Open, but **likely on-board magnetic** — see below | GPIO count, and whether the encoders can sit on this PCB at all or need a stub/flex at the motor |
+| Motor part number, gear ratio, stall current, rated voltage | **Class chosen: high-speed N20** (Pololu micro metal gearmotor HP 6V class), 1.6A stall at 6V. Exact gear ratio still needed | Driver selection, F1 sizing (issue 17), `VBAT` copper width, bulk cap sizing |
+| Motor driver part | Open. Needs ~2.2A peak per channel at 8.4V, and must survive D6's clamp — see below | GPIO count (PWM+DIR vs. dual-PWM), thermal copper area, whether current sense is wanted |
+| Encoder type | **Integrated with the motor** — N20 encoder variants carry a 12 CPR quadrature encoder on a back or side connector | 2 GPIOs per motor plus a connector. No on-board encoder IC |
 | IMU part and bus | **Dedicated SPI**, not the ToF I2C | ~4 GPIOs plus an interrupt; free budget drops 23 → ~19 |
 | Suction fan | **Planned, fitted** | F1 sizing, a third driver channel, and the fan's own inrush |
 
-**The motor class is the consequential answer.** At ≥3A stall per motor, two motors
-plus a fan is a fundamentally different power path from the one currently on the
-board — see issue 17, which is no longer a "confirm the budget" item but a "F1 is
-too small" item.
+**Superseded 2026-09-20:** an earlier revision of this section recorded a
+"high-power, ≥3A stall" class and concluded from it that F1 was undersized. The motor
+choice changed to high-speed N20 before anything was built against it. The ≥3A
+figures are gone from this file; **issue 17's F1 verdict is revised, not merely
+softened** — see there.
 
-**Encoders are probably this board's problem.** Motors in the ≥3A class rarely ship
-with an integrated encoder the way an N20 gearmotor does, so the likely path is
-on-board magnetic encoders (AS5047P class) aimed at a shaft magnet. That turns the
-encoder from an electrical choice into a **mechanical** one: the IC has to sit at a
-fixed, small distance under the magnet on the motor shaft, which constrains where the
-board can be relative to the motors — on top of every other outline constraint below.
-Settle this with the chassis, not on the schematic.
+**Reference figures** (Pololu 10:1 HP 6V, a representative high-speed variant, from
+its product page): 3100 RPM free-run at 6V, **100mA free-run**, **1.6A stall**, 0.22
+kg·cm stall torque. Gear ratio changes speed and torque but not the electrical
+figures, so F1 and the driver can be sized before the ratio is fixed.
+
+**Encoders are no longer this board's mechanical problem.** N20 gearmotors ship in
+encoder variants with a 12 CPR quadrature encoder already mounted, brought out on a
+back or side connector. That replaces the on-board AS5047P-plus-shaft-magnet scheme
+the previous revision anticipated, and with it the constraint that the PCB sit at a
+fixed small distance under each motor shaft. **This board needs two GPIOs and a
+connector per motor, nothing more.** It is the single largest simplification the N20
+choice buys, and it materially loosens the outline problem below.
+
+**12 CPR is low, and that is a firmware consequence, not a hardware one.** 12 counts
+per motor revolution before gearing; useful resolution comes from the gear ratio, so
+a high-speed (low-ratio) variant gives *fewer* counts per wheel revolution than a
+geared-down one. Check that the chosen ratio still yields enough edges for the
+control loop rate before committing — this is the one place the "high speed" choice
+costs something.
+
+**The N20 is a 6V-nominal motor on an 8.4V pack.** That is a deliberate over-volt
+for speed, and Pololu states plainly that higher voltages "could start negatively
+affecting the life of the motor." It also scales stall current: 1.6A × 8.4/6 =
+**2.24A per motor at a full pack**. Firmware should cap PWM duty — roughly 71% gives
+a 6V equivalent from 8.4V — and that cap is also what keeps F1 comfortable (issue 17).
 
 **Choosing SPI for the IMU also protects the ToF bus.** GPIO8/9 already carry four
 VL53L0X sensors at 400kHz (issue 14); adding a gyro that wants high-rate reads would
@@ -922,35 +952,55 @@ Answer it before routing the power path, not before fabrication. F1's provisiona
 hold was chosen without knowing the motors; if the real stall current moves it, the
 copper sized around it moves too.
 
-### F1 is undersized — established 2026-09-20
+### F1 with N20 motors — revised 2026-09-20, verdict reversed
 
-The issue-15 answers settle this without needing the exact motor part. F1 is a
-**3A-hold / 5A-trip PPTC whose hold current falls to about 2.31A at 60°C**. Two
-motors at **≥3A stall each is ≥6A**, before the fan's startup inrush. That is not a
-marginal call:
+**An earlier revision of this section declared F1 undersized.** That was computed
+against the "≥3A stall" motor class, which is no longer the plan. Recomputed against
+high-speed N20s (issue 15), **F1's 3A hold is defensible** — but it is not
+comfortable everywhere, and the margin depends on firmware.
 
-- A **stall against a maze wall trips F1**, which is the exact moment the robot most
-  needs to keep running to reverse out.
-- **Hard acceleration on both motors** plausibly exceeds the 60°C hold current even
-  without a stall.
-- F1's specified **20s maximum trip time at 8A** means a genuine fault also clears
-  slowly, so the fuse is neither protecting fast nor holding reliably at this load.
+F1 is a 3A-hold / 5A-trip PPTC whose hold falls to about **2.31A at 60°C**. N20 stall
+is 1.6A at 6V, scaling to **2.24A per motor on a full 8.4V pack**.
 
-Three things move together when it is resized, and none should be changed alone:
+| Condition | `VBAT` current | vs F1 |
+|---|---|---|
+| Both motors free-running | ~0.3A | trivial |
+| Normal driving, both motors loaded | ~1–2A | comfortable |
+| **One** motor stalled at 8.4V | 2.24A | under the 3A hold; **at the 60°C hold** |
+| **Both** motors stalled at 8.4V | 4.48A | above hold, below the 5A trip — trips eventually |
+| Both stalled, plus fan | >4.5A | trips |
 
-- **F1 itself**, and its 40A maximum fault-current rating must still suit the pack —
-  a low-impedance 2S LiPo can deliver far more than that into a hard short.
-- **Q1 (AO4407A, 17mΩ at VGS = −6V).** At 6A that is ~0.61W in a SOIC-8, so it needs
-  real copper on all three source and all four drain pads, not a token pour.
-- **The `VBAT` copper and D6.** The TVS is a 600W transient clamp, not a continuous
-  braking-energy sink; ≥3A motors regenerating into it is a larger event than the
-  part was chosen for.
+**PWM duty is what makes this work, and it is load-bearing.** A locked rotor does not
+draw stall current continuously from the pack — with the bridge in slow-decay the
+current recirculates locally and supply current is roughly *duty × stall*. The 71%
+duty cap that issue 15 wants for motor life also holds a double stall near ~3.2A
+rather than 4.5A. **Firmware stall detection and a duty cap are therefore part of the
+power design, not just motor care.** Record that anywhere the firmware spec lives.
 
-**Do not simply fit a bigger polyfuse.** Raising F1 raises the fault current every
-downstream part must survive, and issue 7 already warns against sizing it up to
-accommodate a fan without re-checking the whole path. A higher-current PPTC, or a
-different protection strategy altogether (an eFuse or a current-sense shunt with
-firmware cutout), should be chosen deliberately alongside the motor part number.
+**What still has to be checked before fabrication:**
+
+- **The fan.** It is the remaining unknown and it lands directly on F1. Its startup
+  inrush stacks on whatever the motors are drawing at that moment.
+- **The actual N20 variant.** 1.6A is Pololu's HP figure; other N20s differ, and some
+  cheaper ones are worse. Confirm stall current for the part actually bought.
+- **F1's 40A maximum fault current against the pack.** Unchanged from issue 7 — a
+  low-impedance 2S LiPo can deliver far more than that into a hard short. This is
+  independent of the motor choice and is still open.
+- **Q1 (AO4407A, 17mΩ at VGS = −6V).** At 4.5A that is ~0.34W in a SOIC-8 — fine with
+  reasonable copper on all three source and all four drain pads, where the previous
+  ≥3A-class figure of ~0.61W was pushing it.
+
+**D6's clamp voltage now constrains the driver, and this is new.** D6 (SMBJ9.0A)
+clamps at up to **15.4V** at full surge current, sitting nearer 11–12V at the few-amp
+kickback an N20 actually produces. Several obvious micromouse drivers are rated below
+that: **DRV8833 has an 11.8V absolute maximum** and **TB6612FNG 15V**. A driver must
+survive what D6 lets through, not just the 8.4V pack. Either pick a driver with
+headroom above 15.4V, or accept the risk knowingly — **do not assume the TVS protects
+the driver**, because at these ratings it does not.
+
+**Do not simply fit a bigger polyfuse** if the fan pushes this over. Raising F1 raises
+the fault current every downstream part must survive, and issue 7 already warns
+against sizing it up for a fan without re-checking the whole path.
 
 ## Board stackup — 4 layers (decided 2026-09-20)
 
