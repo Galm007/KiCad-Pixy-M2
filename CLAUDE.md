@@ -174,23 +174,48 @@ R17.2, R18.2, J8.2 and J9.2.
 coordinate as pin 7, so grounding GND connects the pad automatically — confirmed in
 the netlist, not assumed.
 
-**Free GPIO budget: 23 total, 10 now spent, 13 left.** J2's 14 (GPIO2, 21, 35–44,
+## IMU nets (extracted, authoritative)
+
+Added 2026-09-20. The **BNO08x is an off-board module**, like the ToF sensors —
+this PCB carries the connector, one pull-up and local decoupling.
+
+| J10 pin | Function | Net |
+|---:|---|---|
+| 1 | VIN | `ESP_3V3` |
+| 2 | GND | `GND` |
+| 3 | SCK | `GPIO12` (native FSPICLK) |
+| 4 | MOSI | `GPIO11` (native FSPID) |
+| 5 | MISO | `GPIO13` (native FSPIQ) |
+| 6 | CS | `GPIO14` |
+| 7 | INT | `GPIO15` |
+| 8 | RST | `GPIO16` (+ R23 10k pull-up to `ESP_3V3`) |
+| 9 | WAKE / PS0 | `GPIO17` |
+| MP | mounting pegs | `GND` |
+
+C22 (0.1µF 16V) decouples `ESP_3V3` at the connector.
+
+**Free GPIO budget: 23 total, 17 now spent, 6 left.** J2's 14 (GPIO2, 21, 35–44,
 47, 48) plus J3's 9 that the ToF sensors did not take (GPIO10–18).
 
-Against the issue-15 loadout (high-speed N20s with integrated encoders, SPI IMU,
-suction fan) the provisional spend is **15–17**:
+Actual spend, now that the motor and IMU blocks are built:
 
-| Function | Pins |
-|---|---:|
-| Two motor driver channels (PWM+DIR or dual-PWM) | 4 |
-| Two quadrature encoders, 2 each | 4 |
-| IMU on dedicated SPI (SCLK, MOSI, MISO, CS) + interrupt | 5 |
-| Suction fan drive | 1–2 |
-| Driver nSLEEP / nFAULT | 1–2 |
+| Function | Pins | Which |
+|---|---:|---|
+| Two motor driver channels (IN1/IN2 each) | 4 | GPIO39–42 |
+| Two quadrature encoders | 4 | GPIO47, 48, 21, 38 |
+| Two IPROPI current-sense inputs | 2 | GPIO2, GPIO10 (both ADC1) |
+| BNO08x on SPI | 7 | GPIO11–17 |
+| **Total** | **17** | |
 
-That leaves **6–8 spare**, which is almost exactly the debug/expansion header issue
-15 argues for — so the header costs nothing that is otherwise wanted. Count it
-properly against real parts before promising pins to anything.
+**Six are left, and they are not all equal:** `GPIO18` is the only unencumbered one.
+`GPIO35/36/37` are free on the fitted N16 module but would be consumed by PSRAM on an
+`-R8` part (issue 11), and `GPIO43/44` are UART0 — which makes them ideal for a debug
+header's serial console rather than a liability. That combination is a perfectly good
+small header: 3V3, GND, TX, RX and a couple of spares.
+
+The DRV8231A needs no nSLEEP or nFAULT pin — it sleeps when IN1 = IN2 = 0 and reports
+faults by folding back current rather than on a dedicated line — which is part of why
+the budget came in under the earlier 15–17 estimate despite the IMU costing 7.
 
 ## Open issues
 
@@ -208,8 +233,10 @@ issue 17's current budget gates *routing* the power path, which is earlier than 
 pre-fabrication deadline it used to have.
 
 **Still open: 15 (partially built), 17.** Issue 16 is resolved. The motor drivers,
-encoders and connectors are in the schematic as of 2026-09-20; what remains in 15 is
-the IMU, the fan, the debug header and the board outline.
+encoders, connectors and the BNO08x IMU connector are all in the schematic as of
+2026-09-20; what remains in 15 is the **debug header and the board outline**. The
+suction fan was dropped from the design. Issue 17 is now a measurement task rather
+than a redesign — see its revised arithmetic.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -426,8 +453,9 @@ does not transfer to it.
 ### 7. Power switch, fuses and TVS — IMPLEMENTED (2026-09-19)
 
 Six components added. **F1's current rating is provisional:** the intended loads
-are two coreless motors, four IR sensors and possibly a suction fan; their exact
-part numbers, operating current and startup/stall current are not yet known.
+were unknown when this was written. They are now settled: **two high-speed N20
+gearmotors and four VL53L0X wall sensors, and no fan** — see issues 15 and 17, where
+the budget is recomputed against real numbers.
 
 ```
  BT1+ -- F1 -- VBAT_FUSED -- Q1(S -> D) -- VBAT -- D2 -- VSYS
@@ -487,12 +515,11 @@ drivers a defined disabled state (see issue 15).
 
 **Current-budget check — now needed before *routing*, not just before fabrication
 (issue 17):** verify steady load at the actual
-fuse temperature, both motor stalls, fan startup, pack short-circuit capability,
+fuse temperature, both motor stalls, pack short-circuit capability,
 and the copper/header/wiring ratings. F1 is a thermal PPTC, not a hard 3A limiter:
 its specified maximum trip time is 20s at 8A, and its hold current falls to about
 2.31A at 60°C. Its 40A maximum fault-current rating must also suit the selected
-pack. Do not increase F1 just to accommodate a fan without checking the entire
-power path. F2 similarly does not enforce a USB host's negotiated current budget;
+pack. Do not increase F1 without checking the entire power path. F2 similarly does not enforce a USB host's negotiated current budget;
 keep USB-only loads within that budget, including its voltage drop and derating.
 
 **D6 protects the switched motor rail.** Cathode pin 1 is on `VBAT`, anode pin 2
@@ -880,8 +907,10 @@ and the block sits clear of the A3 border and title block.
 ### 15. On-board peripherals — MOTOR DRIVE BUILT, rest still open (2026-09-20)
 
 **Built:** two motor channels — drivers, current sense, decoupling, bulk capacitance,
-encoder pull-ups and motor/encoder connectors. 14 parts added.
-**Still open:** the IMU, the suction fan, the debug header, and the board outline.
+encoder pull-ups and motor/encoder connectors (14 parts) — and the **BNO08x IMU
+connector block** (J10, R23, C22).
+**Still open:** the debug header and the board outline.
+**Dropped:** the suction fan, removed from the design entirely on 2026-09-20.
 
 J2 and J3 are untouched and still carry every GPIO. The motor nets *join* the
 existing `GPIOnn` nets rather than replacing them, so each driver input and encoder
@@ -986,6 +1015,52 @@ A PWR_FLAG *was* legitimately needed elsewhere: **`#FLG04` on `VBAT`**, because 
 rail reaches the drivers through BT1 → F1 → Q1 and ERC cannot see a power source
 through them. That one is correct and should stay.
 
+#### IMU — BNO08x module on SPI (J10)
+
+**Off-board, like the ToF sensors.** This PCB carries J10 (`SM09B-SRSS-TB`, 9-pin
+JST-SH, side-entry, mounting pegs to GND), R23 and C22. Nine conductors:
+VIN, GND, SCK, MOSI, MISO, CS, INT, **RST** and **WAKE**.
+
+**INT and RST are not optional in SPI mode** — the BNO08x signals data-ready on INT
+and the host must wait for it; the datasheet calls both required for stable SPI.
+That is why the connector is 9-way and not 6.
+
+**WAKE is pin 9, and it is the same physical pin as PS0.** PS0/PS1 select the
+protocol and are *sampled at reset*: both high selects SPI, both low selects I²C.
+**After reset, PS0 is repurposed as WAKE**, which the host pulls low to ask a sleeping
+device for attention. Hard-jumpering PS0 high on the module would select SPI but leave
+the host unable to wake it, so WAKE is brought to a GPIO and **PS1 alone is the module
+jumper**. SparkFun's driver expects a WAK pin; Adafruit's does not — bringing it out
+costs one GPIO and suits both.
+
+**The module must have PS1 jumpered high.** This is the single most likely bring-up
+failure: a stock BNO08x breakout ships configured for I²C and will simply not answer
+on SPI until that jumper is changed. Silkscreen it next to J10.
+
+**GPIO11/12/13 are the ESP32-S3's native FSPI D/CLK/Q pins**, so SPI2 can drive them
+through the IO MUX rather than the GPIO matrix. At the BNO08x's 3MHz ceiling that
+buys nothing in bandwidth, but it costs nothing either, and it keeps the clock off a
+matrix-routed pin. CS is on GPIO14 because GPIO10 — the native FSPICS0 — is taken by
+motor B's IPROPI; CS has no timing requirement, so the matrix is fine for it.
+
+**R23 (10k) holds RST high while GPIO16 floats.** ESP32-S3 GPIOs float at reset, and
+a floating RST on a module without its own pull-up is indeterminate. With R23 the
+module comes up running regardless, and firmware resets it deliberately.
+
+**C22 is 0.1µF and there is no bulk cap here, unlike the ToF block.** C15 exists
+because four VL53L0X modules pulse 40mA each into a cable; the BNO08x draws a low,
+steady current, so HF decoupling is all this rail needs at J10.
+
+**I²C was reconsidered and rejected, but it was closer than it first looked.** An
+earlier note in this file claimed sharing the ToF bus would "cap gyro rate and couple
+sensor timing" — that overstated it. Four VL53L0X at 50Hz is roughly 3% of a 400kHz
+bus and a BNO08x rotation vector at 400Hz adds about 20%, so throughput was never the
+problem. The real cost is **latency jitter**: an IMU interrupt arriving mid-ToF-read
+waits up to ~150µs, which is 15% of a 1kHz control period. SPI was kept for that
+reason, and because it leaves the I²C bus entirely to the wall sensors. The costs are
+real and worth recording: three more conductors, a second cable design, four more
+GPIOs, and a 3MHz clock on a ribbon cable rather than 400kHz.
+
 #### What is still missing from this issue
 
 | Decision | Status | What it gates |
@@ -999,9 +1074,9 @@ re-asking.
 | Motor part number, gear ratio | **Class chosen: high-speed N20** (Pololu micro metal gearmotor HP 6V class), 1.6A stall at 6V. Exact gear ratio still needed | Nothing on this board — the electrical figures are the same across ratios |
 | Motor driver part | **DONE — DRV8231A ×2** | — |
 | Encoder type | **DONE — integrated with the motor**, 12 CPR quadrature on J8/J9 | — |
-| IMU part and bus | **Dedicated SPI** decided, part not chosen | ~5 GPIOs of the 13 left |
-| Suction fan | **Planned, not built** | F1 sizing (issue 17), a driver channel, inrush |
-| Debug/expansion header | Open | Whatever GPIOs survive |
+| IMU part and bus | **DONE — BNO08x module on SPI**, off-board via J10 | 7 GPIOs |
+| Suction fan | **DROPPED** — no fan in the design | nothing; it was never built |
+| Debug/expansion header | Open | GPIO18, 35, 36, 37, 43, 44 |
 | Board outline | Open — the hard one | Chassis, antenna keep-out, four ToF connectors, SW3, USB-C |
 
 **Superseded 2026-09-20:** an earlier revision of this section recorded a
@@ -1098,30 +1173,41 @@ against the "≥3A stall" motor class, which is no longer the plan. Recomputed a
 high-speed N20s (issue 15), **F1's 3A hold is defensible** — but it is not
 comfortable everywhere, and the margin depends on firmware.
 
-F1 is a 3A-hold / 5A-trip PPTC whose hold falls to about **2.31A at 60°C**. N20 stall
-is 1.6A at 6V, scaling to **2.24A per motor on a full 8.4V pack**.
+F1 is a 3A-hold / 5A-trip PPTC whose hold falls to about **2.31A at 60°C**. Two
+things have changed since that first estimate, and both help: **the fan is gone**, and
+**the DRV8231A regulates each channel at 1.47A** (issue 15), so motor current is now
+bounded by hardware instead of by motor impedance.
+
+Everything on `VBAT` passes through F1, including the buck — BT1 → F1 → Q1 → `VBAT` →
+D2 → `VSYS` → U3 — so the 3.3V rail's ~0.43A reflected input current counts too.
 
 | Condition | `VBAT` current | vs F1 |
 |---|---|---|
-| Both motors free-running | ~0.3A | trivial |
-| Normal driving, both motors loaded | ~1–2A | comfortable |
-| **One** motor stalled at 8.4V | 2.24A | under the 3A hold; **at the 60°C hold** |
-| **Both** motors stalled at 8.4V | 4.48A | above hold, below the 5A trip — trips eventually |
-| Both stalled, plus fan | >4.5A | trips |
+| Both motors free-running | ~0.7A | trivial |
+| Normal driving, both motors loaded | ~1.4A | comfortable |
+| Hard acceleration, ~1A per motor | ~2.4A | just above the **60°C** hold; fine for a 30s run, not indefinitely |
+| **Both** motors at the 1.47A current limit | **~3.4A** | above the 3A hold, below the 5A trip — trips slowly |
+| Unregulated double stall (**cannot happen now**) | 4.9A | this is what the limit removes |
 
-**PWM duty is what makes this work, and it is load-bearing.** A locked rotor does not
-draw stall current continuously from the pack — with the bridge in slow-decay the
-current recirculates locally and supply current is roughly *duty × stall*. The 71%
-duty cap that issue 15 wants for motor life also holds a double stall near ~3.2A
-rather than 4.5A. **Firmware stall detection and a duty cap are therefore part of the
-power design, not just motor care.** Record that anywhere the firmware spec lives.
+**The verdict is that F1 is adequate, with one caveat.** The worst case the hardware
+permits is ~3.4A, where before it was an unbounded ~4.9A. A polyfuse only trips
+*quickly* well above its hold, so at 2.4A it will carry a speed run indefinitely in
+practice, and at 3.4A it trips slowly — which is the right behaviour for a jammed
+robot. **The caveat is thermal:** the 60°C hold of 2.31A is below hard-acceleration
+current, so a hot board driven hard for minutes rather than seconds is the case that
+trips. That is a competition-realistic scenario, so measure it on the assembled board.
+
+**Firmware stall detection is now the primary protection, and it is finally
+possible.** IPROPI on GPIO2/GPIO10 lets firmware see per-motor current directly
+(2.25 V/A), so it can cut drive on a stall long before F1's thermal time constant
+matters. The hardware current limit is the backstop; F1 is the backstop's backstop.
 
 **What still has to be checked before fabrication:**
 
-- **The fan.** It is the remaining unknown and it lands directly on F1. Its startup
-  inrush stacks on whatever the motors are drawing at that moment.
 - **The actual N20 variant.** 1.6A is Pololu's HP figure; other N20s differ, and some
-  cheaper ones are worse. Confirm stall current for the part actually bought.
+  cheaper ones are worse. A higher-stall motor does not change the *supply* current
+  any more — the 1.47A limit caps it — but it does change how hard regulation works
+  and therefore how hot U4/U5 run.
 - **F1's 40A maximum fault current against the pack.** Unchanged from issue 7 — a
   low-impedance 2S LiPo can deliver far more than that into a hard short. This is
   independent of the motor choice and is still open.
@@ -1137,9 +1223,9 @@ survive what D6 lets through, not just the 8.4V pack. Either pick a driver with
 headroom above 15.4V, or accept the risk knowingly — **do not assume the TVS protects
 the driver**, because at these ratings it does not.
 
-**Do not simply fit a bigger polyfuse** if the fan pushes this over. Raising F1 raises
-the fault current every downstream part must survive, and issue 7 already warns
-against sizing it up for a fan without re-checking the whole path.
+**Do not simply fit a bigger polyfuse** if measurement shows F1 nuisance-tripping.
+Raising F1 raises the fault current every downstream part must survive. The cheaper
+fixes come first: lower the ITRIP resistors, or tighten the firmware duty cap.
 
 ## Board stackup — 4 layers (decided 2026-09-20)
 
@@ -1275,6 +1361,15 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   keep them out of the antenna keep-out. Silkscreen pin 1 and which motor each one
   is — the pinout mirrors the encoder module, so a cable built "the usual way round"
   will put motor voltage into the encoder.
+- **J10 (IMU) placement is mechanical, not electrical.** A fusion IMU should sit as
+  near the robot's centre of rotation as the outline allows, and its cable should not
+  run alongside the motor outputs — `MOT_x_1/2` are the only high-di/dt nets outside
+  the buck, and a 3MHz SPI cable beside them is asking for trouble. Give SCK a ground
+  return: J10 pin 2 (GND) is deliberately adjacent to pin 3 (SCK), so the cable should
+  keep that pair together.
+- **Silkscreen J10 with "PS1 HIGH = SPI"** next to pin 1. A stock BNO08x breakout
+  ships in I²C mode and will not answer until that jumper is changed; the board gives
+  no other hint.
 - **Silkscreen the test points** with their net names (VBAT, 3V3, GND, SW). An
   unlabelled 1.5mm pad is not a test point. Per issue 12, also silkscreen any exposed
   strapping pin on whatever debug header survives issue 15.
