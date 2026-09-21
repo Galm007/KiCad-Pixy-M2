@@ -148,7 +148,33 @@ J3.4/5/6/8/14/15.** Nothing attached to J3 may *drive* any of those six.
 `GPIO8`/`GPIO9` remain a shared I2C bus — an on-board IMU can sit on it as a second
 device rather than consuming its own pins.
 
-**Free GPIO budget for the on-board peripherals: 23.** J2's 14 (GPIO2, 21, 35–44,
+## Motor drive nets (extracted, authoritative)
+
+Added 2026-09-20. Two identical channels, U4/J8 and U5/J9.
+
+| Net | Members |
+|---|---|
+| `MOT_A_1` | U4.6 (OUT1), J8.1 |
+| `MOT_A_2` | U4.8 (OUT2), J8.6 |
+| `MOT_B_1` | U5.6 (OUT1), J9.1 |
+| `MOT_B_2` | U5.8 (OUT2), J9.6 |
+| `GPIO39` / `GPIO40` | U4.3 (IN1) / U4.2 (IN2) — motor A |
+| `GPIO41` / `GPIO42` | U5.3 (IN1) / U5.2 (IN2) — motor B |
+| `GPIO47` / `GPIO48` | J8.3 + R19.2 / J8.4 + R20.2 — encoder A |
+| `GPIO21` / `GPIO38` | J9.3 + R21.2 / J9.4 + R22.2 — encoder B |
+| `GPIO2` (ADC1_CH1) | U4.1 (IPROPI), R17.1 — motor A current sense |
+| `GPIO10` (ADC1_CH9) | U5.1 (IPROPI), R18.1 — motor B current sense |
+
+`VBAT` additionally gained U4.5, U5.5 (VM) and C18/C19/C20/C21.1.
+`ESP_3V3` gained U4.4, U5.4 (VREF), J8.5, J9.5 and R19–R22.1.
+`GND` gained U4.7, U5.7, **U4.9 and U5.9 (the thermal pads)**, C18–C21.2,
+R17.2, R18.2, J8.2 and J9.2.
+
+**The drivers' thermal pads are netted.** The KiCad symbol puts pin 9 at the same
+coordinate as pin 7, so grounding GND connects the pad automatically — confirmed in
+the netlist, not assumed.
+
+**Free GPIO budget: 23 total, 10 now spent, 13 left.** J2's 14 (GPIO2, 21, 35–44,
 47, 48) plus J3's 9 that the ToF sensors did not take (GPIO10–18).
 
 Against the issue-15 loadout (high-speed N20s with integrated encoders, SPI IMU,
@@ -181,8 +207,9 @@ exist in the schematic first. Issue 16 does not gate starting layout;
 issue 17's current budget gates *routing* the power path, which is earlier than the
 pre-fabrication deadline it used to have.
 
-**Still open: 15, 16, 17.** Of those only 15 blocks layout, and all three are
-waiting on the same missing input — the motor, driver, encoder and IMU parts.
+**Still open: 15 (partially built), 17.** Issue 16 is resolved. The motor drivers,
+encoders and connectors are in the schematic as of 2026-09-20; what remains in 15 is
+the IMU, the fan, the debug header and the board outline.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -850,27 +877,132 @@ GPIO45/GPIO46 warnings. The sheet was rendered and inspected: no overlapping tex
 and the block sits clear of the A3 border and title block.
 
 
-### 15. On-board peripherals do not exist yet — BLOCKS LAYOUT (2026-09-20)
+### 15. On-board peripherals — MOTOR DRIVE BUILT, rest still open (2026-09-20)
 
-The single-board decision deleted the daughterboard from the plan but not from the
-schematic. J2 and J3 are still there, 29 GPIOs still terminate on them, and there is
-no motor driver, encoder or IMU anywhere in the design. **Deleting the headers is not
-a standalone edit** — do it and the board has no motor interface at all and ~29 new
-ERC warnings. The sequence is: choose the parts, add them, move the nets onto them,
-*then* delete whatever header pins are left over.
+**Built:** two motor channels — drivers, current sense, decoupling, bulk capacitance,
+encoder pull-ups and motor/encoder connectors. 14 parts added.
+**Still open:** the IMU, the suction fan, the debug header, and the board outline.
+
+J2 and J3 are untouched and still carry every GPIO. The motor nets *join* the
+existing `GPIOnn` nets rather than replacing them, so each driver input and encoder
+input is also stubbed out to a header pin. That is deliberate — it keeps the headers
+as a probe/bring-up aid and avoids stranding nets — but it means **nothing plugged
+into J2/J3 may drive GPIO2, 10, 21, 38, 39, 40, 41, 42, 47 or 48**, exactly as the
+ToF pins are already reserved. Deleting the now-redundant header pins is still a
+separate decision, and still needs asking first.
+
+#### Driver selection — TI DRV8231A
+
+The brief was "headroom above the clamp", and that is what eliminated the obvious
+candidates. **D6 (SMBJ9.0A) clamps `VBAT` at up to 15.4V**, and a driver has to
+survive what the TVS lets through:
+
+| Part | VM abs max | Verdict |
+|---|---|---|
+| DRV8833 | **11.8V** | below the clamp — rejected |
+| TB6612FNG | **15.0V** | below the clamp — rejected |
+| DRV8874 / DRV8876 | 40V | good (200mΩ / 700mΩ), but **no KiCad stock symbol** |
+| **DRV8231A** | **35V** | **fitted** — 2.3× the clamp |
+
+Verified against the TI datasheet rather than from memory: **VM 4.5–33V operating,
+35V absolute maximum**, 3.7A peak output, RDS(on) 300mΩ high-side + 300mΩ low-side,
+integrated current sense and regulation, IN1/IN2 logic 0–5.5V with **internal 100kΩ
+pulldowns**, device UVLO 4.15–4.45V rising, WSON-8 2.0 × 2.0 mm, RθJA 66.5°C/W.
+
+**4.5V minimum matters more than it looks.** The board's own UVLO (issue 2) turns on
+at 6.90V and off at 5.94V, so a driver with a 6.5V or 8V minimum — DRV8871, DRV8848,
+A4950 — would be out of spec across part of the usable pack range. DRV8231A covers
+the whole of it.
+
+**The internal pulldowns are a safety property, not a detail.** ESP32-S3 GPIOs float
+at reset; the pulldowns hold IN1/IN2 low, so **both motors are off until firmware
+drives them.** Do not add external pulldowns and do not assume a different driver
+behaves this way.
+
+**600mΩ is the trade that was accepted.** At a ~0.5A running current that is 0.15W
+and 0.3V of an 8.4V supply — fine. The DRV8874's 200mΩ would be better and its
+package is the same family, but it has no stock KiCad symbol, so taking it means
+authoring one. **If thermals prove tight, the cheaper move is the DDA (HSOP-8)
+variant of the same die: RθJA 42.8°C/W against the DSG's 66.5°C/W**, at the cost of
+a 4.9 × 6.0 mm package and a different symbol.
+
+#### Current limit, and why it is set where it is
+
+`VREF` is tied to `ESP_3V3` (3.3V, inside the 0–3.6V recommended range, 6V abs max).
+With **AIPROPI = 1500 µA/A** and R17/R18 = 1.5kΩ:
+
+```
+   ITRIP = VREF / (AIPROPI x RIPROPI) = 3.3 / (1500u x 1500) = 1.47 A
+   IPROPI sense scale = AIPROPI x RIPROPI = 2.25 V/A   (ADC full scale 3.1V ~ 1.38A)
+```
+
+**1.47A is chosen to protect the driver, not the motor.** Left unregulated, a stalled
+N20 at 8.4V draws 8.4 / (3.75Ω motor + 0.6Ω driver) ≈ **1.93A**, which puts 2.24W
+into a package with RθJA 66.5°C/W — a 149°C rise, i.e. thermal shutdown. Regulating
+at 1.47A drops that to 1.29W. The cost is small: torque is proportional to current,
+so the limit still delivers ~92% of the motor's rated stall torque.
+
+It also keeps the connector legal — see below — and it is well under the part's own
+3.7A overcurrent trip, so OCP stays a fault backstop rather than a control mechanism.
+
+**This is the hardware half of the stall protection issue 17 asks firmware for.**
+Current regulation caps the current; `IPROPI` on an ADC1 pin lets firmware *see* the
+stall and react. Both channels use ADC1 (GPIO2 = CH1, GPIO10 = CH9) because ADC2 is
+unusable while Wi-Fi is active — the same constraint as issue 5.
+
+#### Connectors J8/J9
+
+`S6B-PH-K`, 6-pin JST-PH at 2.00mm, side-entry. **The pin order mirrors the encoder
+module** — 1 = M1, 2 = GND, 3 = OUT A, 4 = OUT B, 5 = VCC, 6 = M2 — so the cable is a
+straight-through loom, the same principle as J4–J7 (issue 14).
+
+**JST-PH is rated 2A per contact and the motor pins carry the full motor current.**
+That is why the current limit matters here too: 1.47A regulated keeps M1/M2 inside
+the contact rating, where the 1.93A natural stall would not. **Do not raise R17/R18
+without re-checking the connector.**
+
+The pinout does put M1 and M2 at opposite ends of the connector, which is a larger
+current loop than adjacent pins would give. That is accepted for the same reason as
+issue 14: mirroring the module makes the cable unmistakable, and a mis-wired motor
+cable is a worse failure than the loop area.
+
+**R19–R22 (10kΩ) pull up the encoder outputs.** Fitted because cheap N20 encoder
+boards commonly use open-drain Hall sensors, which produce nothing at all without
+them. If the fitted encoder has push-pull outputs the resistors are harmless.
+
+#### A KiCad library bug was corrected locally — do not let it come back
+
+**`Driver_Motor:DRV8231ADSG` types pin 8 (OUT2) as `power_in`, while pin 6 (OUT1) is
+`output`.** It is a library error — `DRV8871DDA` in the same library types both
+outputs correctly. Left alone it produces two `power_pin_not_driven` ERC errors on
+the motor output nets.
+
+The cached copy of the symbol **in this schematic** has OUT2 corrected to `output`.
+**"Update Symbols from Library" will silently revert it** and the two errors will
+reappear. If they do, this is the cause — re-apply the fix rather than papering over
+it with PWR_FLAGs on the motor outputs.
+
+A PWR_FLAG *was* legitimately needed elsewhere: **`#FLG04` on `VBAT`**, because the
+rail reaches the drivers through BT1 → F1 → Q1 and ERC cannot see a power source
+through them. That one is correct and should stay.
+
+#### What is still missing from this issue
+
+| Decision | Status | What it gates |
+|---|---|---|
 
 **Direction settled 2026-09-20; exact parts still outstanding.** Three of the five
 decisions below have answers now. They are recorded here rather than implemented —
 the schematic is untouched — so the next session starts from them instead of
 re-asking.
 
-| Decision | Status | What it gates |
-|---|---|---|
-| Motor part number, gear ratio, stall current, rated voltage | **Class chosen: high-speed N20** (Pololu micro metal gearmotor HP 6V class), 1.6A stall at 6V. Exact gear ratio still needed | Driver selection, F1 sizing (issue 17), `VBAT` copper width, bulk cap sizing |
-| Motor driver part | Open. Needs ~2.2A peak per channel at 8.4V, and must survive D6's clamp — see below | GPIO count (PWM+DIR vs. dual-PWM), thermal copper area, whether current sense is wanted |
-| Encoder type | **Integrated with the motor** — N20 encoder variants carry a 12 CPR quadrature encoder on a back or side connector | 2 GPIOs per motor plus a connector. No on-board encoder IC |
-| IMU part and bus | **Dedicated SPI**, not the ToF I2C | ~4 GPIOs plus an interrupt; free budget drops 23 → ~19 |
-| Suction fan | **Planned, fitted** | F1 sizing, a third driver channel, and the fan's own inrush |
+| Motor part number, gear ratio | **Class chosen: high-speed N20** (Pololu micro metal gearmotor HP 6V class), 1.6A stall at 6V. Exact gear ratio still needed | Nothing on this board — the electrical figures are the same across ratios |
+| Motor driver part | **DONE — DRV8231A ×2** | — |
+| Encoder type | **DONE — integrated with the motor**, 12 CPR quadrature on J8/J9 | — |
+| IMU part and bus | **Dedicated SPI** decided, part not chosen | ~5 GPIOs of the 13 left |
+| Suction fan | **Planned, not built** | F1 sizing (issue 17), a driver channel, inrush |
+| Debug/expansion header | Open | Whatever GPIOs survive |
+| Board outline | Open — the hard one | Chassis, antenna keep-out, four ToF connectors, SW3, USB-C |
 
 **Superseded 2026-09-20:** an earlier revision of this section recorded a
 "high-power, ≥3A stall" class and concluded from it that F1 was undersized. The motor
@@ -921,23 +1053,30 @@ bodging a fix and respinning the whole board — which is exactly the modularity
 single-board decision gave up. Size it once the peripherals above are placed and the
 real GPIO surplus is known.
 
-### 16. Motor noise now shares the board with the ADC and the buck (2026-09-20)
+### 16. Motor noise shares the board with the ADC and the buck — RESOLVED (2026-09-20)
 
-New, and created by the single-board decision. Motor switching used to be physically
-on another PCB; it is now inches from U1, from the 150kΩ `VBAT_SENSE` node and from
-the buck's feedback. Three consequences:
+Created by the single-board decision, and closed when the motor block was built.
+**C19 and C21 (22µF 25V, 1206) are the local bulk capacitance** on `VBAT` at each
+driver, with C18/C20 (0.1µF 50V) as the high-frequency bypass the DRV8231A datasheet
+asks for at the VM pin. Recirculation needs no external parts — the H-bridge's own
+body diodes handle it — and D6 remains the transient clamp.
+
+The placement discipline below still applies and is now a layout requirement, not a
+plan. Motor switching is inches from U1, from the 150kΩ `VBAT_SENSE` node and from
+the buck's feedback:
 
 - **`VBAT_SENSE` (issue 5) will see real motor sag and real switching noise.** Its
   15ms RC helps a lot, but firmware should average across whole PWM periods rather
   than trusting a single conversion, and should not sample during a stall event and
   conclude the pack is flat.
-- **Motor recirculation and bulk capacitance are now this schematic's parts.** Issue
-  7 told the daughterboard to "retain local motor recirculation/bulk capacitance";
-  there is no daughterboard, so that bulk cap has to be added here, next to the
-  drivers, on `VBAT`, rated per issue 8 (≥16V, and derate for DC bias).
-- **That bulk capacitance interacts with F1 inrush and D2's forward drop.** Size it
-  together with issues 8 and 9 rather than in isolation — a large bulk cap on a
-  polyfuse is an inrush problem, and D2 is already the biggest loss in the path.
+- **Bulk capacitance is built** — C19/C21, one per driver. Issue 7 told the
+  daughterboard to "retain local motor recirculation/bulk capacitance"; there is no
+  daughterboard, so it lives here now. Both are 25V parts because D6 clamps `VBAT`
+  at up to 15.4V.
+- **That bulk capacitance interacts with F1 inrush**, though only 2 × 22µF of it
+  (~22µF effective at 8.4V after DC-bias derating), which is small next to a PPTC's
+  thermal time constant. It does **not** sit behind D2 — `VBAT` reaches the drivers
+  directly, so D2's forward drop is not in this path (see issue 9).
 
 The mitigation is placement, not plane splitting — see "Board stackup".
 
@@ -1118,6 +1257,24 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   Pin 1 is **VCC**, not GND: the connector follows the module's header order, so a
   cable built "the usual way round" with GND first will put 3.3V into the sensor's
   ground pin. Mark pin 1 unambiguously on the silkscreen.
+- **U4/U5 thermal pads carry the heat, and the WSON-8 has almost no other path.**
+  RθJA is 66.5°C/W and the datasheet asks for "large ground planes on multiple layers
+  and multiple nearby vias". Put a dense via array under each pad into L2, and do not
+  neck the pad's connection with thermal relief spokes — this is a heat path, not a
+  solderability concern.
+- **Keep C18/C20 (0.1µF) hard against each driver's VM pin**, closer than the 22µF
+  bulk. The bulk caps C19/C21 go next, and both must sit in the motor region of the
+  placement partition, not near U1 or the ADC nodes.
+- **`MOT_A_1/2` and `MOT_B_1/2` are the only high-di/dt nets outside the buck.**
+  Route each pair together and keep the loop from the driver through the connector
+  tight. Size them for the 1.47A regulated limit, not the free-run current.
+- **`GPIO2` and `GPIO10` carry IPROPI analog current**, not logic. Keep them short,
+  away from the motor outputs and the SW node, and remember they also run to J2.4 and
+  J3.16 — those stubs should be short or the header pins dropped.
+- **Place J8/J9 facing their motors** with the cable exit pointing at the motor, and
+  keep them out of the antenna keep-out. Silkscreen pin 1 and which motor each one
+  is — the pinout mirrors the encoder module, so a cable built "the usual way round"
+  will put motor voltage into the encoder.
 - **Silkscreen the test points** with their net names (VBAT, 3V3, GND, SW). An
   unlabelled 1.5mm pad is not a test point. Per issue 12, also silkscreen any exposed
   strapping pin on whatever debug header survives issue 15.
@@ -1150,6 +1307,9 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   leftward into the symbol. Write `justify right` to get text starting at the anchor.
   This was caught on D4/D5, whose Value text landed on top of the LED body the first
   time round; it is invisible in a netlist diff, so render and look.
+- **`Driver_Motor:DRV8231ADSG` is patched in this file.** Its cached copy has OUT2
+  retyped from `power_in` to `output` to fix a stock-library bug. Never run "Update
+  Symbols from Library" on U4/U5 without re-applying it — see issue 15.
 - **Ask before deleting header pins or renaming nets.** The old reason — a
   daughterboard design not visible in this project — is gone, but the rule stands for
   a new one: J2/J3 are now the parking spot for 29 GPIOs, and removing pins before
