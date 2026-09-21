@@ -12,8 +12,8 @@ the **motor drivers, encoders and IMU on the board itself**.
 
 **There is no daughterboard.** Decided 2026-09-20, before layout started. It replaces
 the earlier two-board architecture in which motors, motor drivers and the IMU mated
-through two 22-pin headers (J2, J3). Those headers are still in the schematic and
-have not been removed yet — see issue 15.
+through two 22-pin headers (J2, J3). **Those headers were deleted on 2026-09-20**
+once the motor, IMU and debug blocks that replaced them were built.
 
 Power comes from a **2S LiPo (7.4V nominal, 8.4V full charge)** via an XT30 connector,
 F1 battery polyfuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
@@ -58,6 +58,12 @@ exist in it yet, and J2/J3 still stand in for them. See issue 15. Expect the she
 to need more room again — possibly A2, or a move to hierarchical sheets, once the
 power stage stops being the only high-part-count block.
 
+**That is now stale too.** As of 2026-09-20 the motor drive, the IMU connector and
+the debug header are all built, and J2/J3 are gone. The sheet is still A3: the motor
+and IMU blocks went into the empty band below y≈195, and the debug block reuses the
+space J2/J3 vacated. What remains open is the **board outline** (issue 15) and
+measuring the issue-17 current budget on real hardware.
+
 ## Verified correct — do not re-flag these
 
 These were checked against the actual netlist and are right. If a review pass
@@ -90,16 +96,16 @@ These were checked against the actual netlist and are right. If a review pass
 
 | Net | Members |
 |---|---|
-| `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, C15.1, C16.1, J3.1, J3.2, J4.1, J5.1, J6.1, J7.1, L1.2, R2.1, R12.1, R15.1, R16.1, TP2.1, U1.2, U3.1(FB) |
+| `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, C15.1, C16.1, C22.1, J4.1, J5.1, J6.1, J7.1, J10.1, J11.1, L1.2, R2.1, R12.1, R15.1, R16.1, R19–R23.1, TP2.1, U1.2, U3.1(FB), U4.4, U5.4 |
 | `VSYS` | C12.1, D1.1(K), D2.1(K), U3.3(IN) |
 | `REG_EN` | C13.1, R7.2, R8.1, R9.2, U3.2(EN) |
 | `VBAT_RAW` | BT1.1(+), F1.1 |
 | `VBAT_FUSED` | F1.2, Q1.1/2/3(S), R14.1 |
-| `VBAT` | Q1.5/6/7/8(D), D2.2(A), D6.1(K), J2.19, J2.20, J2.21, J2.22, R7.1, R10.1, TP1.1 |
+| `VBAT` | Q1.5/6/7/8(D), D2.2(A), D6.1(K), C18–C21.1, R7.1, R10.1, TP1.1, U4.5, U5.5, #FLG04 |
 | `Net-(Q1-G)` | Q1.4(G), R14.2, SW3.2(common) |
 | USB connector (`Net-(F2-Pad1)`) | J1.A4/A9/B4/B9, F2.1 |
 | `VBUS` | F2.2, D1.2(A), D3.2(A), U2.5 |
-| `CHIP_PU` | C3.1, C4.2, J3.3, R2.2, SW1.1, U1.3(EN) |
+| `CHIP_PU` | C3.1, C4.2, J11.6, R2.2, SW1.1, U1.3(EN) |
 | `GPIO0` | C5.2, SW2.1, U1.27 |
 | `VBAT_SENSE` | C14.1, R10.2, R11.1, U1.39 (GPIO1/ADC1_CH0) |
 | `Net-(D3-K)` | D3.1(K), R9.1 |
@@ -119,34 +125,32 @@ The four ToF connector nets (issue 14):
 
 | Net | Members |
 |---|---|
-| `GPIO9` (SCL, conn. pin 3) | U1.17, J3.15, J4.3, J5.3, J6.3, J7.3, R16.2 |
-| `GPIO8` (SDA, conn. pin 4) | U1.12, J3.14, J4.4, J5.4, J6.4, J7.4, R15.2 |
-| `GPIO4` (XSHUT 1, conn. pin 6) | U1.4, J3.4, J4.6 |
-| `GPIO5` (XSHUT 2, conn. pin 6) | U1.5, J3.5, J5.6 |
-| `GPIO6` (XSHUT 3, conn. pin 6) | U1.6, J3.6, J6.6 |
-| `GPIO7` (XSHUT 4, conn. pin 6) | U1.7, J3.8, J7.6 |
+| `GPIO9` (SCL, conn. pin 3) | U1.17, J4.3, J5.3, J6.3, J7.3, R16.2 |
+| `GPIO8` (SDA, conn. pin 4) | U1.12, J4.4, J5.4, J6.4, J7.4, R15.2 |
+| `GPIO4` (XSHUT 1, conn. pin 6) | U1.4, J4.6 |
+| `GPIO5` (XSHUT 2, conn. pin 6) | U1.5, J5.6 |
+| `GPIO6` (XSHUT 3, conn. pin 6) | U1.6, J6.6 |
+| `GPIO7` (XSHUT 4, conn. pin 6) | U1.7, J7.6 |
 
 `VCC_USB_5V` has been **renamed `VSYS`**. It is the diode-OR output and sits at up to
 **~8.1V** on a full pack, so the old "5V" name was actively misleading. `VBAT` and
 `VBUS` are now explicit labels too, not auto-generated net names — do not let them
 revert to `Net-(D1-A)` style names.
 
-Header assignments have moved on from the original extraction. J2 carries GPIO2, 21,
-35–44, 47, 48, GND on 1/6/12/18, and **VBAT on 19–22**; the dead `GPIO19`/`GPIO20`
-pins are gone (issue 4 resolved). J3 carries GPIO4–18, 3V3, CHIP_PU, and GND on
-7/12/17/22. GPIO0, GPIO3, GPIO45 and GPIO46 are on no header at all — `GPIO3` drives
-the issue-13 status LED, and GPIO45/46 are explicitly no-connect (issue 12), so they
-are unused by design and are **not** part of the free-GPIO budget below.
+**J2 and J3 are gone (2026-09-20).** The two 22-pin headers existed to mate a
+daughterboard; with the motor drive, IMU and debug blocks built there was nothing
+left for them to carry, and they were the heaviest and tallest parts on the board
+after the module. Deleting them is a mass and CG win, which is what a micromouse
+trades on. **Every GPIO they carried now terminates on a real part** — that was the
+precondition, and it is why the deletion produced no stranded nets.
 
-**These two headers are now placeholders.** With the daughterboard gone they no
-longer terminate anything real; they are the parking spot for 29 GPIOs until the
-on-board motor drivers, encoders and IMU exist to claim them. Do not treat the
-J2/J3 pin assignments below as an interface contract any more — issue 15.
+`GPIO0`, `GPIO3`, `GPIO45` and `GPIO46` are the pins that were never on a header:
+`GPIO0` is SW2 and now also J11.5, `GPIO3` drives the issue-13 status LED, and
+GPIO45/46 are explicitly no-connect (issue 12).
 
-**`GPIO4`–`GPIO9` are claimed by the ToF sensors (issue 14) and are also still on
-J3.4/5/6/8/14/15.** Nothing attached to J3 may *drive* any of those six.
-`GPIO8`/`GPIO9` remain a shared I2C bus — an on-board IMU can sit on it as a second
-device rather than consuming its own pins.
+**`GPIO4`–`GPIO9` are claimed by the ToF sensors (issue 14)** and now go only to
+J4–J7 and the bus pull-ups. `GPIO8`/`GPIO9` remain a shared I2C bus with room for
+more devices on it.
 
 ## Motor drive nets (extracted, authoritative)
 
@@ -194,10 +198,7 @@ this PCB carries the connector, one pull-up and local decoupling.
 
 C22 (0.1µF 16V) decouples `ESP_3V3` at the connector.
 
-**Free GPIO budget: 23 total, 17 now spent, 6 left.** J2's 14 (GPIO2, 21, 35–44,
-47, 48) plus J3's 9 that the ToF sensors did not take (GPIO10–18).
-
-Actual spend, now that the motor and IMU blocks are built:
+**GPIO budget: 23 were free after the ToF sensors; all 23 are now allocated.**
 
 | Function | Pins | Which |
 |---|---:|---|
@@ -205,17 +206,18 @@ Actual spend, now that the motor and IMU blocks are built:
 | Two quadrature encoders | 4 | GPIO47, 48, 21, 38 |
 | Two IPROPI current-sense inputs | 2 | GPIO2, GPIO10 (both ADC1) |
 | BNO08x on SPI | 7 | GPIO11–17 |
-| **Total** | **17** | |
+| Debug console on J11 | 2 | GPIO43, 44 (UART0) |
+| Spare, on test pads TP5–TP8 | 4 | GPIO18, 35, 36, 37 |
+| **Total** | **23** | |
 
-**Six are left, and they are not all equal:** `GPIO18` is the only unencumbered one.
-`GPIO35/36/37` are free on the fitted N16 module but would be consumed by PSRAM on an
-`-R8` part (issue 11), and `GPIO43/44` are UART0 — which makes them ideal for a debug
-header's serial console rather than a liability. That combination is a perfectly good
-small header: 3V3, GND, TX, RX and a couple of spares.
+**Nothing is uncommitted, but the last four are spares, not users.** TP5–TP8 are
+probe pads, so those GPIOs are available for a future peripheral at the cost of a
+bodge wire rather than a respin. `GPIO35/36/37` among them are free only on the
+fitted `-N16` module — an `-R8` part consumes them for PSRAM (issue 11).
 
 The DRV8231A needs no nSLEEP or nFAULT pin — it sleeps when IN1 = IN2 = 0 and reports
-faults by folding back current rather than on a dedicated line — which is part of why
-the budget came in under the earlier 15–17 estimate despite the IMU costing 7.
+faults by folding back current rather than on a dedicated line — which is why the
+budget absorbed a 7-pin IMU and still left four spares.
 
 ## Open issues
 
@@ -225,18 +227,22 @@ single-board decision), 7 (switch/fuses/TVS added; battery fuse sizing remains
 provisional), 8 (capacitor ratings), 9 (OR-ing diodes), 10 (USB series resistors),
 11 (module variant), 12 (strapping pins), 13 (conveniences), 14 (ToF wall sensors).**
 
-**Layout is blocked again, deliberately.** The 2026-09-20 single-board decision means
-the part count and the board outline are not yet known, so there is nothing stable to
-place. **Issue 15 now gates layout** — the motor drivers, encoders and IMU have to
-exist in the schematic first. Issue 16 does not gate starting layout;
-issue 17's current budget gates *routing* the power path, which is earlier than the
-pre-fabrication deadline it used to have.
+**The schematic is complete as of 2026-09-20.** Every block the single-board decision
+called for is built: motor drive, IMU connector, debug header and spare pads, and
+J2/J3 are deleted. ERC is 0 errors, 0 warnings, and **no net has fewer than two pins
+except the seven deliberate no-connects**.
 
-**Still open: 15 (partially built), 17.** Issue 16 is resolved. The motor drivers,
-encoders, connectors and the BNO08x IMU connector are all in the schematic as of
-2026-09-20; what remains in 15 is the **debug header and the board outline**. The
-suction fan was dropped from the design. Issue 17 is now a measurement task rather
-than a redesign — see its revised arithmetic.
+**Still open: 15 and 17, and neither is a schematic change.**
+
+- **Issue 15 is down to the board outline**, which is a mechanical problem, not an
+  electrical one — the chassis, the antenna keep-out, four outward-facing ToF
+  connectors, J8–J11 and the USB-C port all have to coexist. That is what now gates
+  layout.
+- **Issue 17 is a measurement task.** The current budget is bounded by the motor
+  drivers' 1.47A limit; what is left is confirming it on assembled hardware, and it
+  gates *routing* the power path rather than fabrication.
+
+Issue 16 is resolved. The suction fan was dropped from the design.
 
 ### 1. L1 — RESOLVED (2026-09-19)
 
@@ -363,8 +369,9 @@ No component in the design is missing a footprint.
 
 ### 4. Dead header pins — RESOLVED
 
-The `5V0`, `GPIO19` and `GPIO20` header pins are gone. J2.19–22 now carry `VBAT` and
-J3.21 carries `GPIO14`. No header pin is on a single-pin net.
+The `5V0`, `GPIO19` and `GPIO20` header pins are gone. **Superseded entirely on
+2026-09-20: J2 and J3 themselves are gone**, so no header pin can be dead. The
+replacement is J11 (6 pins, all used) and TP5–TP9.
 
 Still unconnected, but on the module rather than a header: `GPIO45` (U1.26) and
 `GPIO46` (U1.16), both now carrying no-connect flags — issue 12, resolved.
@@ -440,15 +447,16 @@ concludes the pack is flat.
 
 Was: 8 GND pins across the 44 header positions (J2.1/6/12/18, J3.7/12/17/22) carrying
 motor and sensor return current between two boards — "improved over the original 4,
-still thin".
+still thin". **Both headers were deleted on 2026-09-20**, so the question is not just
+dissolved in principle; the pins no longer exist.
 
 **The single-board decision removes the question.** Motor return current now flows in
 the L2 ground plane instead of through header pins, which is a change of kind rather
 than degree. Nothing to do here.
 
-If a reduced debug header survives issue 15, give it a ground pin next to each signal
-group as ordinary good practice — but it carries no power return, so the old concern
-does not transfer to it.
+J11, the debug header that replaced them, has one GND pin (pin 2) next to the console
+pair, and TP9 is a dedicated probe ground beside TP5–TP8. Neither carries power
+return, so the old concern does not transfer.
 
 ### 7. Power switch, fuses and TVS — IMPLEMENTED (2026-09-19)
 
@@ -459,7 +467,7 @@ the budget is recomputed against real numbers.
 
 ```
  BT1+ -- F1 -- VBAT_FUSED -- Q1(S -> D) -- VBAT -- D2 -- VSYS
-                    |           |          |-- J2.19-22, TP1
+                    |           |          |-- U4/U5 motor drivers, TP1
                     R14         G          |-- R7/R8 UVLO
                     |           |          |-- R10/R11 battery sense
                     +-----------+          +-- D6(K), D6(A) -> GND
@@ -628,7 +636,7 @@ TJ −55 to +150°C, RθJL 15°C/W, RθJA 81°C/W. LCSC C26178.
 entire system current from the battery — at 1A that is ~400mW", and on that basis
 floated replacing D2 with a P-FET ideal-diode controller. The netlist says otherwise.
 `VSYS` has exactly four members — `C12.1, D1.1(K), D2.1(K), U3.3(IN)` — so **D2 feeds
-the buck input and nothing else.** Motor current on `VBAT` reaches J2.19–22 in
+the buck input and nothing else.** Motor current on `VBAT` reaches U4/U5 in
 parallel with D2 and never passes through it.
 
 Actual worst case: the 3.3V rail carries the module, four ToF sensors (76mA average,
@@ -685,11 +693,10 @@ wire-through-a-junction hazard this project has hit twice did not recur.
 
 U1's Value is now **`ESP32-S3-WROOM-1-N16`**: 16MB flash, **no PSRAM**. That is the
 outcome the design needed — **GPIO35, GPIO36 and GPIO37** (module pins 28/29/30,
-currently parked on J2.14/13/11) are consumed by octal PSRAM only on `-R8` parts, so
-on an N16 they are genuinely free, and they count toward the 23-GPIO budget available
-to the on-board peripherals. Do not substitute an `-N8R8` or `-N16R8` part without
-first freeing those three pins from whatever issue 15 assigns them to — the budget
-drops to 20.
+now on test pads TP6/TP7/TP8) are consumed by octal PSRAM only on `-R8` parts, so on
+an N16 they are genuinely free. **Do not substitute an `-N8R8` or `-N16R8` part
+without accepting that those three pads become PSRAM signals** — probing them would
+then be actively harmful, not merely useless. Silkscreen the caveat next to them.
 
 ### 12. Unused strapping pins — RESOLVED (2026-09-20)
 
@@ -885,8 +892,8 @@ too slow for 400kHz on its own.
 datasheet sanctions it: *"GPIO1 to be left unconnected if not used."* Firmware polls
 the status register, which is normal for continuous-mode ranging at ≤50Hz. The
 connector still carries the pin because it mirrors the module header, so adding
-interrupts later means running four traces to four of J2's free GPIOs (or wired-OR
-to one, since the outputs are open-drain) — the connector and cable already fit.
+interrupts later means running four traces to the TP5–TP8 spares (or wired-OR to one,
+since the outputs are open-drain) — the connector and cable already fit.
 
 **Current budget:** 19mA average per sensor while ranging and **40mA peak** during
 the VCSEL pulse, so ~76mA average and up to 160mA of pulsed load on `ESP_3V3` if all
@@ -906,19 +913,48 @@ and the block sits clear of the A3 border and title block.
 
 ### 15. On-board peripherals — MOTOR DRIVE BUILT, rest still open (2026-09-20)
 
-**Built:** two motor channels — drivers, current sense, decoupling, bulk capacitance,
-encoder pull-ups and motor/encoder connectors (14 parts) — and the **BNO08x IMU
-connector block** (J10, R23, C22).
-**Still open:** the debug header and the board outline.
-**Dropped:** the suction fan, removed from the design entirely on 2026-09-20.
+**Built:** two motor channels (14 parts), the **BNO08x IMU connector block**
+(J10, R23, C22), and the **debug header and spare-GPIO pads** (J11, TP5–TP9).
+**Deleted:** J2 and J3, the two 22-pin daughterboard headers.
+**Dropped:** the suction fan, removed from the design entirely.
+**Still open:** the board outline — and that is now the only thing left in this issue.
 
-J2 and J3 are untouched and still carry every GPIO. The motor nets *join* the
-existing `GPIOnn` nets rather than replacing them, so each driver input and encoder
-input is also stubbed out to a header pin. That is deliberate — it keeps the headers
-as a probe/bring-up aid and avoids stranding nets — but it means **nothing plugged
-into J2/J3 may drive GPIO2, 10, 21, 38, 39, 40, 41, 42, 47 or 48**, exactly as the
-ToF pins are already reserved. Deleting the now-redundant header pins is still a
-separate decision, and still needs asking first.
+#### Debug header J11 and test pads TP5–TP9
+
+J2/J3 were the de-facto debug header: 44 pins carrying every spare GPIO. Once the
+motor, IMU and console blocks claimed those signals the headers carried nothing
+unique, while remaining the heaviest and tallest parts on the board after the module.
+**They were deleted and replaced with J11 plus five pads.**
+
+**J11 is `SM06B-SRSS-TB` — the same part as J4–J7**, so it adds no BOM line and no new
+cable design:
+
+| Pin | Net | Purpose |
+|---:|---|---|
+| 1 | `ESP_3V3` | level reference for a probe — **not** a way to power the board |
+| 2 | `GND` | return, deliberately adjacent to the console pair |
+| 3 | `GPIO43` | U0TXD — console out |
+| 4 | `GPIO44` | U0RXD — console in |
+| 5 | `GPIO0` | BOOT — adapter DTR |
+| 6 | `CHIP_PU` | EN/reset — adapter RTS |
+| MP | `GND` | mounting pegs |
+
+**Pins 3–6 are an esptool auto-reset interface**, and that is the justification: it is
+the recovery path if firmware ever disables the native USB-Serial-JTAG, or if you need
+a console while debugging the USB stack itself. **`GPIO0` was previously on no
+connector at all** — only SW2 — so before J11 there was no off-board way into the
+bootloader.
+
+**JTAG deliberately has no header.** U1.13/14 are GPIO19/20 (USB D−/D+) and already
+reach the USB-C port, so the ESP32-S3's built-in USB-Serial-JTAG provides flashing,
+console and JTAG debugging over the connector that is already there. Do not add a
+JTAG header; it would duplicate working silicon.
+
+**TP5–TP8 carry the four spare GPIOs** (`GPIO18`, `GPIO35`, `GPIO36`, `GPIO37`) on
+`TestPoint_Pad_D1.5mm`, the same part as TP1–TP4. **TP9 is a dedicated probe ground**
+beside them — a spare-GPIO pad with no nearby return is not much use to a logic
+analyser. Pads rather than a connector because these are bring-up aids that only get
+touched with a probe, and four 1.5mm pads weigh essentially nothing.
 
 #### Driver selection — TI DRV8231A
 
@@ -1076,8 +1112,8 @@ re-asking.
 | Encoder type | **DONE — integrated with the motor**, 12 CPR quadrature on J8/J9 | — |
 | IMU part and bus | **DONE — BNO08x module on SPI**, off-board via J10 | 7 GPIOs |
 | Suction fan | **DROPPED** — no fan in the design | nothing; it was never built |
-| Debug/expansion header | Open | GPIO18, 35, 36, 37, 43, 44 |
-| Board outline | Open — the hard one | Chassis, antenna keep-out, four ToF connectors, SW3, USB-C |
+| Debug/expansion header | **DONE — J11 + TP5–TP9**; J2/J3 deleted | 2 GPIOs used, 4 on spare pads |
+| Board outline | **Open — the only thing left** | Chassis, antenna keep-out, four ToF connectors, J8–J11, SW3, USB-C |
 
 **Superseded 2026-09-20:** an earlier revision of this section recorded a
 "high-power, ≥3A stall" class and concluded from it that F1 was undersized. The motor
@@ -1122,11 +1158,9 @@ is now set by the chassis — wheel positions, motor body clearance, ground clea
 an accessible SW3 and a reachable USB-C port. Check the combined footprint before
 committing to the outline; this is the constraint most likely to force a rethink.
 
-**Keep a small debug/expansion header.** Not 44 pins, but do not go to zero. Six to
-ten spare GPIOs plus 3V3/GND costs almost nothing and is the difference between
-bodging a fix and respinning the whole board — which is exactly the modularity the
-single-board decision gave up. Size it once the peripherals above are placed and the
-real GPIO surplus is known.
+**Done:** that header is J11, sized once the real GPIO surplus was known — 6 pins for
+console and programming, with the four genuine spares on probe pads instead of
+connector pins.
 
 ### 16. Motor noise shares the board with the ADC and the buck — RESOLVED (2026-09-20)
 
@@ -1355,12 +1389,16 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   Route each pair together and keep the loop from the driver through the connector
   tight. Size them for the 1.47A regulated limit, not the free-run current.
 - **`GPIO2` and `GPIO10` carry IPROPI analog current**, not logic. Keep them short,
-  away from the motor outputs and the SW node, and remember they also run to J2.4 and
-  J3.16 — those stubs should be short or the header pins dropped.
+  away from the motor outputs and the SW node. They no longer run anywhere else —
+  J2/J3 are gone, so there is no header stub on them to keep short.
 - **Place J8/J9 facing their motors** with the cable exit pointing at the motor, and
   keep them out of the antenna keep-out. Silkscreen pin 1 and which motor each one
   is — the pinout mirrors the encoder module, so a cable built "the usual way round"
   will put motor voltage into the encoder.
+- **J11 and TP5–TP9 go where a hand and a probe can reach them** — a board edge, not
+  under the chassis or behind a motor. J11 is the only way back in if USB-Serial-JTAG
+  is ever disabled, so burying it defeats the point. Keep TP9 within probe-tip reach
+  of TP5–TP8, the same rule TP3/TP4 already follow.
 - **J10 (IMU) placement is mechanical, not electrical.** A fusion IMU should sit as
   near the robot's centre of rotation as the outline allows, and its cable should not
   run alongside the motor outputs — `MOT_x_1/2` are the only high-di/dt nets outside
@@ -1405,8 +1443,8 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
 - **`Driver_Motor:DRV8231ADSG` is patched in this file.** Its cached copy has OUT2
   retyped from `power_in` to `output` to fix a stock-library bug. Never run "Update
   Symbols from Library" on U4/U5 without re-applying it — see issue 15.
-- **Ask before deleting header pins or renaming nets.** The old reason — a
-  daughterboard design not visible in this project — is gone, but the rule stands for
-  a new one: J2/J3 are now the parking spot for 29 GPIOs, and removing pins before
-  the issue-15 peripherals exist strands nets and buries real ERC warnings under
-  noise. Delete them as part of moving nets onto real parts, not ahead of it.
+- **Ask before deleting connector pins or renaming nets.** J2/J3 were deleted on
+  2026-09-20, and the reason it was safe is worth remembering as the rule: every GPIO
+  they carried already terminated on a real part first. Deleting a connector before
+  its nets have somewhere else to go strands them and buries real ERC warnings under
+  noise.

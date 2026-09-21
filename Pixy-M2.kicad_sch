@@ -7231,12 +7231,6 @@
 		(uuid "a6ce5115-233b-440f-a66a-279fbea4684d")
 	)
 	(junction
-		(at 236.22 30.48)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "b5ccc47a-7a52-4618-8872-2c2bb8f94a20")
-	)
-	(junction
 		(at 45.72 187.96)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7580,16 +7574,6 @@
 	)
 	(wire
 		(pts
-			(xy 231.14 30.48) (xy 236.22 30.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3dcb0010-a48e-4885-8f7f-f031e40881f9")
-	)
-	(wire
-		(pts
 			(xy 179.07 31.75) (xy 181.61 31.75)
 		)
 		(stroke
@@ -7727,16 +7711,6 @@
 			(type default)
 		)
 		(uuid "533190d9-efaf-44d1-9861-161bc2aa306e")
-	)
-	(wire
-		(pts
-			(xy 236.22 86.36) (xy 236.22 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "56505fa4-65b4-49b5-a9ca-8281690d3d5c")
 	)
 	(wire
 		(pts
@@ -7900,16 +7874,6 @@
 	)
 	(wire
 		(pts
-			(xy 236.22 83.82) (xy 231.14 83.82)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7ead4c80-509d-4988-8134-08cd8c5ad0d8")
-	)
-	(wire
-		(pts
 			(xy 22.86 177.8) (xy 22.86 175.26)
 		)
 		(stroke
@@ -8000,16 +7964,6 @@
 	)
 	(wire
 		(pts
-			(xy 269.24 27.94) (xy 269.24 30.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9497863f-19f7-4553-b488-8a59e8d500d9")
-	)
-	(wire
-		(pts
 			(xy 181.61 128.27) (xy 209.55 128.27)
 		)
 		(stroke
@@ -8037,16 +7991,6 @@
 			(type default)
 		)
 		(uuid "a0b64552-7942-4bf2-9bbc-e3de9412e23d")
-	)
-	(wire
-		(pts
-			(xy 236.22 30.48) (xy 236.22 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a37050f2-79f4-44f4-a426-ebaa063b888b")
 	)
 	(wire
 		(pts
@@ -8100,16 +8044,6 @@
 	)
 	(wire
 		(pts
-			(xy 236.22 33.02) (xy 231.14 33.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "aa36d860-3a3c-4d52-a49b-6f72cfdb5ac0")
-	)
-	(wire
-		(pts
 			(xy 173.99 31.75) (xy 179.07 31.75)
 		)
 		(stroke
@@ -8157,16 +8091,6 @@
 			(type default)
 		)
 		(uuid "bd3b63e8-d82e-423b-afff-f3327b557c9d")
-	)
-	(wire
-		(pts
-			(xy 236.22 27.94) (xy 236.22 30.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "be37fb9e-558a-45e7-8198-4fd5e2bd8e17")
 	)
 	(wire
 		(pts
@@ -8356,16 +8280,6 @@
 	)
 	(wire
 		(pts
-			(xy 269.24 30.48) (xy 262.89 30.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e1613a73-6d85-41ea-af26-64318791cce2")
-	)
-	(wire
-		(pts
 			(xy 22.86 175.26) (xy 34.29 175.26)
 		)
 		(stroke
@@ -8534,16 +8448,6 @@
 		)
 		(uuid "4fa5bb04-b7fc-4b4b-9296-db537d0b32f4")
 	)
-	(label "GPIO5"
-		(at 231.14 40.64 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "01945a47-9508-4e0c-972a-1153c632db28")
-	)
 	(label "GPIO10"
 		(at 127 86.36 0)
 		(effects
@@ -8553,26 +8457,6 @@
 			(justify left bottom)
 		)
 		(uuid "0892de30-fbec-44f1-8928-074ef6a33738")
-	)
-	(label "CHIP_PU"
-		(at 231.14 35.56 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "0d2b54ad-29f7-4d6b-a5ae-5659e937cded")
-	)
-	(label "GPIO7"
-		(at 231.14 48.26 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "0d9c3d2d-635e-4858-b206-2e88d2c2367b")
 	)
 	(label "REG_EN"
 		(at 149.86 143.51 0)
@@ -8594,16 +8478,6 @@
 		)
 		(uuid "15205e6d-7bde-4dca-89ce-1b7bc81fc771")
 	)
-	(label "ESP_3V3"
-		(at 236.22 27.94 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "1a14584b-dfab-4b78-89c1-5282058068e4")
-	)
 	(label "GPIO9"
 		(at 127 83.82 0)
 		(effects
@@ -8624,46 +8498,6 @@
 		)
 		(uuid "1a7bb2d0-538b-4fd0-8597-f7115b7b57b3")
 	)
-	(label "GPIO17"
-		(at 231.14 55.88 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "1a7d0a9c-a578-4f83-8e91-e0aff0a221a9")
-	)
-	(label "GPIO43"
-		(at 262.89 33.02 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "1e4d51ad-51c2-4808-9bc9-5f4e61ef2c8d")
-	)
-	(label "VBAT"
-		(at 262.89 76.2 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "20291ce3-6ca9-45cd-9f4e-314f89ce96c6")
-	)
-	(label "GPIO36"
-		(at 262.89 60.96 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "2205107e-132c-4a61-9ee0-55b907db32b8")
-	)
 	(label "ESP_3V3"
 		(at 140.97 22.86 0)
 		(effects
@@ -8683,16 +8517,6 @@
 			(justify left bottom)
 		)
 		(uuid "297819e7-4465-4f9f-8a2f-31d4f1fce85d")
-	)
-	(label "GPIO13"
-		(at 231.14 78.74 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "299c4acf-ff59-45a3-b39e-d23401ef453a")
 	)
 	(label "GPIO18"
 		(at 127 101.6 0)
@@ -8764,36 +8588,6 @@
 		)
 		(uuid "3e1f08ff-4918-4e12-aa51-12fb1fbc10a0")
 	)
-	(label "GPIO48"
-		(at 262.89 66.04 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "3f285a28-ed09-4198-abb8-e6448c706e5c")
-	)
-	(label "VBAT"
-		(at 262.89 83.82 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "3f37ad3c-f667-4d19-b960-2fd61a3e44e6")
-	)
-	(label "GPIO10"
-		(at 231.14 68.58 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "403b63ed-1137-43c3-8587-15e0c62b60b5")
-	)
 	(label "USB_D-"
 		(at 111.76 171.45 180)
 		(effects
@@ -8803,26 +8597,6 @@
 			(justify right bottom)
 		)
 		(uuid "43f38579-d2e1-4909-99bf-891914ce49a1")
-	)
-	(label "GPIO15"
-		(at 231.14 50.8 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "444e6c15-2d1f-4fef-bfea-0fa7d1d4032a")
-	)
-	(label "GPIO35"
-		(at 262.89 63.5 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "44f3bbcf-5ae5-42de-a2a7-07e59d7ca01c")
 	)
 	(label "GPIO39"
 		(at 35.56 60.96 180)
@@ -8853,36 +8627,6 @@
 			(justify left bottom)
 		)
 		(uuid "4d45661f-9cb2-4eab-92eb-3530c887dd32")
-	)
-	(label "GPIO38"
-		(at 262.89 53.34 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "57e4711f-7e7f-451c-abf1-3f1f82c66a2a")
-	)
-	(label "VBAT"
-		(at 262.89 81.28 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "58bf45bd-74f3-42b9-af14-4a7fa5a14a8c")
-	)
-	(label "GPIO12"
-		(at 231.14 76.2 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "58efdd85-8b3f-431f-856d-23828038b15f")
 	)
 	(label "GPIO5"
 		(at 127 73.66 0)
@@ -8934,16 +8678,6 @@
 		)
 		(uuid "6c78b136-d826-4bdb-a33a-fe86d8da8a59")
 	)
-	(label "GPIO6"
-		(at 231.14 43.18 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "6c8c66da-b112-43be-bdd0-f84af523a919")
-	)
 	(label "GPIO36"
 		(at 35.56 114.3 180)
 		(effects
@@ -8963,46 +8697,6 @@
 			(justify left bottom)
 		)
 		(uuid "731c672f-e30c-4933-a79a-53439958988b")
-	)
-	(label "GPIO39"
-		(at 262.89 50.8 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "74f89314-eeea-42d4-9cce-4b546e3b84f5")
-	)
-	(label "GPIO42"
-		(at 262.89 40.64 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "77f8f098-ecd7-4e21-a384-00447525741d")
-	)
-	(label "GND"
-		(at 262.89 43.18 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "78cc8f74-f96f-485b-9f37-a73604cc7214")
-	)
-	(label "GPIO16"
-		(at 231.14 53.34 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "79123b09-1d6e-4d72-812d-76beb4a41a9d")
 	)
 	(label "USB_D+"
 		(at 129.54 53.34 0)
@@ -9024,26 +8718,6 @@
 		)
 		(uuid "7b9de59f-dd25-48e7-b2ab-61726cf150d6")
 	)
-	(label "GPIO37"
-		(at 262.89 55.88 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "81bf6d8d-e445-4d7a-a7ed-eff12e779515")
-	)
-	(label "GND"
-		(at 262.89 58.42 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "8497e31e-d052-411c-92da-9636533a0113")
-	)
 	(label "GPIO35"
 		(at 35.56 111.76 180)
 		(effects
@@ -9053,36 +8727,6 @@
 			(justify right bottom)
 		)
 		(uuid "85f6cd3e-3ba2-4f75-ab10-9a02abcc8f79")
-	)
-	(label "GND"
-		(at 231.14 71.12 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "914ac49d-a298-42c1-974a-016e53afb59b")
-	)
-	(label "GPIO40"
-		(at 262.89 48.26 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "91edc4b0-de86-4416-9bc7-8556eaa29bbd")
-	)
-	(label "GPIO9"
-		(at 231.14 66.04 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "928efcab-624d-430b-a8be-53ffd53ce154")
 	)
 	(label "GPIO7"
 		(at 127 78.74 0)
@@ -9134,16 +8778,6 @@
 		)
 		(uuid "a2610583-23ea-4828-ac6e-b1b2d93930ee")
 	)
-	(label "GPIO2"
-		(at 262.89 38.1 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "a8bdaea8-b3ec-4f0d-8bbf-acb89e290183")
-	)
 	(label "CHIP_PU"
 		(at 149.86 35.56 0)
 		(effects
@@ -9164,16 +8798,6 @@
 		)
 		(uuid "acb41e36-d197-4ce1-80c8-c19c88b99f8e")
 	)
-	(label "GPIO41"
-		(at 262.89 45.72 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "b40a71da-9e3a-4def-a185-e958b58b6f41")
-	)
 	(label "GPIO17"
 		(at 127 99.06 0)
 		(effects
@@ -9184,36 +8808,6 @@
 		)
 		(uuid "b5011490-9d98-4282-8af4-33711d8b16c4")
 	)
-	(label "GPIO47"
-		(at 262.89 68.58 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "b6337196-8da2-4a15-b219-29b85ff66c2e")
-	)
-	(label "GPIO11"
-		(at 231.14 73.66 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "bc78dc7b-e223-450b-bea2-3f8a95a011e2")
-	)
-	(label "GND"
-		(at 231.14 45.72 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "bc959bed-68ce-401c-bc55-3790a4a9c7b2")
-	)
 	(label "GPIO21"
 		(at 127 104.14 0)
 		(effects
@@ -9223,36 +8817,6 @@
 			(justify left bottom)
 		)
 		(uuid "bf830961-1b0e-4e43-93d6-105581d29c73")
-	)
-	(label "GPIO18"
-		(at 231.14 60.96 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "c05fd37f-339e-4c84-bde3-b598bc65b960")
-	)
-	(label "GND"
-		(at 231.14 58.42 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "c0da5812-a3ca-4e85-be0a-6b50170dbd13")
-	)
-	(label "GPIO4"
-		(at 231.14 38.1 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "c4c19f05-e89e-4a56-bb6d-003ec8202e13")
 	)
 	(label "ESP_3V3"
 		(at 41.91 20.32 0)
@@ -9273,16 +8837,6 @@
 			(justify left bottom)
 		)
 		(uuid "cd6340fd-8d54-424d-a565-059f3328fb5e")
-	)
-	(label "GPIO14"
-		(at 231.14 81.28 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "d12278cb-01ad-4a0e-8373-26986d59ca62")
 	)
 	(label "GPIO0"
 		(at 173.99 53.34 180)
@@ -9344,16 +8898,6 @@
 		)
 		(uuid "dec6df40-e9c9-4802-97db-5eeff78ad2c5")
 	)
-	(label "GPIO21"
-		(at 262.89 71.12 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e11977b4-cf48-413b-8df7-7adc4a695a0a")
-	)
 	(label "USB_D-"
 		(at 129.54 55.88 0)
 		(effects
@@ -9363,16 +8907,6 @@
 			(justify left bottom)
 		)
 		(uuid "e13f1660-f14d-43fb-a1ba-b163952b54fd")
-	)
-	(label "GPIO8"
-		(at 231.14 63.5 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e1672dc4-5cd2-49d8-8153-c197a0ec5c0a")
 	)
 	(label "GPIO48"
 		(at 127 116.84 0)
@@ -9414,26 +8948,6 @@
 		)
 		(uuid "e9127d1d-3205-4cff-a4fa-1673ee9e12d6")
 	)
-	(label "GPIO44"
-		(at 262.89 35.56 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "ea0ef299-e2ab-4ea7-8ef9-9758c6d98e64")
-	)
-	(label "GND"
-		(at 262.89 73.66 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "ea6fbd15-9295-4fc1-87e6-71779534840c")
-	)
 	(label "GPIO47"
 		(at 127 114.3 0)
 		(effects
@@ -9443,16 +8957,6 @@
 			(justify left bottom)
 		)
 		(uuid "eb598b68-afe2-4b33-9cb5-9f5e42582f16")
-	)
-	(label "VBAT"
-		(at 262.89 78.74 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "f6c72a12-8c36-46ea-b53d-99caf8b4fa9f")
 	)
 	(label "VBAT_SENSE"
 		(at 127 63.5 0)
@@ -10226,146 +9730,6 @@
 			(project "Pixy-M2"
 				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
 					(reference "R11")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:Conn_01x22_Pin")
-		(at 257.81 55.88 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "239daaf0-370f-4e5b-a87e-9e7df205efc4")
-		(property "Reference" "J2"
-			(at 258.445 25.4 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "Conn_01x22_Pin"
-			(at 258.445 27.94 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x22_P2.54mm_Vertical"
-			(at 257.81 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 257.81 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x22, script generated"
-			(at 257.81 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "9"
-			(uuid "013d27ef-0679-46ca-94e7-b6c6e1053330")
-		)
-		(pin "10"
-			(uuid "9511b6e9-2fd4-475f-97f5-546bad70dcf8")
-		)
-		(pin "18"
-			(uuid "a7fdb565-d41f-4f57-b5ed-ded2b88da67c")
-		)
-		(pin "7"
-			(uuid "bf44d950-ce19-4173-960e-a82952f384cf")
-		)
-		(pin "8"
-			(uuid "dbc4d097-1b79-406f-9a4a-593dc5ad638a")
-		)
-		(pin "21"
-			(uuid "8ed57a87-9a3f-4af9-bd94-c89bfc748fe0")
-		)
-		(pin "20"
-			(uuid "be7a6cab-9ef2-40d5-a1a5-af423c2e0528")
-		)
-		(pin "3"
-			(uuid "695b5044-b2e9-48bd-a662-75436c283243")
-		)
-		(pin "1"
-			(uuid "80eb0ffc-c925-43fd-b9e9-8e7529e7bfc2")
-		)
-		(pin "6"
-			(uuid "2e49c924-0537-4c16-b84b-ff90609214b6")
-		)
-		(pin "11"
-			(uuid "4b7ac880-82e6-49ee-99cd-5523c0f06af0")
-		)
-		(pin "12"
-			(uuid "51f9cab3-20a8-43b2-a0e2-9ea72768f01a")
-		)
-		(pin "15"
-			(uuid "e46059ec-bb32-49ee-baa4-288b5168f1b4")
-		)
-		(pin "16"
-			(uuid "561352c8-d919-45c8-b091-aca9865893a1")
-		)
-		(pin "13"
-			(uuid "3dea89d9-3f97-4de0-8847-4b58e11e6c26")
-		)
-		(pin "14"
-			(uuid "f909c011-59d3-47e3-a183-f6565229a526")
-		)
-		(pin "22"
-			(uuid "0f3b7522-742a-457d-82ae-63a815056629")
-		)
-		(pin "17"
-			(uuid "d85d7831-b3f6-424a-bd38-70d63701360f")
-		)
-		(pin "2"
-			(uuid "e5664eac-330a-497f-aab5-d6f4b0b83646")
-		)
-		(pin "4"
-			(uuid "981cb492-8dde-43bf-bba2-4efe041c3a9b")
-		)
-		(pin "5"
-			(uuid "5baf3922-2fac-4e7a-bdb5-bdd39cf831a2")
-		)
-		(pin "19"
-			(uuid "7242c634-8367-4b42-9f48-a22fe6cdb162")
-		)
-		(instances
-			(project "Pixy-M2"
-				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
-					(reference "J2")
 					(unit 1)
 				)
 			)
@@ -11329,84 +10693,6 @@
 			(project "Pixy-M2"
 				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
 					(reference "C5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 269.24 27.94 180)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "5ecea245-632e-4bf0-9296-9e658ef645b8")
-		(property "Reference" "#PWR014"
-			(at 269.24 21.59 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 269.24 22.86 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 269.24 27.94 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 269.24 27.94 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 269.24 27.94 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "4053db53-ba93-4720-ae7d-6369d709fe64")
-		)
-		(instances
-			(project "Pixy-M2"
-				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
-					(reference "#PWR014")
 					(unit 1)
 				)
 			)
@@ -12832,146 +12118,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:Conn_01x22_Pin")
-		(at 226.06 55.88 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "c77c4e25-f4db-4f96-b85c-ad020cea3eea")
-		(property "Reference" "J3"
-			(at 226.695 25.4 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "Conn_01x22_Pin"
-			(at 226.695 27.94 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x22_P2.54mm_Vertical"
-			(at 226.06 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 226.06 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x22, script generated"
-			(at 226.06 55.88 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "9"
-			(uuid "d1e2fae3-382f-428e-8f03-0a5d65d664b5")
-		)
-		(pin "21"
-			(uuid "e86f4ce8-df84-4f2b-9e9b-c06890032eca")
-		)
-		(pin "20"
-			(uuid "ed12d7f4-35c0-44cd-8785-03e025f3292d")
-		)
-		(pin "11"
-			(uuid "458c3440-04cc-4d53-a670-08220c18e26c")
-		)
-		(pin "22"
-			(uuid "9d665d2c-75eb-4561-be9b-488635b95c58")
-		)
-		(pin "13"
-			(uuid "5712cd41-8d63-4e30-a759-f42db49d63f5")
-		)
-		(pin "2"
-			(uuid "3ad615a6-e3de-47d4-9cfe-3871c98c16e2")
-		)
-		(pin "19"
-			(uuid "0700598d-b111-473d-9dff-a7339696c442")
-		)
-		(pin "5"
-			(uuid "df52d9a8-141f-483b-b175-faca4d647573")
-		)
-		(pin "7"
-			(uuid "63b7bafd-c833-49b6-aeb9-858c785302aa")
-		)
-		(pin "1"
-			(uuid "35b0d8d7-f5d1-4bc7-bb8b-923c7bda4c40")
-		)
-		(pin "3"
-			(uuid "b95706a4-67ab-4a1d-bd3f-a70ca07f5e82")
-		)
-		(pin "8"
-			(uuid "8833ef96-5112-43cf-b5f9-92bd058564c7")
-		)
-		(pin "14"
-			(uuid "a2c8a7ae-b667-482b-8ea9-cd8609aafb12")
-		)
-		(pin "10"
-			(uuid "7b1b7ba5-cdd4-4cdd-8f89-f3ed44215316")
-		)
-		(pin "18"
-			(uuid "db0e6aaf-d919-4f49-8d1d-629a012fe664")
-		)
-		(pin "12"
-			(uuid "95217277-455f-4177-924b-ea4a0f60bd83")
-		)
-		(pin "4"
-			(uuid "c965c7dd-0bf2-4500-833d-04f2ad453777")
-		)
-		(pin "6"
-			(uuid "80164150-d06d-4535-b077-176661ff6d93")
-		)
-		(pin "15"
-			(uuid "f582de7d-40cc-45e4-9428-9201e587410c")
-		)
-		(pin "16"
-			(uuid "d1abd2cd-5c26-4442-ad03-05e1b6495c25")
-		)
-		(pin "17"
-			(uuid "35c28d39-b6b7-4a54-a70b-35a5a257fa23")
-		)
-		(instances
-			(project "Pixy-M2"
-				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
-					(reference "J3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:GND")
 		(at 41.91 35.56 0)
 		(unit 1)
@@ -14226,84 +13372,6 @@
 			(project "Pixy-M2"
 				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
 					(reference "#PWR011")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
-		(at 236.22 86.36 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "e7b01ea5-d588-430c-a195-ab9adecfc9e0")
-		(property "Reference" "#PWR016"
-			(at 236.22 92.71 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "GND"
-			(at 236.22 91.44 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 236.22 86.36 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 236.22 86.36 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 236.22 86.36 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "6a49c294-3247-4fbe-a805-e96793168d14")
-		)
-		(instances
-			(project "Pixy-M2"
-				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
-					(reference "#PWR016")
 					(unit 1)
 				)
 			)
@@ -21076,6 +20144,750 @@
 				)
 			)
 		)
+	)
+	(symbol
+		(lib_id "Connector_Generic_MountingPin:Conn_01x06_MountingPin")
+		(at 243.84 45.72 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "7c60dcaa-ad1d-4a90-87db-b4a3ef65c20a")
+		(property "Reference" "J11"
+			(at 243.84 36.72 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SM06B-SRSS-TB"
+			(at 247.65 58.42 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal"
+			(at 243.84 45.72 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.jst-mfg.com/product/pdf/eng/eSH.pdf"
+			(at 243.84 45.72 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Debug/programming header. 1=3V3 2=GND 3=U0TXD 4=U0RXD 5=BOOT 6=EN. Pins 3-6 are an esptool auto-reset interface."
+			(at 243.84 45.72 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "6cf6a040-d8ee-496a-ac6c-02f261e911f9")
+		)
+		(pin "2"
+			(uuid "e75be14f-3096-48ff-85f2-9f1e25f052f1")
+		)
+		(pin "3"
+			(uuid "d1161253-30b6-44e1-adf1-9d0bde77cbcc")
+		)
+		(pin "4"
+			(uuid "8bdd3217-e4c7-40ae-8f39-738deba805ce")
+		)
+		(pin "5"
+			(uuid "6acde069-fe66-4c4d-8c81-1e03aa2165a1")
+		)
+		(pin "6"
+			(uuid "64f8fdff-1065-4350-a60f-00cce6807d27")
+		)
+		(pin "MP"
+			(uuid "257ae56b-6237-4e99-a674-3ecf1890e341")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "J11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "ESP_3V3"
+		(at 238.76 40.64 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "979c66b7-c482-4495-963c-d6d94fda4c8a")
+	)
+	(label "GND"
+		(at 238.76 43.18 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "08f35508-1935-4d9d-9207-0eadde40a305")
+	)
+	(label "GPIO43"
+		(at 238.76 45.72 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "bd407a33-84e2-4f48-96f4-8bb6b3ad7124")
+	)
+	(label "GPIO44"
+		(at 238.76 48.26 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "3f5b12b9-0252-406e-9962-2425e5a53137")
+	)
+	(label "GPIO0"
+		(at 238.76 50.8 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "0b8bfd11-39b2-41ec-bc85-69cf1a66405b")
+	)
+	(label "CHIP_PU"
+		(at 238.76 53.34 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b48a3a89-d9ec-4350-892b-5ad85b8ec628")
+	)
+	(wire
+		(pts
+			(xy 243.84 58.42) (xy 243.84 60.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "10a0bbc2-65fd-4b18-a85c-ca61bbd8fe66")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 243.84 60.96 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9f1f5992-4d31-40dd-9c78-2cdf1264be99")
+		(property "Reference" "#PWR014"
+			(at 243.84 67.31 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 243.84 66.04 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 243.84 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 243.84 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 243.84 60.96 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "c15fe5ec-b809-41f4-9277-473868710188")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "#PWR014")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 231.14 76.2 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "5455ea39-9745-43d2-a56c-17f2940edfe9")
+		(property "Reference" "TP5"
+			(at 231.14 69.342 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GPIO18"
+			(at 231.14 71.12 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
+			(at 231.14 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 231.14 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Spare-GPIO probe pad."
+			(at 231.14 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "bc16c472-e784-4f61-ba3e-e1de9b65c9c8")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "TP5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "GPIO18"
+		(at 231.14 76.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "f0dcba39-f2d8-4304-bdb6-12f84f6af6aa")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 241.3 76.2 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "b6fed491-3e3a-41ee-815e-37bbaf47f64b")
+		(property "Reference" "TP6"
+			(at 241.3 69.342 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GPIO35"
+			(at 241.3 71.12 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
+			(at 241.3 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 241.3 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Spare-GPIO probe pad."
+			(at 241.3 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "44b0c730-20fc-46a3-8f95-634606112f5c")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "TP6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "GPIO35"
+		(at 241.3 76.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "d1685c67-982e-4e20-849a-c53a9c556cf7")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 251.46 76.2 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "8a22cf28-879a-4e26-ba60-d906ceef5bf4")
+		(property "Reference" "TP7"
+			(at 251.46 69.342 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GPIO36"
+			(at 251.46 71.12 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
+			(at 251.46 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 251.46 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Spare-GPIO probe pad."
+			(at 251.46 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "9d0d2c46-ad26-4703-aeb3-818ff68f961b")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "TP7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "GPIO36"
+		(at 251.46 76.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8ded1d2e-33ef-473d-b2f1-de5ff0573805")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 261.62 76.2 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "8d0994c9-bbda-45dd-891d-041e795b51cb")
+		(property "Reference" "TP8"
+			(at 261.62 69.342 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GPIO37"
+			(at 261.62 71.12 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
+			(at 261.62 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 261.62 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Spare-GPIO probe pad."
+			(at 261.62 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "2a84ee1d-5b9c-4265-b5ea-4b1f84b72bf6")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "TP8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "GPIO37"
+		(at 261.62 76.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "22575bc2-8040-4d40-bc17-905f2c2437e0")
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 271.78 76.2 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "9a7f64c9-e0d9-45e0-96f4-172fdda35a30")
+		(property "Reference" "TP9"
+			(at 271.78 69.342 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 271.78 71.12 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "TestPoint:TestPoint_Pad_D1.5mm"
+			(at 271.78 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 271.78 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Probe ground return for TP5-TP8."
+			(at 271.78 76.2 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "dac875f9-1e75-464b-8888-a7a62e77af60")
+		)
+		(instances
+			(project "Pixy-M2"
+				(path "/fefb2c5c-cd05-4562-bf27-32a51f81fd04"
+					(reference "TP9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "GND"
+		(at 271.78 76.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "63c879fa-b369-411e-ae96-90ce923cf811")
+	)
+	(text "DEBUG / PROGRAMMING"
+		(at 228.6 24.13 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "bfcbdbda-028e-4fff-9855-f1392e3ede4e")
+	)
+	(text "GPIO35/36/37 are free only on the fitted -N16 module; an -R8 part consumes them for PSRAM (issue 11)."
+		(at 228.6 86.36 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "e2009a50-edb7-47be-9f0b-6c24f2c472fd")
+	)
+	(text "J11 pins 3-6 give a USB-serial adapter a console plus esptool"
+		(at 228.6 26.67 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "a6d1608d-a227-4077-ac11-c70756866632")
+	)
+	(text "auto-reset (DTR->BOOT, RTS->EN) - the recovery path if firmware"
+		(at 228.6 29.21 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "f06c07aa-c798-4609-9b1d-c5d0ed666e70")
+	)
+	(text "ever disables the native USB-Serial-JTAG. JTAG itself needs no"
+		(at 228.6 31.75 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "542b3975-14fc-4330-8620-62e834748a91")
+	)
+	(text "header: U1.13/14 are GPIO19/20 (USB D-/D+) and already reach USB-C."
+		(at 228.6 34.29 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "f3f01eb1-115a-4ef9-96c9-781a77586318")
+	)
+	(text "TP5-TP8: the spare GPIOs. TP9 is their probe ground."
+		(at 228.6 81.28 0)
+		(effects
+			(font
+				(size 1.02 1.02)
+			)
+			(justify left)
+		)
+		(uuid "68a82347-63e8-4fc9-8e30-9bf1fc1f352f")
 	)
 	(sheet_instances
 		(path "/"
