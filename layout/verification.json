@@ -1,0 +1,14 @@
+{
+  "footprints": 78,
+  "schematic_nets": 66,
+  "pad_net_mismatches": [],
+  "through_hole_pads_checked": 22,
+  "underside_pad_envelope_clashes": [],
+  "tracks_and_vias": 0,
+  "copper_pours": 0,
+  "outline_size_mm": [
+    66,
+    100
+  ],
+  "assembled_width_target_mm": 90
+}
