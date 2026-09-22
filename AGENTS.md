@@ -1316,11 +1316,14 @@ makes a single plane work — it is the job the 8 header ground pins used to do 
 
 The board was routed with a purpose-written grid router (A* on a 0.05 mm grid over
 F.Cu and B.Cu, planes and pours on the inner layers). **2241 mm of track, 242 vias,
-1247 mm on F.Cu and 994 mm on B.Cu.** Every net in the netlist is connected:
+1247 mm on F.Cu and 994 mm on B.Cu.** *(Those are this pass's figures. The motor
+region was reworked later the same day — see "Motor-region rework" below — after which
+the board carries 2253 mm and 249 vias.)* Every net in the netlist is connected:
 `kicad-cli pcb drc --refill-zones` reports **0 unconnected items** and **0 clearance,
 shorting, dangling, isolated-copper or hole-clearance errors from the routing**.
 
-The four copper zones implement the stackup decided on 2026-09-20:
+The copper zones implement the stackup decided on 2026-09-20. The first four came
+from this routing pass; the F.Cu pour was added by the motor-region rework below:
 
 | Zone | Layer | Net | Priority |
 |---|---|---|---|
@@ -1328,6 +1331,7 @@ The four copper zones implement the stackup decided on 2026-09-20:
 | 3V3 pour | In2.Cu | `/ESP_3V3` | 0 |
 | VBAT motor rail island | In2.Cu | `/VBAT` | 1 — x 100.5–127, y 88–122 |
 | GND pour bottom | B.Cu | `GND` | 0 — fragmented by B.Cu routing, as expected |
+| GND pour motor region | F.Cu | `GND` | 0 — x 104.2–123.2, y 104.6–120.2 (rework) |
 
 All zones use **solid pad connections, not thermal reliefs** (island removal on).
 Every SMD pad on `GND`, `/ESP_3V3` and `/VBAT` reaches its plane through a stitching
@@ -1338,7 +1342,7 @@ Track widths, set by net and then widened wherever clearance allowed:
 | Net(s) | Width |
 |---|---|
 | `VBAT_RAW`, `VBAT_FUSED`, `VBAT` trunk | 1.0 mm (tapering to 0.2 at small pads) |
-| `MOT_A_*`, `MOT_B_*` | 0.8 mm trunk, 0.64 mm where tight, 0.15 mm at the WSON pads |
+| `MOT_A_*`, `MOT_B_*` | **superseded by the rework: 0.8 mm throughout, 0.2–0.4 mm only in the driver pin escapes** |
 | `VSYS`, `VBUS`, `Net-(F2-Pad1)` | 0.6 mm |
 | `Net-(U3-SW)` | 0.5 mm |
 | GND / 3V3 stubs | 0.4 mm |
@@ -1362,10 +1366,13 @@ pads and makes OUT1 unroutable on both drivers.
   (150 kΩ) away from SW and motor current, routing `MOT_x_1/2` as tight pairs, and
   keeping `GPIO2`/`GPIO10` IPROPI analog runs clear of the motor outputs. The router
   optimised length and via count only. Walk these five nets in the GUI.
-- **Thermal vias are 2 per driver EP**, which is all that fits at 0.6 mm via / 0.3 mm
-  drill in a 0.9 × 1.6 mm pad. The DRV8231A datasheet wants more; smaller vias
-  (0.45/0.25) would fit ~6 and are worth a fab-rule check. U1's 12 EP pads have one
-  via each.
+  **The rework below moved `REG_EN` and the SW node clear (0.26 → 1.00 mm and
+  0.28 → 1.33 mm); the `MOT_x_1/2` pairs and the IPROPI runs are still open.**
+- ~~**Thermal vias are 2 per driver EP**~~ — **this was never true.** U4's exposed pad
+  had no via in it at all and U5 had one; both reached GND through a narrow neck to an
+  offset via. Fixed by the rework below, which also corrects the "0.45/0.25 would fit
+  ~6" estimate: at the board's 0.45 mm hole-to-hole rule only two fit.
+  U1's 12 EP pads do have one via each.
 - No teardrops, no length matching, no via stitching of the two GND layers beyond the
   signal/plane vias already placed.
 
@@ -1376,6 +1383,146 @@ mounting holes — 0.25 mm against a 0.3 mm rule. They are inside the
 `USB_C_Receptacle_Amazon` footprint and were present before any track was laid. Fix
 the footprint or relax the rule; do not chase them in the routing.
 The `lib_footprint_mismatch` warning on U1 is likewise pre-existing.
+
+## Motor-region rework — 2026-09-21 (review issues 1–3)
+
+A second pass over the motor region, driven by `REVIEW.md`.
+`tools/autoroute/rework.py` reproduces it from `tools/autoroute/base-routed.kicad_pcb`
+(the router's own output). It never edits the file it reads, but it does write the
+board without zone fills, so **always follow it with**
+
+```
+kicad-cli pcb drc --schematic-parity --refill-zones --save-board --format json \
+    -o /tmp/drc.json Pixy-M2.kicad_pcb
+```
+
+**DRC after the rework is identical to before it**: 0 unconnected items, 0 schematic
+parity issues, and the only violations left are the four pre-existing J1
+`hole_clearance` errors and the pre-existing U1 `lib_footprint_mismatch` warning.
+Board totals went 2241 → **2253 mm of track** and 242 → **249 vias**.
+
+### Issue 1 — motor output copper
+
+`MOT_B_1` carried 38.8 mm of its 42 mm at 0.15 mm and `MOT_B_2` 41.3 mm of its 48 mm.
+All four nets are now 0.8 mm trunks, and the only sub-0.5 mm copper left is the escape
+inside each driver's own pin field.
+
+| Net | length | sub-0.5 mm | DC resistance |
+|---|---|---|---|
+| `MOT_A_1` | 15.0 → 16.7 mm | 11.0 → **2.5 mm** | 39 → **14 mΩ** |
+| `MOT_A_2` | 16.2 → 19.0 mm | 6.4 → **1.0 mm** | 27 → **13 mΩ** |
+| `MOT_B_1` | 42.0 → 43.5 mm | 38.8 → **2.5 mm** | 129 → **31 mΩ** |
+| `MOT_B_2` | 48.1 → 48.6 mm | 41.3 → **1.0 mm** | 138 → **31 mΩ** |
+
+Resistance is DC at 20 °C into 35 µm copper. The motor-B pair goes from 0.267 Ω to
+0.062 Ω, so at the DRV8231A's 1.47 A limit **0.393 V and 0.578 W become 0.090 V and
+0.133 W**. The "before" column reproduces the review's own 0.268 Ω / 0.394 V / 0.579 W
+exactly — that is the cross-check that this is the same measurement, not a new one.
+
+0.8 mm of 1 oz external copper carries roughly 2.3 A for a 10 °C rise (IPC-2152), so
+1.47 A is about a 4 °C rise — the trunks are sized on temperature, not just on drop.
+**No 0.15 mm copper is left on any motor net**; the widths in use are 0.2, 0.3, 0.4
+and 0.8 mm.
+
+**The escapes are the only narrow copper and they are now fenced in.** OUT1 leaves
+pin 6 between the bypass cap's two pads — a 0.65 mm slot — so it runs 0.2 mm for
+2.1 mm, 0.4 mm for 0.4 mm, then 0.8 mm. OUT2 leaves pin 8 upward at 0.3 mm for 0.5 mm
+and 0.4 mm for 0.5 mm. Worst case is ~11.5 squares, about 6 mΩ, on copper heat-sunk by
+a wide trunk at one end and the pad at the other.
+
+**A netclass and a custom DRC rule enforce it**, which is what the review asked for.
+`Pixy-M2.kicad_pro` gains a `Motor` netclass (0.8 mm default width, matched by the
+pattern `/MOT_*`), and the new `Pixy-M2.kicad_dru` carries:
+
+```
+(rule "Motor trunk minimum width"
+	(constraint track_width (min 0.6mm))
+	(condition "A.NetClass == 'Motor' && !A.enclosedByArea('Motor pin escape')"))
+```
+
+`Motor pin escape` is two named rule areas on F.Cu, one per driver, sized to contain
+the escapes and nothing else. **`enclosedByArea`, not `intersectsArea`** — with
+`intersects`, a trunk that merely *starts* inside the area is exempt along its whole
+length, and that was observed: the first version of this rule silently passed a
+deliberately narrowed `MOT_A_1` trunk. The rule was verified in both directions:
+narrowing one 0.8 mm segment on each of the four nets produces four `track_width`
+errors, and the real escapes produce none.
+
+### Issue 2 — exposed-pad heat path
+
+U4's exposed pad had **no via in it at all** and reached GND through a 0.4 mm neck to
+a single via; U5 had one. Per driver the pad now has:
+
+- **two in-pad thermal vias at 0.45 mm / 0.25 mm.** The board's own rules already
+  allow this — `min_via_diameter` is 0.45 and `min_through_hole_diameter` 0.2 — and
+  the 0.8 mm pitch leaves 0.55 mm hole-to-hole against the 0.45 mm rule. **Three do
+  not fit:** the 0.45 mm hole-to-hole rule forces a 0.7 mm pitch, which puts the outer
+  vias' copper outside a 1.6 mm pad. The earlier note in this file that
+  "0.45/0.25 would fit ~6" was wrong — it counted copper and ignored hole-to-hole.
+- **0.8 mm-wide copper out of the pad** to a further GND via above it.
+- GND vias within 3 mm of the pad: U4 2 → 4, U5 1 → 4. With the in-pad pair that is
+  six vias per driver into the In1 plane.
+- a new F.Cu zone, **`GND pour motor region`** (x 104.2–123.2, y 104.6–120.2), which
+  fills **165 mm² of top-side ground copper** around both drivers, D6 and the bulk
+  caps. Solid pad connections, island removal on, same settings as the other pours.
+
+**There is deliberately no copper neck out of the *lower* end of either pad.** The
+`ESP_3V3` feed to pin 4 (VREF) passes within 0.43 mm of it on both drivers and nothing
+0.6 mm wide fits past. `rework.py` prints `! no neck+via for GND from (…)` when it
+gives up on this; that message is expected, not a failure. Widening it means rerouting
+the VREF feed first.
+
+**The via-in-pad still needs an assembly decision.** The exposed pad already has a
+split paste window (two 0.73 × 0.64 mm apertures, ~50 % coverage), which is the usual
+mitigation, but confirm hole plugging/capping and the 0.25 mm drill with the fab
+before ordering. That is the "coordinate via treatment with assembly" the review asks
+for, and it is still open — as is review issue 6 (vias inside pads elsewhere on the
+board), which this pass did not touch.
+
+### Issue 3 — local bypass loops
+
+C18 and C20 sat 4.95 mm and 3.61 mm from their driver's VM pin and reached it only
+through the In2 plane, 1.065 mm of core away from the In1 return. Both now sit
+**1.33 mm away, directly across VM (pin 5) and GND (pin 7)**, and the loop closes
+entirely in top copper: pin 5 → cap pad 1 → cap → cap pad 2 → pin 7. No plane hop.
+
+| | C18 / U4 | C20 / U5 |
+|---|---|---|
+| position | (106, 111) → **(111.25, 114.25)** rot 90 | (120, 111) → **(119.25, 114.25)** rot 90 |
+| VBAT pad to VM pad | 4.95 → **1.33 mm** | 3.61 → **1.33 mm** |
+
+**The 0.5 mm pin pitch caps those runs at 0.3–0.35 mm** for their 1.3 mm, because OUT1
+sits between VM and GND and needs 0.2 mm of clearance either side. That is about
+2 mΩ, 4 mV and 4 mW at 1.47 A, and it cannot be widened without moving OUT1 off the
+package midline, which the pinout does not allow.
+
+**C21 moved to (119.3, 109.4)** because its old position at (113, 114) sat squarely in
+the new OUT1 escape corridor. Two constraints shaped where it went, both worth
+remembering:
+
+- it kept **rot 90**. Changing a footprint's rotation while leaving its text fields
+  alone raises a `lib_footprint_mismatch` warning, which is how the first attempt at
+  (120.5, 117) rot 0 was caught.
+- the **`IMU module and bracket reservation` keepout (x 120.5–145.5, y 113.5–138.5,
+  footprints not allowed)** rules out the obvious spot right of C20. Tracks and vias
+  are allowed there; footprints are not.
+
+Silkscreen references for C18, C20, C21 and U5 were moved off the pads they would
+otherwise have covered.
+
+### What this pass did not touch
+
+- **Review issue 4 stands.** U5 is still ~40 mm from J9 and `MOT_B_1`/`MOT_B_2` are
+  still not routed as a pair, so the motor-B loop area is still large. What did
+  improve is coupling into the regulator, because the reroute took `MOT_B_2` off the
+  buck: clearance to `REG_EN` 0.26 → **1.00 mm**, to the SW node 0.28 → **1.33 mm**,
+  and to `VSYS` at U3's pads 0.28 → **5.52 mm**.
+- **Review issues 5–8** (buck local routing, via-in-pad elsewhere, the USB pair, the
+  rest of the rule set) are untouched.
+- `GPIO2` / `GPIO10` (IPROPI) still pass within **0.29 mm** of motor copper near U4,
+  essentially unchanged from 0.26 mm. The review's own note applies: their 1.5 kΩ
+  source impedance is not `VBAT_SENSE`'s 150 kΩ, so validate this on hardware rather
+  than assuming it is a fault.
 
 ## Layout constraints (written before layout; the routing above does not satisfy all of them)
 
@@ -1447,13 +1594,21 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   RθJA is 66.5°C/W and the datasheet asks for "large ground planes on multiple layers
   and multiple nearby vias". Put a dense via array under each pad into L2, and do not
   neck the pad's connection with thermal relief spokes — this is a heat path, not a
-  solderability concern.
+  solderability concern. **Built by the 2026-09-21 rework, as far as the geometry
+  allows: 2 in-pad vias (the hole-to-hole rule caps it there), 4 more within 3 mm, a
+  0.8 mm neck out of the pad and an F.Cu ground pour. "Dense" is not achievable in a
+  0.9 × 1.6 mm pad — do not re-specify it without changing the package.**
 - **Keep C18/C20 (0.1µF) hard against each driver's VM pin**, closer than the 22µF
   bulk. The bulk caps C19/C21 go next, and both must sit in the motor region of the
-  placement partition, not near U1 or the ADC nodes.
+  placement partition, not near U1 or the ADC nodes. **Done 2026-09-21: both caps are
+  1.33 mm from their VM pin, across pins 5 and 7, with the loop closed in top copper.
+  C21 moved to (119.3, 109.4) to clear the OUT1 escape; C19 is unchanged.**
 - **`MOT_A_1/2` and `MOT_B_1/2` are the only high-di/dt nets outside the buck.**
   Route each pair together and keep the loop from the driver through the connector
   tight. Size them for the 1.47A regulated limit, not the free-run current.
+  **Sized 2026-09-21 (0.8 mm trunks, enforced by the `Motor` netclass and
+  `Pixy-M2.kicad_dru`); still not routed as pairs — that is review issue 4 and it
+  needs U5 moved toward J9, not just a rip-up.**
 - **`GPIO2` and `GPIO10` carry IPROPI analog current**, not logic. Keep them short,
   away from the motor outputs and the SW node. They no longer run anywhere else —
   J2/J3 are gone, so there is no header stub on them to keep short.
