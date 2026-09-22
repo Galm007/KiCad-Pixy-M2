@@ -1,0 +1,10 @@
+(version 1)
+
+# Motor outputs carry the DRV8231A's 1.47 A regulated limit (issue 15/17), so the
+# trunks are 0.8 mm.  Only the escapes inside each driver's 0.5 mm pin field may
+# neck below that, and those are fenced by the "Motor pin escape" rule areas —
+# without this rule the global 0.15 mm minimum lets a long 0.15 mm run pass DRC,
+# which is how the 2026-09-21 review found 38 mm of MOT_B_1 at 0.15 mm.
+(rule "Motor trunk minimum width"
+	(constraint track_width (min 0.6mm))
+	(condition "A.NetClass == 'Motor' && !A.enclosedByArea('Motor pin escape')"))
