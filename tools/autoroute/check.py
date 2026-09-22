@@ -1,6 +1,6 @@
 """post-route sanity report: per-net track length, layer use, via count"""
 import sys, collections, math
-sys.path.insert(0,'/tmp/claude-1000/-home-galm-Workspace-KiCad-Pixy-M2-Pixy-M2/0d540b1f-73cf-4064-b688-c76203191bc7/scratchpad')
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sexp import parse, children, child, val
 t=open('/home/galm/Workspace/KiCad/Pixy-M2/Pixy-M2/Pixy-M2.kicad_pcb').read()
 pcb=parse(t)

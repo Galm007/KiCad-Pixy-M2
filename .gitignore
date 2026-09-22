@@ -30,3 +30,6 @@ gerbers/
 *.pos
 *.step
 *.wrl
+
+# Python bytecode from the tools/ scripts.
+__pycache__/
