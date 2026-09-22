@@ -1,6 +1,6 @@
 # Pixy-M2 layout review — 2026-09-21
 
-> **Status, 2026-09-21: findings 1, 2, 3 and 4 are fixed on the board; 5–8 are open.**
+> **Status, 2026-09-22: findings 1–5 are fixed on the board; 6–8 are open.**
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1
@@ -15,6 +15,14 @@
 > copper to `REG_EN` 0.27 → 8.51 mm, to the SW node 0.28 → 6.62 mm. U5 stayed put
 > because J9 sits off the In2 VBAT island and next to the buck output — see
 > "Issue 4" in `CLAUDE.md` for the full argument and the two costs it carries.
+> Finding 5 followed on 2026-09-22: six parts moved and the regulator block hand
+> routed. TP4's two vias and 2.55 mm of back-layer switch-node copper are gone (the
+> node is now 3.57 mm² on one layer with no vias), C17 straddles U3's IN and GND pins
+> so the two return vias are 0.95 mm apart instead of 5.88 mm, L1 → C7 → C11 is a
+> single top-layer run where no copper joined them at all before, and FB has its own
+> sense trace to C11 that stays 2.1 mm clear of the switch node. One regression is
+> recorded there too: REG_EN now passes 0.99 mm from switching copper, having moved
+> out of a via-in-pad.
 
 The saved layout needs another routing pass before fabrication. The most consequential findings are undersized motor-output copper and inadequate thermal copper around the motor drivers. The segmented bends themselves are not a manufacturing defect.
 

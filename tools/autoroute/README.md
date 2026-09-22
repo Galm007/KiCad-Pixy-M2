@@ -50,8 +50,14 @@ What it does, in order — the order matters:
    two run as a pair (review issue 4).  An unreachable waypoint is skipped, not
    fatal.  `U4` is not paired — measured, no gain, see CLAUDE.md;
 5. *then* searches for the plane stitching vias, so they cannot land on a trunk;
-6. re-routes `/GPIO6`, which had to be ripped to free C20's new position;
-7. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
+6. lays the buck block (`buck_block`, review issue 5) — same discipline: every
+   track first, every via afterwards.  The first attempt did it the other way and
+   dropped a ground stitching via straight into the corridor the switch node
+   needed, shorting SW to GND under the package;
+7. re-routes `/VSYS` (through a waypoint north of the buck, or A* threads the
+   8.4 V input rail between L1 and the output capacitors), `/REG_EN` and
+   `/GPIO6`, all of which were ripped to free space;
+8. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
    areas that `Pixy-M2.kicad_dru` conditions on.
 
 `! no neck+via for GND from (109.0,114.8)` and the same for `(117.0,114.8)` are
@@ -66,5 +72,5 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `load.py` | footprint / pad extraction with rotation applied |
 | `board.py` | 0.05 mm raster helpers, board outline fill, keepout zones |
 | `grid.py` | obstacle raster of the **current** board — pads *and* existing tracks, vias and holes — with per-net distance fields. This is what lets `rework.py` route against a board that is already wired, which `wire.py` could not do |
-| `pcbedit.py` | text-level surgery on the `.kicad_pcb`: add/drop segments and vias, move footprints and their text fields, append zones |
+| `pcbedit.py` | text-level surgery on the `.kicad_pcb`: add/drop segments and vias, move footprints, their pads' and texts' angles and board-level labels, append zones. **Rotating a footprint must rotate every `(at …)` inside it** — pads included, since each stores its angle in the board frame. Miss them and DRC reports `lib_footprint_mismatch`, which reads like a library problem rather than a bad edit |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |

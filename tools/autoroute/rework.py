@@ -45,10 +45,18 @@ MOVES = {
     'C18': (111.25, 114.25, 90),    # across U4 VM(5)/GND(7)
     'C20': (119.25, 114.25, 90),    # across U5 VM(5)/GND(7)
     'C21': (119.30, 109.40, 90),    # out of the new U5 escape corridor
+    # --- buck block, review issue 5 ---
+    'C6':  (139.50,  93.30, 0),     # bootstrap, beside BST/SW instead of 4.2 mm away
+    'C17': (139.00,  98.60, 0),     # straddles U3 IN(3) -> GND(4): tight input loop
+    'C7':  (147.00,  99.00, 0),     # output filter pulled up under L1
+    'C11': (147.00, 101.30, 0),
+    'R8':  (136.60, 100.60, 0),     # clear of C17 and of the new FB corridor
+    'TP4': (141.90,  99.60, None),  # SW probe: short top stub, no back-layer branch
 }
 
 # nets ripped whole
-RIP_NETS = ['/MOT_A_1', '/MOT_A_2', '/MOT_B_1', '/MOT_B_2', '/GPIO6']
+RIP_NETS = ['/MOT_A_1', '/MOT_A_2', '/MOT_B_1', '/MOT_B_2', '/GPIO6',
+            'Net-(U3-SW)', 'Net-(U3-BST)', '/VSYS', '/REG_EN']
 # (net, x0,y0,x1,y1) boxes ripped: old cap stubs and the old driver GND/VM stubs
 RIP_BOXES = [
     ('/VBAT', 108.5, 112.0, 111.5, 116.0), ('GND', 108.5, 112.0, 111.5, 116.0),
@@ -57,14 +65,29 @@ RIP_BOXES = [
     ('/VBAT', 119.0, 109.0, 121.0, 112.6), ('GND', 119.0, 109.0, 121.0, 112.6),
     ('/VBAT', 111.9, 110.9, 114.2, 116.2), ('GND', 111.9, 110.9, 114.2, 116.2),
     ('/ESP_3V3', 118.3, 115.4, 118.7, 115.8),   # via that C20 pad 1 would land on
+    ('/ESP_3V3', 136.0, 93.0, 150.0, 106.0),    # buck: FB tap, L1 out, C7/C11 taps
+    ('GND', 136.0, 93.0, 150.0, 106.0),         # buck: U3, C17, C7, C11, R8, C13, TP3
 ]
 
 # reference text moved out of the reworked area (local offsets, footprint frame)
 REFS = {'C18': (-2.15, 0.0), 'C20': (-2.15, 0.0), 'C21': (-2.1, 2.7),
-        'U5': (0.0, -2.2)}
+        'U5': (0.0, -2.2), 'C17': (-3.2, -0.8), 'U3': (0.0, -4.5)}
+
+# board-level silkscreen labels that follow a moved pad
+TEXTS = {'TP4 SW': (141.9, 101.9)}
 
 # signal nets ripped above, re-routed after the motor trunks have their space
 RERUN_SIGNALS = [('/GPIO6', (('U1', '6'), ('J6', '6')))]
+
+# buck nets ripped whole and re-routed once the block's own copper is placed
+RERUN_NETS = [
+    ('/REG_EN', 0.2, [('R7', '2'), ('R9', '2'), ('R8', '1'), ('C13', '1'), ('U3', '2')]),
+]
+# /VSYS reaches D1 through the corridor north of the buck.  Left to itself A*
+# prefers a shorter path straight through the output filter, which puts the 8.4 V
+# input rail between L1 and C7/C11.
+VSYS_WEST = [('C12', '1'), ('C17', '1'), ('D2', '1')]
+VSYS_NORTH = [(145.0, 90.4)]
 
 # F.Cu ground pour over the motor region (issue 2 heat spreading, issue 3 return)
 GND_POUR = (104.2, 104.6, 123.2, 120.2)
@@ -494,7 +517,7 @@ def escapes(r, d):
     return (b1x, oy + 0.25), (px + 0.35, oy - 1.6)
 
 
-def pair_waypoints(pts, side, offset=1.15, step=None, skip_end=3.0):
+def pair_waypoints(pts, side, offset=1.15, step=None, skip_end=1.5):
     """sample a routed polyline and offset each sample to one side of it.
 
     `side` is the vector from the first output's connector pad to the second's.
@@ -525,12 +548,74 @@ def pair_waypoints(pts, side, offset=1.15, step=None, skip_end=3.0):
     return out
 
 
+def buck_block(r):
+    """issue 5: a compact regulator block around U3.
+
+    U3 is a TSOT-23-6: FB/EN/IN down the left edge, GND/SW/BST down the right.
+    IN (pin 3) and GND (pin 4) sit at the same y on opposite sides, so the input
+    capacitor goes *under* the package spanning the two — the tightest input loop
+    this pinout allows.  BST (6) and SW (5) are adjacent on the right, but L1's
+    courtyard starts 0.45 mm past U3's, so the bootstrap capacitor goes above
+    instead; that still cuts the BST run from 4.15 mm to 1.9 mm.
+
+    Every track is laid before any via is searched for — a stitching via placed
+    into a corridor a later track needs is how the first attempt shorted SW to
+    GND under the package.
+    """
+    IN, GND4 = (137.863, 96.95), (140.137, 96.95)
+    FB, SW5, BST6 = (137.863, 95.05), (140.137, 96.0), (140.137, 95.05)
+    C17_1, C17_2 = (138.225, 98.6), (139.775, 98.6)
+    C6_1, C6_2 = (138.725, 93.3), (140.275, 93.3)
+    L1_2 = (147.25, 95.0)
+    C7_1, C7_2 = (146.05, 99.0), (147.95, 99.0)
+    C11_1, C11_2 = (146.05, 101.3), (147.95, 101.3)
+
+    # --- input loop: IN -> C17 -> GND, both legs short and wide
+    r.track('/VSYS', 'F.Cu', IN[0], IN[1] + 0.3, C17_1[0], C17_1[1], 0.5)
+    r.track('GND', 'F.Cu', GND4[0], GND4[1] + 0.3, C17_2[0], C17_2[1], 0.5)
+
+    # --- bootstrap, and the switch node.  0.3 mm out of U3.5 until it clears the
+    #     0.95 mm pin pitch, then 0.6 mm across to L1.
+    r.track('Net-(U3-BST)', 'F.Cu', BST6[0], BST6[1], 139.9, 94.35, 0.25)
+    r.track('Net-(U3-BST)', 'F.Cu', 139.9, 94.35, C6_1[0] + 0.3, C6_1[1], 0.25)
+    r.track('Net-(U3-SW)', 'F.Cu', SW5[0], SW5[1], 141.0, 96.0, 0.3)
+    r.track('Net-(U3-SW)', 'F.Cu', 141.0, 96.0, 142.2, 95.2, 0.6)
+    r.track('Net-(U3-SW)', 'F.Cu', C6_2[0], C6_2[1], 142.2, 94.6, 0.4)
+    r.track('Net-(U3-SW)', 'F.Cu', 142.3, 95.7, 141.9, 98.9, 0.3)       # TP4 stub
+
+    # --- output filter: one top-layer run L1 -> C7 -> C11
+    r.track('/ESP_3V3', 'F.Cu', L1_2[0] - 0.6, L1_2[1], 146.5, 96.4, 0.8)
+    r.track('/ESP_3V3', 'F.Cu', 146.5, 96.4, C7_1[0], C7_1[1], 0.8)
+    r.track('/ESP_3V3', 'F.Cu', C7_1[0], C7_1[1], C11_1[0], C11_1[1], 0.8)
+
+    # --- feedback: a dedicated sense from FB round the south of the block to
+    #     C11, the far output capacitor.  Long, but never near SW, L1 or BST.
+    for a, b in (((FB[0] - 0.4, FB[1]), (136.6, 94.7)), ((136.6, 94.7), (136.6, 101.8)),
+                 ((136.6, 101.8), (145.6, 101.8)), ((145.6, 101.8), C11_1)):
+        r.track('/ESP_3V3', 'F.Cu', a[0], a[1], b[0], b[1], 0.2)
+
+    # --- now the plane vias.  U3.4 gets its own, hand-placed: the search has no
+    #     room left between the C17 pad, the SW stub and the package.
+    r.track('GND', 'F.Cu', GND4[0], GND4[1] + 0.3, 140.95, 97.7, 0.4)
+    r.via('GND', 140.95, 97.7)
+    r.stitch('GND', C17_2[0], C17_2[1], (1, 0.5), w=0.5)
+    r.stitch('/ESP_3V3', C7_1[0], C7_1[1], (-1, -0.4), w=0.5)
+    r.stitch('/ESP_3V3', C11_1[0], C11_1[1], (-1, 0.4), w=0.5)
+    for ref, num, want in (('C7', '2', (1, 0)), ('C11', '2', (1, 0)),
+                           ('R8', '2', (0, 1)), ('C13', '2', (1, 0)),
+                           ('TP3', '1', (-1, 0))):
+        pad = next(q for q in r.g.byref[ref]['pads'] if q['num'] == num)
+        r.stitch('GND', pad['x'], pad['y'], want, w=0.4)
+
+
 def main():
     p = Pcb(BASE)
     for ref, (x, y, rot) in MOVES.items():
         p.move_footprint(ref, x, y, rot)
     for ref, (dx, dy) in REFS.items():
         p.move_property(ref, 'Reference', dx, dy)
+    for label, (x, y) in TEXTS.items():
+        p.move_text(label, x, y)
     print('moved', ', '.join(MOVES), '| silk refs', ', '.join(REFS))
     print('ripped', rip(p), 'segments/vias')
 
@@ -571,6 +656,8 @@ def main():
                 print(f"    pair corridor: {len(wps)} waypoints offset from {net}")
 
     anchors = {d['u']: driver_stitch(r, d) for d in DRIVERS}
+    print('buck block')
+    buck_block(r)
     # C21 moved, so its plane taps move with it
     r.stitch('/VBAT', 119.3, 110.875, (0, 1), w=0.6)
     r.stitch('GND', 119.3, 107.925, (0, -1), w=0.5)
@@ -578,6 +665,14 @@ def main():
         v = r.spread_vias('GND', d['ox'], d['oy'], 1.55, 2.6, 4, box=GND_POUR,
                           anchors=anchors[d['u']])
         print(f"  {d['u']} exposed-pad heat spreading: {len(v)} extra GND vias")
+
+    ok = r.route('/VSYS', 0.6, [r.pad_group(*q, 0.6) for q in VSYS_WEST])
+    ok &= r.route_waypoints('/VSYS', 0.6, r.pad_group('C12', '1', 0.6),
+                            VSYS_NORTH, r.pad_group('D1', '1', 0.6))
+    print('  /VSYS ->', 'ok' if ok else 'FAILED')
+    for net, w, pads in RERUN_NETS:
+        groups = [r.pad_group(*q, w) for q in pads]
+        print(f'  {net} ->', 'ok' if r.route(net, w, groups) else 'FAILED')
 
     # XSHUT 3 was ripped to clear C20's new position; put it back
     for net, (a, b) in RERUN_SIGNALS:

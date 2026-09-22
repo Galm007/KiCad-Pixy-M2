@@ -98,10 +98,23 @@ class Pcb:
         blk = self.text[i:j]
         m = re.search(r'\n\t\t\(at ([-\d.]+) ([-\d.]+)(?: ([-\d.]+))?\)\n', blk)
         assert m, 'no footprint (at ...)'
-        oldrot = m.group(3)
-        r = oldrot if rot is None else fx(rot)
-        new = f'\n\t\t(at {fx(x)} {fx(y)}' + (f' {r}' if r else '') + ')\n'
+        oldrot = float(m.group(3) or 0.0)
+        r = oldrot if rot is None else float(rot)
+        new = f'\n\t\t(at {fx(x)} {fx(y)}' + (f' {fx(r)}' if fx(r) else '') + ')\n'
         blk2 = blk[:m.start()] + new + blk[m.end():]
+        delta = (r - oldrot) % 360
+        if delta:
+            # Every text and pad inside a footprint stores its angle in the board
+            # frame; KiCad turns them all with the footprint and DRC compares the
+            # result against the library copy.  Rotate the parent alone and the
+            # pads keep the old angle — a 0.9x0.95 pad silently stays 0.95x0.9,
+            # and the footprint reads as "does not match copy in library".
+            def turn(mm):
+                ang = fx((float(mm.group('ang') or 0.0) + delta) % 360)
+                tail = f" {ang})" if ang else ")"
+                return f"{mm.group('head')}{mm.group('x')} {mm.group('y')}{tail}"
+            blk2 = re.sub(r'(?P<head>\n\t\t\t\(at )(?P<x>[-\d.]+) (?P<y>[-\d.]+)'
+                          r'(?: (?P<ang>[-\d.]+))?\)', turn, blk2)
         self.text = self.text[:i] + blk2 + self.text[j:]
         self._split()
 
@@ -113,6 +126,13 @@ class Pcb:
         assert m, f'{ref}: no {prop} (at ...)'
         blk2 = blk[:m.start('a')] + f'{fx(dx)} {fx(dy)}' + blk[m.end('a'):]
         self.text = self.text[:i] + blk2 + self.text[j:]
+        self._split()
+
+    def move_text(self, text, x, y):
+        """move a board-level (gr_text "...") to an absolute position"""
+        m = re.search(r'\(gr_text "%s"\s*\n\s*\(at (?P<a>[-\d.]+ [-\d.]+)' % re.escape(text), self.text)
+        assert m, f'no gr_text {text!r}'
+        self.text = self.text[:m.start('a')] + f'{fx(x)} {fx(y)}' + self.text[m.end('a'):]
         self._split()
 
     def add_zone(self, s):

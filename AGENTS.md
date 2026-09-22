@@ -1310,7 +1310,8 @@ makes a single plane work — it is the job the 8 header ground pins used to do 
   full 2A; this rail draws ~0.7A, so 1oz is defensible — but if 2oz is taken for the
   motor path anyway, U3 gets it for free.
 - Give the input and output capacitors' **GND pads their own via stitching to L2**,
-  which the same datasheet section asks for by name.
+  which the same datasheet section asks for by name. **Done 2026-09-22 for C7, C11,
+  C17 and U3.4 itself; C12 keeps the via it already had.**
 
 ## Routing — done 2026-09-21
 
@@ -1412,14 +1413,14 @@ inside each driver's own pin field.
 | `MOT_A_1` | 15.0 → 16.7 mm | 11.0 → **2.5 mm** | 39 → **14 mΩ** |
 | `MOT_A_2` | 16.2 → 19.0 mm | 6.4 → **1.0 mm** | 27 → **13 mΩ** |
 | `MOT_B_1` | 42.0 → 43.5 mm | 38.8 → **2.5 mm** | 129 → **31 mΩ** |
-| `MOT_B_2` | 48.1 → 55.0 mm | 41.3 → **1.0 mm** | 138 → **35 mΩ** |
+| `MOT_B_2` | 48.1 → 59.4 mm | 41.3 → **1.0 mm** | 138 → **37 mΩ** |
 
 Resistance is DC at 20 °C into 35 µm copper. The motor-B pair goes from 0.267 Ω to
-0.066 Ω, so at the DRV8231A's 1.47 A limit **0.393 V and 0.578 W become 0.096 V and
-0.141 W**. The "before" column reproduces the review's own 0.268 Ω / 0.394 V / 0.579 W
+0.068 Ω, so at the DRV8231A's 1.47 A limit **0.393 V and 0.578 W become 0.100 V and
+0.147 W**. The "before" column reproduces the review's own 0.268 Ω / 0.394 V / 0.579 W
 exactly — that is the cross-check that this is the same measurement, not a new one.
-(`MOT_B_2`'s length and resistance include the 6.4 mm the issue-4 pairing added; see
-that section.)
+(`MOT_B_2`'s length and resistance include the 11.3 mm the issue-4 pairing and the
+issue-5 retune added; see those sections.)
 
 0.8 mm of 1 oz external copper carries roughly 2.3 A for a 10 °C rise (IPC-2152), so
 1.47 A is about a 4 °C rise — the trunks are sized on temperature, not just on drop.
@@ -1526,14 +1527,17 @@ failing the net.
 
 | | first routed | after issues 1–3 | now |
 |---|---:|---:|---:|
-| enclosed loop area | 423.6 mm² | 347.9 mm² | **111.5 mm²** |
+| enclosed loop area | 423.6 mm² | 347.9 mm² | **83.4 mm²** ¹ |
 | pair separation, mean / worst (x < 149) | — | 7.17 / 9.65 mm | **1.39 / 5.27 mm** |
 | motor copper to `REG_EN` | 0.27 mm | 1.00 mm | **8.51 mm** |
 | motor copper to the SW node | 0.28 mm | 1.33 mm | **6.62 mm** |
 | motor copper to `VSYS` at U3 | 0.28 mm | 5.52 mm | **9.00 mm** |
 
+¹ 111.5 mm² when this pass landed; the issue-5 rework moved C7/C11, which let the
+fan-out be retuned. Loop area is measured by `tools/autoroute/loop.py`.
+
 The regulator is now decisively out of the motor current's way, which was the other
-half of the finding. Loop area is measured by `tools/autoroute/loop.py`.
+half of the finding.
 
 **U5 was deliberately not moved**, which is the review's first suggestion. Three
 things argue against it, and they are worth recording because the idea will come back:
@@ -1551,9 +1555,9 @@ things argue against it, and they are worth recording because the idea will come
 
 **Two costs, both recorded rather than hidden:**
 
-- `MOT_B_2` is 6.4 mm longer (48.6 → 55.0 mm), so the motor-B pair's resistance goes
-  61.5 → 65.4 mΩ: **+5.7 mV and +8 mW** at the 1.47 A limit. Trivial against a 3.1×
-  loop reduction.
+- `MOT_B_2` is longer — 48.6 → 55.0 mm here, 59.4 mm after the issue-5 retune — so
+  the motor-B pair's resistance goes 61.5 → 68.1 mΩ: **+10 mV and +14 mW** at the
+  1.47 A limit. Trivial against a 5× loop reduction.
 - **Motor copper within 0.6 mm of the BNO08x SPI nets doubles, 5.0 → 11.0 mm**,
   because the corridor the pair now shares passes under J10's fan-out. That total is
   ~13 separate encounters of 0.2–2.0 mm — crossings and brushes, not a parallel run —
@@ -1569,11 +1573,100 @@ driver in x, so `MOT_A_2` has to round U4 however it is routed. Do not re-attemp
 without moving U4 or J8.
 
 
+### Issue 5 — the buck power stage (2026-09-22)
+
+Four separate complaints, all about the regulator block being spread out rather
+than wrong. Fixed by moving six parts and hand-routing the block; `rework.py`'s
+`buck_block()` lays every track before it searches for a single via, because a
+stitching via dropped into a corridor a later track needs is how the first
+attempt shorted SW to GND under the package.
+
+| | before | after |
+|---|---:|---:|
+| SW node copper area | 5.17 mm² | **3.57 mm²** |
+| SW node on B.Cu | 2.55 mm | **0 mm** |
+| SW node vias | 2 | **0** |
+| C6 (BST) pad to U3.6 | 4.15 mm | **2.25 mm** |
+| BST net track | 3.72 mm | **2.11 mm** |
+| U3.4 return via ↔ C17 return via | 5.88 mm | **0.95 mm** |
+| L1.2 → C11.1 through copper | *none* — plane only | **6.95 mm on F.Cu** |
+| C7.1 → C11.1 | 4.00 mm | **2.30 mm** |
+| FB / 3V3 copper to SW or BST | 0.27 mm | **2.10 mm** |
+| VSYS copper to SW or BST | 0.83 mm | **2.07 mm** |
+
+Six parts moved: **C6** (140, 91) → (139.5, 93.3), **C17** (136, 96) rot 90 →
+(139, 98.6) rot 0, **C7** (147, 100) → (147, 99), **C11** (147, 104) →
+(147, 101.3), **R8** (137, 100) → (136.6, 100.6), **TP4** (143, 100) →
+(141.9, 99.6).
+
+**The input capacitor now straddles the package.** U3 is a TSOT-23-6 with
+FB/EN/IN down the left edge and GND/SW/BST down the right, so IN (pin 3) and
+GND (pin 4) sit at the *same y on opposite sides*. C17 therefore goes underneath,
+spanning the two, which is the tightest input loop this pinout allows. The metric
+the review cited — the distance between C17's return via and U3's — goes from
+5.88 mm to 0.95 mm, and U3.4 now has its own via 1.11 mm from the pin, hand-placed
+because the search has no room left between the C17 pad, the TP4 stub and the two
+B.Cu signal runs that pass under the package.
+
+**TP4's back-layer branch is gone.** It was an F.Cu stub, two vias and 2.55 mm of
+B.Cu hanging off the switch node; it is now a single 3.2 mm top-layer stub to a
+pad that sits clear of the inductor body and can still be probed. The node has no
+vias at all and 31 % less copper. TP3 (the probe ground) stayed at (142, 104),
+4.4 mm away — within reach of a scope ground spring.
+
+**The bootstrap capacitor could not go where it belongs.** BST (6) and SW (5) are
+adjacent pins on the right edge, so the ideal spot is a vertical 0603 straddling
+them — but **L1's courtyard starts 0.45 mm past U3's**, leaving nothing there.
+C6 went above the package instead, with its SW pad pointing at L1 and its BST pad
+at U3.6. That halves the BST run rather than perfecting it. Moving L1 east would
+buy the ideal placement at the cost of a longer SW island, which is the wrong
+trade — the island is the primary radiator and the bootstrap carries gate charge.
+
+**The output filter is now one top-layer run.** Before, L1.2, C7.1 and C11.1 each
+tapped the In2 3V3 pour independently and **no copper path joined them at all** —
+`loop.py`'s path finder reports "no path" on the old board, which is the sharpest
+statement of the review's complaint. Now L1 → C7 → C11 is a 0.8 mm F.Cu run, with
+the plane tapped at the capacitors.
+
+**Feedback has a dedicated sense line.** U3.1 used to reach the 3V3 plane through
+a via 1.2 mm from BST. It now runs as its own 0.2 mm trace round the south of the
+block to **C11.1, the far output capacitor** — about 21 mm, which is long, but it
+never comes within 2.1 mm of SW or BST where the old tap was 0.27 mm away. For a
+fixed-output part FB is the output sense into a ~1 MΩ internal divider, so it is
+noise, not DC drop, that decides where it should run.
+
+**`/VSYS` is pinned to the corridor north of the buck** by a waypoint. Left to
+itself A* prefers a shorter path that threads the 8.4 V input rail straight
+between L1 and C7/C11; it now enters the block only as the 4.4 mm IN→C17 leg and
+the bulk feed from C12.
+
+**One thing got worse and is not hidden:** `REG_EN` copper now passes **0.99 mm**
+from switching copper where it was 2.12 mm. Its via moved out of U3.2's pad —
+which is review issue 6's defect, so that part is an improvement — into the
+0.95 mm gap between the pin columns, the only spot left once vias are barred from
+pads. With the In1 plane 0.2 mm below both, a via-to-trace gap of 1 mm is not a
+coupling problem, but the real fix is the standing layout rule to put R8 and C13
+next to U3.2, which needs the EN network re-placed and is not part of this issue.
+
+**Motor B improved as a side effect.** Moving C7/C11 changed what `MOT_B_2` had
+to route around, so the pair's fan-out was retuned (`skip_end` 3.0 → 1.5 mm): the
+enclosed loop goes **111.5 → 83.4 mm²**, at the cost of 4.4 mm more `MOT_B_2`
+(55.0 → 59.4 mm, 34.6 → 37.3 mΩ).
+
+**A KiCad file-format trap, recorded because it cost a debugging cycle.** Every
+text *and pad* inside a footprint stores its angle in the board frame. Rotating
+only the footprint's own `(at …)` leaves the pads behind — C17's 0.9 × 0.95 mm
+pads silently stayed 0.95 × 0.9 — and DRC reports it as
+`lib_footprint_mismatch`, which reads like a library problem rather than a bad
+edit. `pcbedit.move_footprint` now turns every `(at …)` in the block.
+
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
-- **Review issues 5–8** (buck local routing, via-in-pad elsewhere, the USB pair, the
-  rest of the rule set) are untouched.
+- **Review issue 5** was open after this pass and is closed by the next one.
+- **Review issues 6–8** (via-in-pad elsewhere, the USB pair, the rest of the rule
+  set) are untouched.
 - `GPIO2` / `GPIO10` (IPROPI) still pass within **0.29 mm** of motor copper near U4,
   essentially unchanged from 0.26 mm. The review's own note applies: their 1.5 kΩ
   source impedance is not `VBAT_SENSE`'s 150 kΩ, so validate this on hardware rather
@@ -1602,17 +1695,27 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   no components.
 - Place U3 as far from the antenna as the outline allows.
 - The **C12 → U3.3 → U3.4 loop must be as tight as physically possible.** This is
-  the highest-di/dt loop on the board.
+  the highest-di/dt loop on the board. **Closed 2026-09-22 by C17, not C12: the HF
+  bypass now straddles IN (pin 3) and GND (pin 4) under the package and its return
+  via sits 0.95 mm from U3.4's, where the two were 5.88 mm apart. C12 stays outside
+  as bulk.**
 - Keep the **SW copper island small** — it is the primary radiator. Note the SRP5030T
   is a 5×5mm part, so its SW-side pad is already a substantial copper area. Place the
-  inductor tight against U3 and do not let that pad grow into a pour.
+  inductor tight against U3 and do not let that pad grow into a pour. **2026-09-22:
+  3.57 mm² of copper, entirely on F.Cu, no vias. L1's courtyard starts 0.45 mm past
+  U3's — that gap is why the bootstrap cap sits above the package rather than across
+  BST/SW, and it is why L1 must not be moved east to make room.**
 - **TP4 sits on that same SW island, so it fights the rule above.** Hang it off the
   U3.5–L1.1 run as a short stub on the *quiet* side, away from the L1 pad; do not
   centre the island on it and do not widen the trace to reach it. If the island ends
   up marginal, TP4 is the part to drop — the scope probe can go on the L1 pad
   instead. Keep its ground return short: TP3 (GND) should be within probe-tip reach
-  of TP4, otherwise the measurement it exists for will be worthless.
-- Route the **FB trace** back to the output caps away from SW and L1.
+  of TP4, otherwise the measurement it exists for will be worthless. **Done
+  2026-09-22: a single 3.2 mm top-layer stub, no vias, no back-layer branch; TP4 sits
+  clear of the inductor body and TP3 is 4.4 mm away.**
+- Route the **FB trace** back to the output caps away from SW and L1. **Done
+  2026-09-22: a dedicated 0.2 mm trace from U3.1 round the south of the block to
+  C11.1, never closer than 2.1 mm to SW or BST. It was a plane via 1.2 mm from BST.**
 - Keep the **`REG_EN` node away from SW and L1**. It is a ~20kΩ-impedance node sitting
   1.2V above a comparator threshold, so it is easy to couple into. Put R8 and C13
   physically next to U3.2 and run the long leg from R7/R9 into them, not the reverse.
