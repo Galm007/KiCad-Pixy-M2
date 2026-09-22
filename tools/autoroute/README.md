@@ -72,7 +72,12 @@ What it does, in order — the order matters:
    replacement route does not need one there.  The four thermal vias in the
    driver exposed pads are exempt by name and carry a fabrication note instead;
    KiCad models via filling and capping board-wide, not per via;
-9. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
+9. restores the verified local GPIO48 route with `encoder48_cleanup` (2026-09-22
+   audit P3). The generic via relocation had stretched this encoder net to
+   72.36 mm around TP5 and J11; the replacement is 26.03 mm, keeps the J8/R20/U1
+   connections, and puts all four via holes at least 0.45 mm clear of SMD mask
+   openings. This runs after the generic reroute so regeneration preserves it;
+10. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
    areas that `Pixy-M2.kicad_dru` conditions on, and the `Dwgs.User` fab note.
 
 `! no neck+via for GND from (109.0,114.8)` and the same for `(117.0,114.8)` are

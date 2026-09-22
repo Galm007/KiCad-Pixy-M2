@@ -1,0 +1,48 @@
+{
+  "before_commit": "86f2628",
+  "pcb_sha256": "937cd138d159349158178fb3fac13978453f8c3fab4d33f5b9f81a5ac38ffa96",
+  "net": "/GPIO48",
+  "before_length_mm": 72.35655839020936,
+  "after_length_mm": 26.034776310850237,
+  "reduction_percent": 64.01877467630767,
+  "track_width_mm": 0.2,
+  "vias": [
+    {
+      "position_mm": [
+        117.8,
+        134.6
+      ],
+      "min_drill_to_smd_mask_gap_mm": 0.75,
+      "nearest_pad": "R19.2"
+    },
+    {
+      "position_mm": [
+        115.2,
+        134.25
+      ],
+      "min_drill_to_smd_mask_gap_mm": 0.615197,
+      "nearest_pad": "R19.1"
+    },
+    {
+      "position_mm": [
+        116.1,
+        135.2
+      ],
+      "min_drill_to_smd_mask_gap_mm": 0.95,
+      "nearest_pad": "R20.1"
+    },
+    {
+      "position_mm": [
+        126.3,
+        139.15
+      ],
+      "min_drill_to_smd_mask_gap_mm": 0.45,
+      "nearest_pad": "U1.26"
+    }
+  ],
+  "other_net_track_and_via_geometry_unchanged": true,
+  "all_footprint_and_pad_geometry_unchanged": true,
+  "drc_new_violations": 0,
+  "unconnected_items": 0,
+  "schematic_parity_issues": 0
+}

@@ -719,6 +719,42 @@ def reroute_stuck_nets(p, nets):
     return done
 
 
+def encoder48_cleanup(p):
+    """Audit P3: retain the verified 26.03 mm J8/R20/U1 route.
+
+    Apply after the generic via-in-pad reroute, which otherwise sends GPIO48
+    around TP5 and J11 (72.36 mm). These paths match the current fixed placement,
+    use 0.2 mm tracks and 0.6/0.3 mm vias, and keep every drill at least 0.45 mm
+    clear of SMD mask openings. The west bottom branch feeds R20; the top bridge
+    above R20 avoids its crowded pad field without adding a via inside a pad.
+    """
+    net = '/GPIO48'
+    paths = [
+        ('F.Cu', [(115.2, 134.25), (115.45, 134.25), (115.5, 134.2),
+                  (115.55, 134.2), (115.6, 134.15), (115.75, 134.15),
+                  (115.85, 134.05), (117.25, 134.05), (117.8, 134.6)]),
+        ('F.Cu', [(116.1, 135.2), (116.15, 135.25), (116.65, 135.25),
+                  (116.7, 135.3), (116.8, 135.3), (116.8, 135.35),
+                  (116.9, 135.35), (116.9, 135.4), (117.0, 135.4),
+                  (117.1, 135.5), (117.1, 135.55), (117.15, 135.6),
+                  (117.15, 135.65), (117.2, 135.7), (117.2, 135.8),
+                  (117.25, 135.85), (117.25, 136.15), (117.55, 136.45)]),
+        ('F.Cu', [(126.3, 139.15), (126.6, 139.45), (126.65, 139.45),
+                  (126.7, 139.5), (126.75, 139.5), (126.75, 139.55),
+                  (126.8, 139.6), (126.8, 139.65), (126.85, 139.7),
+                  (126.85, 139.75), (127.0, 139.9)]),
+        ('B.Cu', [(109.45, 128.75), (109.65, 128.75), (116.1, 135.2)]),
+        ('B.Cu', [(117.8, 134.6), (121.75, 134.6), (126.3, 139.15)]),
+    ]
+    p.drop(lambda b: Pcb.net(b) == net)
+    for layer, pts in paths:
+        for a, b in zip(pts, pts[1:]):
+            p.add_track(net, layer, *a, *b, 0.2)
+    for x, y in [(115.2, 134.25), (116.1, 135.2),
+                 (117.8, 134.6), (126.3, 139.15)]:
+        p.add_via(net, x, y, 0.6, 0.3)
+
+
 def main():
     p = Pcb(BASE)
     for ref, (x, y, rot) in MOVES.items():
@@ -804,6 +840,9 @@ def main():
         print(f'  second pass moved {n2} more' +
               (f'; still stuck: {", ".join(f[0] for f in failed2)}' if failed2 else
                '; no via left in a solder pad'))
+
+    encoder48_cleanup(p)
+    print('  /GPIO48: restored compact encoder route (audit P3)')
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'
