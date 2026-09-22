@@ -135,6 +135,17 @@ class Pcb:
         self.text = self.text[:m.start('a')] + f'{fx(x)} {fx(y)}' + self.text[m.end('a'):]
         self._split()
 
+    def add_notes(self, lines, x, y, layer='Dwgs.User', size=1.0, step=1.6):
+        """append board-level text on a documentation layer"""
+        out = []
+        for i, line in enumerate(lines):
+            out.append('\t(gr_text "%s"\n\t\t(at %s %s)\n\t\t(layer "%s")\n'
+                       '\t\t(uuid "%s")\n\t\t(effects\n\t\t\t(font\n'
+                       '\t\t\t\t(size %s %s)\n\t\t\t\t(thickness 0.15)\n\t\t\t)\n'
+                       '\t\t\t(justify left bottom)\n\t\t)\n\t)\n'
+                       % (line, fx(x), fx(y + i * step), layer, uid(), fx(size), fx(size)))
+        self.tail = ''.join(out) + self.tail
+
     def add_zone(self, s):
         self.tail = s + self.tail
 

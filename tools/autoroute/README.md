@@ -8,6 +8,11 @@ widths and the In2.Cu VBAT island.
     python3 check.py     # per-net length / width / via report on the routed board
     python3 loop.py -v   # motor output pair loop areas (add paths to compare boards)
 
+A full `rework.py` run takes a few minutes: the via-out-of-pad pass recomputes a
+per-net distance field for each via it moves. Run it in the background rather than
+waiting on it, and **do not watch it with `pgrep -f "python3 rework.py"`** — the
+pattern matches the watching shell's own command line, so the loop never exits.
+
 ## wire.py — the original routing pass
 
 `wire.py` expects an *unrouted* copy of the board as `base.kicad_pcb` in its working
@@ -57,8 +62,18 @@ What it does, in order — the order matters:
 7. re-routes `/VSYS` (through a waypoint north of the buck, or A* threads the
    8.4 V input rail between L1 and the output capacitors), `/REG_EN` and
    `/GPIO6`, all of which were ripped to free space;
-8. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
-   areas that `Pixy-M2.kicad_dru` conditions on.
+8. moves every via that sits inside a pad's solder-mask opening out of it
+   (`unstick_vias`, review issue 6), leaving a 0.25 mm stub on F.Cu and — only
+   where a back-layer track ended there — on B.Cu.  The margin is measured
+   against the *drill*, not the copper: via and pad are the same net, so copper
+   overlap is harmless and it is the exposed barrel that solder wicks down.
+   Where a via has nowhere to step to, `reroute_stuck_nets` rips its whole net
+   and routes it again — the via search already refuses to land in a pad, so the
+   replacement route does not need one there.  The four thermal vias in the
+   driver exposed pads are exempt by name and carry a fabrication note instead;
+   KiCad models via filling and capping board-wide, not per via;
+9. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
+   areas that `Pixy-M2.kicad_dru` conditions on, and the `Dwgs.User` fab note.
 
 `! no neck+via for GND from (109.0,114.8)` and the same for `(117.0,114.8)` are
 **expected output**, not failures: the ESP_3V3 VREF feed blocks a wide neck out of the

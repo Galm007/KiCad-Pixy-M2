@@ -1475,12 +1475,10 @@ a single via; U5 had one. Per driver the pad now has:
 gives up on this; that message is expected, not a failure. Widening it means rerouting
 the VREF feed first.
 
-**The via-in-pad still needs an assembly decision.** The exposed pad already has a
-split paste window (two 0.73 × 0.64 mm apertures, ~50 % coverage), which is the usual
-mitigation, but confirm hole plugging/capping and the 0.25 mm drill with the fab
-before ordering. That is the "coordinate via treatment with assembly" the review asks
-for, and it is still open — as is review issue 6 (vias inside pads elsewhere on the
-board), which this pass did not touch.
+**The via-in-pad still needs an assembly decision** — see issue 6 below, which
+closed the rest of the board's vias-in-pads and put the requirement for these four
+on a fabrication note. Confirming the fill-and-cap option with the fabricator is the
+one part of it that is not a drawing change.
 
 ### Issue 3 — local bypass loops
 
@@ -1661,12 +1659,64 @@ pads silently stayed 0.95 × 0.9 — and DRC reports it as
 edit. `pcbedit.move_footprint` now turns every `(at …)` in the block.
 
 
+### Issue 6 — vias inside pad openings (2026-09-22)
+
+**73 vias sat inside a pad's solder-mask opening, 65 of them under solder paste.**
+That is the original router's doing: `wire.py` deliberately drops stitching vias
+into pads 1.2 mm or larger, and its A* via search never excluded pads at all.
+
+| | before | after |
+|---|---:|---:|
+| vias inside a pad opening | 73 | **4** |
+| …of those, under solder paste | 65 | **0** |
+| board track / vias | 2313.8 mm / 247 | 2431.8 mm / 247 |
+
+The four that remain are the U4/U5 exposed-pad thermal vias from issue 2, which are
+in a pad on purpose. Everything else moved out, two ways:
+
+- **54 stepped out of their pad** and left a 0.25 mm stub behind on F.Cu, plus one
+  on B.Cu where a back-layer track ended at the old position. The constraint is the
+  **mask opening, not the copper**: via and pad are the same net, so copper overlap
+  is harmless and only the drill needs the margin (hole radius + 0.1 mm clear of the
+  pad edge).
+- **15 had nowhere to step to** — U1's castellations, the 0.6 mm JST-SH pads on
+  J4/J5/J7/J10/J11, U2, R20, R23. Rather than force them, their **11 nets were
+  ripped and routed again**: `rework.py`'s via search already refuses to land in a
+  pad, so the replacement route simply does not need a via there. All 11 re-routed.
+
+The 4 vias in the test-point pads (TP1 ×2, TP2, TP9) moved too, although those pads
+take no paste and so were never a wicking risk. Moving them makes the rule on this
+board a single sentence that is cheap to re-check: **no via lies in a pad opening
+except the four thermal vias, and those carry a fabrication note.**
+
+**KiCad cannot express the via-in-pad requirement per via, and that is worth
+knowing before someone goes looking.** A via accepts `(covering …)`, `(plugging …)`
+and `(tenting …)`, but **`filling` and `capping` are board-wide settings only** —
+verified by trying each form against `kicad-cli`. Turning them on globally would
+change the process and the price for all 247 vias, which is an ordering decision,
+not a layout one. So the requirement goes on `Dwgs.User` instead, at (100, 164):
+
+> FAB NOTE - VIA IN PAD — The four 0.25 mm vias inside the U4 and U5 exposed pads
+> (DRV8231A) are thermal vias and sit under solder paste. They require resin fill
+> and cap (IPC-4761 type VII). Confirm the option with the fabricator: tenting and
+> filled/capped via-in-pad are different processes. No other via on this board lies
+> inside a pad opening.
+
+**That confirmation is still open and is a cost decision, not a drawing change.**
+The board is tented front and back, so solder cannot escape out of the barrel; what
+fill-and-cap buys is stopping it sinking *in*. The exposed pad's split paste window
+(two 0.73 × 0.64 mm apertures, ~50 % coverage) is the usual mitigation and is
+already in the footprint. Moving the vias out from under the paste is not an option
+— the pad is 0.9 mm wide, two 0.45 mm vias side by side would break the 0.45 mm
+hole-to-hole rule, and the gap between the paste windows is 0.16 mm.
+
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
 - **Review issue 5** was open after this pass and is closed by the next one.
-- **Review issues 6–8** (via-in-pad elsewhere, the USB pair, the rest of the rule
-  set) are untouched.
+- **Review issue 6** was open after this pass and is closed below.
+- **Review issues 7–8** (the USB pair, the rest of the rule set) are untouched.
 - `GPIO2` / `GPIO10` (IPROPI) still pass within **0.29 mm** of motor copper near U4,
   essentially unchanged from 0.26 mm. The review's own note applies: their 1.5 kΩ
   source impedance is not `VBAT_SENSE`'s 150 kΩ, so validate this on hardware rather

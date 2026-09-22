@@ -17,6 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board import (H, NX, NY, ROUTE, gx, gy, wx, wy, disc_mask, stamp, seg_disc_stamp)
 from pcbedit import Pcb, fx
 from grid import G, CL, VIA_D, VIA_DRILL, H2H
+from sexp import parse, children
+from load import fp_info
 from loop import polyline
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -72,6 +74,19 @@ RIP_BOXES = [
 # reference text moved out of the reworked area (local offsets, footprint frame)
 REFS = {'C18': (-2.15, 0.0), 'C20': (-2.15, 0.0), 'C21': (-2.1, 2.7),
         'U5': (0.0, -2.2), 'C17': (-3.2, -0.8), 'U3': (0.0, -4.5)}
+
+# Fabrication note.  KiCad models filling and capping as board-wide settings, so
+# the requirement for the two exposed pads cannot be attached to those four vias in
+# the file; it goes on a documentation layer and into the docs instead.
+FAB_NOTE = [
+    'FAB NOTE - VIA IN PAD',
+    'The four 0.25 mm vias inside the U4 and U5 exposed pads (DRV8231A) are',
+    'thermal vias and sit under solder paste. They require resin fill and cap',
+    '(IPC-4761 type VII). Confirm the option with the fabricator: tenting and',
+    'filled/capped via-in-pad are different processes. No other via on this',
+    'board lies inside a pad opening.',
+]
+FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
 TEXTS = {'TP4 SW': (141.9, 101.9)}
@@ -182,7 +197,8 @@ class Router:
         d = self.g.dist(net)
         return d, self.g.ok_masks(d, w), self.g.via_mask(d)
 
-    def _find_via(self, vm, ok, x, y, want, maxr=3.0):
+    def _find_via(self, vm, ok, x, y, want, maxr=3.0, rmin=0.45, outside=None,
+                  ok2=None):
         ux, uy = want
         n = math.hypot(ux, uy) or 1.0
         ux, uy = ux / n, uy / n
@@ -196,13 +212,18 @@ class Router:
         cosang = (dx * ux + dy * uy) / np.maximum(dist, 1e-6)
         score = dist + 3.0 * (1 - cosang)          # prefer the requested side
         score[~vm[y0:y1, x0:x1]] = 1e9
-        score[(dist < 0.45) | (dist > maxr)] = 1e9
+        score[(dist < rmin) | (dist > maxr)] = 1e9
+        if outside:                      # stay clear of this pad's mask opening
+            px, py, pw, ph, margin = outside
+            score[(np.abs(wx(xs) - px) < pw / 2 + margin) &
+                  (np.abs(wy(ys) - py) < ph / 2 + margin)] = 1e9
         for idx in np.argsort(score, axis=None)[:600]:
             iy, ix = np.unravel_index(idx, score.shape)
             if score[iy, ix] >= 1e9: break
             vx, vy = wx(int(xs[iy, ix])), wy(int(ys[iy, ix]))
-            if self._clear_line(ok, x, y, vx, vy):
-                return vx, vy
+            if not self._clear_line(ok, x, y, vx, vy): continue
+            if ok2 is not None and not self._clear_line(ok2, x, y, vx, vy): continue
+            return vx, vy
         return None
 
     def stitch(self, net, x, y, want, w=0.4, maxr=3.0):
@@ -608,6 +629,96 @@ def buck_block(r):
         r.stitch('GND', pad['x'], pad['y'], want, w=0.4)
 
 
+# the only vias allowed to sit in a pad opening: the driver exposed-pad
+# thermal vias, which are there on purpose and carry a fabrication note
+THERMAL_VIA_PADS = {('U4', '9'), ('U5', '9')}
+
+
+def stuck_vias(p):
+    """vias sitting inside a pad's solder-mask opening — review issue 6"""
+    pcb = parse(p.text)
+    pads = []
+    for f in children(pcb, 'footprint'):
+        fi = fp_info(f)
+        for pd in fi['pads']:
+            if pd['drill'] or not any(l in pd['layers'] for l in ROUTE): continue
+            if not any('Mask' in l for l in pd['layers']): continue
+            if (fi['ref'], pd['num']) in THERMAL_VIA_PADS: continue
+            w, h = pd['w'], pd['h']
+            if abs(pd['rot'] % 180 - 90) < 1: w, h = h, w
+            pads.append((f"{fi['ref']}.{pd['num']}", pd['x'], pd['y'], w, h))
+    out = []
+    for b in p.blocks:
+        if Pcb.kind(b) != 'via': continue
+        vx, vy, s, dr = Pcb.geom(b)
+        for (name, px, py, w, h) in pads:
+            if abs(vx - px) <= w / 2 and abs(vy - py) <= h / 2:
+                out.append(dict(blk=b, net=Pcb.net(b), at=(vx, vy), size=s, drill=dr,
+                                pad=(px, py, w, h), name=name))
+                break
+    return out
+
+
+def unstick_vias(p):
+    """move each of those vias out of its pad, leaving a stub behind.
+
+    The hole has to clear the pad's *mask opening*, not just its copper: the
+    opening exposes the barrel however the board's tenting is set, and that is
+    what solder wicks down.  Copper overlap is harmless — via and pad are the
+    same net — so only the drill needs the margin.
+    """
+    stuck = stuck_vias(p)
+    if not stuck:
+        return 0, []
+    blks = {s['blk'] for s in stuck}
+    bcu = set()
+    for b in p.blocks:
+        if Pcb.kind(b) != 'segment': continue
+        x1, y1, x2, y2, w, l = Pcb.geom(b)
+        if l == 'B.Cu':
+            bcu.add((round(x1, 2), round(y1, 2)))
+            bcu.add((round(x2, 2), round(y2, 2)))
+    p.drop(lambda b: b in blks)
+    r = Router(p)
+    failed = []
+    for s in sorted(stuck, key=lambda s: min(s['pad'][2], s['pad'][3])):
+        (vx, vy), (px, py, pw, ph) = s['at'], s['pad']
+        dx, dy = vx - px, vy - py
+        if math.hypot(dx, dy) < 0.05:
+            dx, dy = (0.0, 1.0) if pw >= ph else (1.0, 0.0)
+        on_back = (round(vx, 2), round(vy, 2)) in bcu
+        d = r.g.dist(s['net'])
+        ok = r.g.ok_masks(d, 0.25)
+        spot = r._find_via(r.g.via_mask(d), ok['F.Cu'], vx, vy, (dx, dy), maxr=2.6,
+                           rmin=0.3, outside=(px, py, pw, ph, s['drill'] / 2 + 0.1),
+                           ok2=ok['B.Cu'] if on_back else None)
+        if spot is None:
+            failed.append((s['name'], s['net']))
+            p.add_via(s['net'], vx, vy, s['size'], s['drill'])      # leave it be
+            continue
+        r.track(s['net'], 'F.Cu', vx, vy, *spot, 0.25)
+        if on_back:
+            r.track(s['net'], 'B.Cu', vx, vy, *spot, 0.25)
+        r.via(s['net'], *spot, s['size'], s['drill'])
+    return len(stuck) - len(failed), failed
+
+
+def reroute_stuck_nets(p, nets):
+    """last resort for a via that cannot step out of its pad: rip the whole net
+    and route it again.  The router's own via search already refuses to land in
+    a pad, so the replacement route simply does not need one there."""
+    p.drop(lambda b: Pcb.net(b) in nets)
+    r = Router(p)
+    done = []
+    for net in sorted(nets):
+        pads = r.g.nets.get(net, [])
+        if len(pads) < 2: continue
+        w = 0.2 if net != 'Net-(J1-D--PadA7)' else 0.2
+        groups = [r.pad_group(ref, q['num'], w) for ref, q in pads]
+        done.append((net, r.route(net, w, groups, quiet=True)))
+    return done
+
+
 def main():
     p = Pcb(BASE)
     for ref, (x, y, rot) in MOVES.items():
@@ -616,6 +727,7 @@ def main():
         p.move_property(ref, 'Reference', dx, dy)
     for label, (x, y) in TEXTS.items():
         p.move_text(label, x, y)
+    p.add_notes(FAB_NOTE, *FAB_NOTE_AT)
     print('moved', ', '.join(MOVES), '| silk refs', ', '.join(REFS))
     print('ripped', rip(p), 'segments/vias')
 
@@ -678,6 +790,20 @@ def main():
     for net, (a, b) in RERUN_SIGNALS:
         groups = [r.pad_group(*a, 0.2), r.pad_group(*b, 0.2)]
         print(f'  {net} ->', 'ok' if r.route(net, 0.2, groups) else 'FAILED')
+
+    n, failed = unstick_vias(p)
+    print(f'vias moved out of pad openings: {n}' +
+          (f'; no room for {", ".join(f[0] for f in failed)}' if failed else ''))
+    if failed:
+        nets = {f[1] for f in failed}
+        done = reroute_stuck_nets(p, nets)
+        bad = [q for q, okr in done if not okr]
+        print(f'  re-routed {len(done) - len(bad)}/{len(done)} of their nets'
+              + (f'; FAILED {bad}' if bad else ''))
+        n2, failed2 = unstick_vias(p)
+        print(f'  second pass moved {n2} more' +
+              (f'; still stuck: {", ".join(f[0] for f in failed2)}' if failed2 else
+               '; no via left in a solder pad'))
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'

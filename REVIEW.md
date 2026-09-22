@@ -1,6 +1,6 @@
 # Pixy-M2 layout review — 2026-09-21
 
-> **Status, 2026-09-22: findings 1–5 are fixed on the board; 6–8 are open.**
+> **Status, 2026-09-22: findings 1–6 are fixed on the board; 7–8 are open.**
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1
@@ -23,6 +23,13 @@
 > sense trace to C11 that stays 2.1 mm clear of the switch node. One regression is
 > recorded there too: REG_EN now passes 0.99 mm from switching copper, having moved
 > out of a via-in-pad.
+> Finding 6 followed: 73 vias sat inside a pad's mask opening, 65 of them under
+> solder paste. 54 stepped out of their pad with a stub, the 11 nets holding the
+> other 15 were ripped and routed again, and the only vias left in a pad are the
+> four exposed-pad thermal vias, which now carry a Dwgs.User fabrication note
+> calling for resin fill and cap. KiCad models filling and capping board-wide, not
+> per via, so that requirement cannot live on the vias themselves; confirming the
+> option with the fabricator is a cost decision and is still open.
 
 The saved layout needs another routing pass before fabrication. The most consequential findings are undersized motor-output copper and inadequate thermal copper around the motor drivers. The segmented bends themselves are not a manufacturing defect.
 
