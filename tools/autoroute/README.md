@@ -6,6 +6,7 @@ widths and the In2.Cu VBAT island.
     python3 wire.py      # reads base.kicad_pcb, writes ../../Pixy-M2.kicad_pcb
     python3 rework.py    # reads base-routed.kicad_pcb, writes ../../Pixy-M2.kicad_pcb
     python3 check.py     # per-net length / width / via report on the routed board
+    python3 loop.py -v   # motor output pair loop areas (add paths to compare boards)
 
 ## wire.py — the original routing pass
 
@@ -43,7 +44,11 @@ What it does, in order — the order matters:
 3. lays the hand-computed copper — driver pin escapes, the VM/GND runs across to each
    bypass cap, and the in-pad thermal vias — all of it clearance-checked by hand
    against the 0.5 mm pin pitch rather than searched;
-4. routes the four motor trunks at 0.8 mm with A*;
+4. routes the four motor trunks at 0.8 mm with A*.  `MOT_B_1` goes first; its
+   finished polyline is then sampled, each sample offset 1.15 mm toward the side
+   `MOT_B_2` has to end up on, and `MOT_B_2` is routed through those points so the
+   two run as a pair (review issue 4).  An unreachable waypoint is skipped, not
+   fatal.  `U4` is not paired — measured, no gain, see CLAUDE.md;
 5. *then* searches for the plane stitching vias, so they cannot land on a trunk;
 6. re-routes `/GPIO6`, which had to be ripped to free C20's new position;
 7. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
@@ -62,3 +67,4 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `board.py` | 0.05 mm raster helpers, board outline fill, keepout zones |
 | `grid.py` | obstacle raster of the **current** board — pads *and* existing tracks, vias and holes — with per-net distance fields. This is what lets `rework.py` route against a board that is already wired, which `wire.py` could not do |
 | `pcbedit.py` | text-level surgery on the `.kicad_pcb`: add/drop segments and vias, move footprints and their text fields, append zones |
+| `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |

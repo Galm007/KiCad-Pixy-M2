@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from board import (H, NX, NY, ROUTE, gx, gy, wx, wy, disc_mask, stamp, seg_disc_stamp)
 from pcbedit import Pcb, fx
 from grid import G, CL, VIA_D, VIA_DRILL, H2H
+from loop import polyline
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.join(HERE, 'base-routed.kicad_pcb')
@@ -28,10 +29,14 @@ EP_VIA = (0.45, 0.25)   # thermal via in the WSON exposed pad
 
 # driver origin, bypass cap, connector pads
 DRIVERS = [
+    # U4 is not paired: both its outputs have to leave the package on the east
+    # side while J8's two motor pins straddle the driver in x, so MOT_A_2 must
+    # round U4 whatever happens.  Pairing it was measured and gained 0 mm^2.
     dict(u='U4', ox=109.0, oy=114.0, cap='C18', cx=111.25,
          out1='/MOT_A_1', out2='/MOT_A_2', j1=('J8', '1'), j2=('J8', '6')),
     dict(u='U5', ox=117.0, oy=114.0, cap='C20', cx=119.25,
-         out1='/MOT_B_1', out2='/MOT_B_2', j1=('J9', '1'), j2=('J9', '6')),
+         out1='/MOT_B_1', out2='/MOT_B_2', j1=('J9', '1'), j2=('J9', '6'),
+         pair=True),
 ]
 MOTOR_NETS = ['/MOT_A_1', '/MOT_A_2', '/MOT_B_1', '/MOT_B_2']
 
@@ -57,6 +62,9 @@ RIP_BOXES = [
 # reference text moved out of the reworked area (local offsets, footprint frame)
 REFS = {'C18': (-2.15, 0.0), 'C20': (-2.15, 0.0), 'C21': (-2.1, 2.7),
         'U5': (0.0, -2.2)}
+
+# signal nets ripped above, re-routed after the motor trunks have their space
+RERUN_SIGNALS = [('/GPIO6', (('U1', '6'), ('J6', '6')))]
 
 # F.Cu ground pour over the motor region (issue 2 heat spreading, issue 3 return)
 GND_POUR = (104.2, 104.6, 123.2, 120.2)
@@ -250,7 +258,7 @@ class Router:
         return out
 
     # ---- A*
-    def route(self, net, w, groups):
+    def route(self, net, w, groups, quiet=False):
         """groups: list of dicts {'m': {layer: mask}, 'pts': [(x,y,r)]}"""
         while len(groups) > 1:
             d, ok, vm = self.masks(net, w)
@@ -274,7 +282,7 @@ class Router:
                     done = True
                     break
             if not done:
-                print(f'    FAIL {net}: {len(groups)} groups left')
+                if not quiet: print(f'    FAIL {net}: {len(groups)} groups left')
                 return False
         return True
 
@@ -291,6 +299,17 @@ class Router:
                 seg_disc_stamp(m[layer].view(np.int8), x1, y1, x2, y2, w / 2, 1)
             prev_end = pts[-1]
         return m
+
+    def route_waypoints(self, net, w, start, waypoints, end):
+        """route start -> each waypoint in turn -> end, skipping any that block"""
+        prev = start
+        for (wx_, wy_) in waypoints:
+            leg = self.point_group(wx_, wy_, ['F.Cu', 'B.Cu'], r=0.2)
+            if self.route(net, w, [prev, leg], quiet=True):
+                prev = self.point_group(wx_, wy_, ['F.Cu', 'B.Cu'], r=0.2)
+            else:
+                print(f'    (waypoint {wx_:.1f},{wy_:.1f} skipped)')
+        return self.route(net, w, [prev, end])
 
     # ---- groups
     def pad_group(self, ref, num, w):
@@ -475,6 +494,37 @@ def escapes(r, d):
     return (b1x, oy + 0.25), (px + 0.35, oy - 1.6)
 
 
+def pair_waypoints(pts, side, offset=1.15, step=None, skip_end=3.0):
+    """sample a routed polyline and offset each sample to one side of it.
+
+    `side` is the vector from the first output's connector pad to the second's.
+    Offsetting consistently toward it keeps the two tracks from crossing and
+    puts the second one on the side it has to end up on: J9's two motor pins
+    differ in y, J8's in x, so a hardcoded side is wrong for one of them.
+    """
+    sx, sy = side
+    sn = math.hypot(sx, sy) or 1.0
+    sx, sy = sx / sn, sy / sn
+    segs = [(pts[i], pts[i + 1]) for i in range(len(pts) - 1)]
+    total = sum(math.dist(a, b) for a, b in segs)
+    if step is None:
+        step = min(8.0, max(3.0, total / 5.0))    # ~5 samples on a short run
+    out, travelled, next_at = [], 0.0, step
+    for (ax, ay), (bx, by) in segs:
+        L = math.dist((ax, ay), (bx, by))
+        if L < 1e-9: continue
+        while next_at <= travelled + L:
+            f = (next_at - travelled) / L
+            px, py = ax + (bx - ax) * f, ay + (by - ay) * f
+            nx, ny = -(by - ay) / L, (bx - ax) / L
+            if nx * sx + ny * sy < 0: nx, ny = -nx, -ny      # onto `side`
+            if next_at <= total - skip_end:
+                out.append((round(px + nx * offset, 2), round(py + ny * offset, 2)))
+            next_at += step
+        travelled += L
+    return out
+
+
 def main():
     p = Pcb(BASE)
     for ref, (x, y, rot) in MOVES.items():
@@ -498,12 +548,27 @@ def main():
 
     for d in DRIVERS:
         b1, b2 = breakouts[d['u']]
+        wps = []
         for net, bp, (ref, num) in ((d['out1'], b1, d['j1']),
                                     (d['out2'], b2, d['j2'])):
-            groups = [r.point_group(bp[0], bp[1], ['F.Cu'], r=0.2),
-                      r.pad_group(ref, num, TRUNK)]
-            ok = r.route(net, TRUNK, groups)
-            print(f"  {net:10s} -> {ref}.{num}  {'ok' if ok else 'FAILED'}")
+            start = r.point_group(bp[0], bp[1], ['F.Cu'], r=0.2)
+            end = r.pad_group(ref, num, TRUNK)
+            if wps:
+                ok = r.route_waypoints(net, TRUNK, start, wps, end)
+            else:
+                ok = r.route(net, TRUNK, [start, end])
+            print(f"  {net:10s} -> {ref}.{num}  {'ok' if ok else 'FAILED'}"
+                  + (f"  (via {len(wps)} pair waypoints)" if wps else ''))
+            if d.get('pair') and net == d['out1'] and ok:
+                pts = polyline(p, net, (bp[0], bp[1]),
+                               r.g.byref[ref]['pads'][0]['x'] and
+                               next((q['x'], q['y']) for q in r.g.byref[ref]['pads']
+                                    if q['num'] == num))
+                p2 = next((q['x'], q['y']) for q in r.g.byref[d['j2'][0]]['pads']
+                          if q['num'] == d['j2'][1])
+                p1 = pts[-1]
+                wps = pair_waypoints(pts, (p2[0] - p1[0], p2[1] - p1[1]))
+                print(f"    pair corridor: {len(wps)} waypoints offset from {net}")
 
     anchors = {d['u']: driver_stitch(r, d) for d in DRIVERS}
     # C21 moved, so its plane taps move with it
@@ -514,9 +579,10 @@ def main():
                           anchors=anchors[d['u']])
         print(f"  {d['u']} exposed-pad heat spreading: {len(v)} extra GND vias")
 
-    # XSHUT 3 was ripped to clear C20; put it back
-    groups = [r.pad_group('U1', '6', 0.2), r.pad_group('J6', '6', 0.2)]
-    print('  /GPIO6 ->', 'ok' if r.route('/GPIO6', 0.2, groups) else 'FAILED')
+    # XSHUT 3 was ripped to clear C20's new position; put it back
+    for net, (a, b) in RERUN_SIGNALS:
+        groups = [r.pad_group(*a, 0.2), r.pad_group(*b, 0.2)]
+        print(f'  {net} ->', 'ok' if r.route(net, 0.2, groups) else 'FAILED')
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'

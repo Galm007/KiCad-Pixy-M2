@@ -1366,8 +1366,8 @@ pads and makes OUT1 unroutable on both drivers.
   (150 kΩ) away from SW and motor current, routing `MOT_x_1/2` as tight pairs, and
   keeping `GPIO2`/`GPIO10` IPROPI analog runs clear of the motor outputs. The router
   optimised length and via count only. Walk these five nets in the GUI.
-  **The rework below moved `REG_EN` and the SW node clear (0.26 → 1.00 mm and
-  0.28 → 1.33 mm); the `MOT_x_1/2` pairs and the IPROPI runs are still open.**
+  **The rework below moved `REG_EN` and the SW node clear (0.26 → 8.51 mm and
+  0.28 → 6.62 mm) and paired `MOT_B_1/2`; the IPROPI runs are still open.**
 - ~~**Thermal vias are 2 per driver EP**~~ — **this was never true.** U4's exposed pad
   had no via in it at all and U5 had one; both reached GND through a narrow neck to an
   offset via. Fixed by the rework below, which also corrects the "0.45/0.25 would fit
@@ -1412,12 +1412,14 @@ inside each driver's own pin field.
 | `MOT_A_1` | 15.0 → 16.7 mm | 11.0 → **2.5 mm** | 39 → **14 mΩ** |
 | `MOT_A_2` | 16.2 → 19.0 mm | 6.4 → **1.0 mm** | 27 → **13 mΩ** |
 | `MOT_B_1` | 42.0 → 43.5 mm | 38.8 → **2.5 mm** | 129 → **31 mΩ** |
-| `MOT_B_2` | 48.1 → 48.6 mm | 41.3 → **1.0 mm** | 138 → **31 mΩ** |
+| `MOT_B_2` | 48.1 → 55.0 mm | 41.3 → **1.0 mm** | 138 → **35 mΩ** |
 
 Resistance is DC at 20 °C into 35 µm copper. The motor-B pair goes from 0.267 Ω to
-0.062 Ω, so at the DRV8231A's 1.47 A limit **0.393 V and 0.578 W become 0.090 V and
-0.133 W**. The "before" column reproduces the review's own 0.268 Ω / 0.394 V / 0.579 W
+0.066 Ω, so at the DRV8231A's 1.47 A limit **0.393 V and 0.578 W become 0.096 V and
+0.141 W**. The "before" column reproduces the review's own 0.268 Ω / 0.394 V / 0.579 W
 exactly — that is the cross-check that this is the same measurement, not a new one.
+(`MOT_B_2`'s length and resistance include the 6.4 mm the issue-4 pairing added; see
+that section.)
 
 0.8 mm of 1 oz external copper carries roughly 2.3 A for a 10 °C rise (IPC-2152), so
 1.47 A is about a 4 °C rise — the trunks are sized on temperature, not just on drop.
@@ -1510,13 +1512,66 @@ remembering:
 Silkscreen references for C18, C20, C21 and U5 were moved off the pads they would
 otherwise have covered.
 
+### Issue 4 — the motor-B pair (2026-09-21, second rework pass)
+
+`MOT_B_1` ran at y ≈ 113 while `MOT_B_2` detoured through the regulator at
+y ≈ 97–105, so the two were **7.2 mm apart on average and 9.7 mm at worst** and the
+loop they enclose was **423.6 mm²** as first routed (347.9 mm² after the issue-1–3
+pass, which widened them but did not move them together).
+
+`rework.py` now routes `MOT_B_1` first, samples its finished polyline, offsets each
+sample 1.15 mm to the side `MOT_B_2` has to end up on, and routes `MOT_B_2` through
+those points as waypoints. A waypoint that cannot be reached is skipped rather than
+failing the net.
+
+| | first routed | after issues 1–3 | now |
+|---|---:|---:|---:|
+| enclosed loop area | 423.6 mm² | 347.9 mm² | **111.5 mm²** |
+| pair separation, mean / worst (x < 149) | — | 7.17 / 9.65 mm | **1.39 / 5.27 mm** |
+| motor copper to `REG_EN` | 0.27 mm | 1.00 mm | **8.51 mm** |
+| motor copper to the SW node | 0.28 mm | 1.33 mm | **6.62 mm** |
+| motor copper to `VSYS` at U3 | 0.28 mm | 5.52 mm | **9.00 mm** |
+
+The regulator is now decisively out of the motor current's way, which was the other
+half of the finding. Loop area is measured by `tools/autoroute/loop.py`.
+
+**U5 was deliberately not moved**, which is the review's first suggestion. Three
+things argue against it, and they are worth recording because the idea will come back:
+
+- **The In2 VBAT island stops at x = 127** and J9 is at x = 158. A driver next to J9
+  would be off the motor supply plane entirely, so VM would need either a long trunk
+  or the island extended east across the In2 3V3 pour that feeds J4–J7, J9.5, the
+  encoder pull-ups and U1.
+- **The space west of J9 is the buck output** — L1, C7, C11. Moving U5 there puts a
+  switching driver hard against the regulator, which is the opposite of the placement
+  partition the stackup section calls for, and it would undo the clearances above.
+- **It splits the motor region.** D6, the bulk capacitance and the battery entry are
+  all at the other end of the board; the partition only works while the motor drive
+  stays in one corner.
+
+**Two costs, both recorded rather than hidden:**
+
+- `MOT_B_2` is 6.4 mm longer (48.6 → 55.0 mm), so the motor-B pair's resistance goes
+  61.5 → 65.4 mΩ: **+5.7 mV and +8 mW** at the 1.47 A limit. Trivial against a 3.1×
+  loop reduction.
+- **Motor copper within 0.6 mm of the BNO08x SPI nets doubles, 5.0 → 11.0 mm**,
+  because the corridor the pair now shares passes under J10's fan-out. That total is
+  ~13 separate encounters of 0.2–2.0 mm — crossings and brushes, not a parallel run —
+  and the longest is against `GPIO16`, which is the module's RST line with a 10 kΩ
+  pull-up, not a clock or data line. The trade was taken deliberately: coupling into
+  `REG_EN` trips a comparator and stops the robot, while a disturbed SPI word is
+  something firmware can detect and retry.
+
+**Motor A was measured with the same mechanism and gained nothing** (103.3 mm² either
+way), so U4 is left unpaired. The reason is structural: both of its outputs have to
+leave the WSON on the east side, while J8's two motor pins sit either side of the
+driver in x, so `MOT_A_2` has to round U4 however it is routed. Do not re-attempt this
+without moving U4 or J8.
+
+
 ### What this pass did not touch
 
-- **Review issue 4 stands.** U5 is still ~40 mm from J9 and `MOT_B_1`/`MOT_B_2` are
-  still not routed as a pair, so the motor-B loop area is still large. What did
-  improve is coupling into the regulator, because the reroute took `MOT_B_2` off the
-  buck: clearance to `REG_EN` 0.26 → **1.00 mm**, to the SW node 0.28 → **1.33 mm**,
-  and to `VSYS` at U3's pads 0.28 → **5.52 mm**.
+- **Review issue 4** was still open after this pass and is closed by the next one.
 - **Review issues 5–8** (buck local routing, via-in-pad elsewhere, the USB pair, the
   rest of the rule set) are untouched.
 - `GPIO2` / `GPIO10` (IPROPI) still pass within **0.29 mm** of motor copper near U4,
@@ -1606,9 +1661,10 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
 - **`MOT_A_1/2` and `MOT_B_1/2` are the only high-di/dt nets outside the buck.**
   Route each pair together and keep the loop from the driver through the connector
   tight. Size them for the 1.47A regulated limit, not the free-run current.
-  **Sized 2026-09-21 (0.8 mm trunks, enforced by the `Motor` netclass and
-  `Pixy-M2.kicad_dru`); still not routed as pairs — that is review issue 4 and it
-  needs U5 moved toward J9, not just a rip-up.**
+  **Sized and paired 2026-09-21. 0.8 mm trunks enforced by the `Motor` netclass and
+  `Pixy-M2.kicad_dru`; `MOT_B_1`/`MOT_B_2` now run as a pair (loop 423.6 → 111.5 mm²)
+  without moving U5. `MOT_A_1`/`MOT_A_2` cannot be paired usefully — see issue 4
+  below for why, and do not re-try it.**
 - **`GPIO2` and `GPIO10` carry IPROPI analog current**, not logic. Keep them short,
   away from the motor outputs and the SW node. They no longer run anywhere else —
   J2/J3 are gone, so there is no header stub on them to keep short.

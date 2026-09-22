@@ -1,18 +1,20 @@
 # Pixy-M2 layout review — 2026-09-21
 
-> **Status, 2026-09-21: findings 1, 2 and 3 are fixed on the board; 4–8 are open.**
+> **Status, 2026-09-21: findings 1, 2, 3 and 4 are fixed on the board; 5–8 are open.**
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1
 > `hole_clearance` errors and the U1 `lib_footprint_mismatch` warning). What changed,
 > with measurements, is written up under "Motor-region rework" in `CLAUDE.md` /
-> `AGENTS.md`. Headline numbers: the motor-B pair goes from 0.267 Ω to 0.062 Ω
-> (0.393 V / 0.578 W → 0.090 V / 0.133 W at 1.47 A), each driver's exposed pad gains
+> `AGENTS.md`. Headline numbers: the motor-B pair goes from 0.267 Ω to 0.066 Ω
+> (0.393 V / 0.578 W → 0.096 V / 0.141 W at 1.47 A), each driver's exposed pad gains
 > two in-pad thermal vias plus 165 mm² of F.Cu ground pour, and C18/C20 move from
 > 4.95 mm / 3.61 mm to 1.33 mm from their VM pin with the loop closed in top copper.
-> Finding 4 is untouched — U5 is still ~40 mm from J9 and the motor-B outputs are
-> still not a pair — though the reroute did take MOT_B_2 off the buck (clearance to
-> `REG_EN` 0.26 → 1.00 mm, to the SW node 0.28 → 1.33 mm).
+> Finding 4 was then fixed by pairing the motor-B outputs rather than by moving U5:
+> the enclosed loop goes 423.6 → 111.5 mm², mean separation 7.17 → 1.39 mm, and motor
+> copper to `REG_EN` 0.27 → 8.51 mm, to the SW node 0.28 → 6.62 mm. U5 stayed put
+> because J9 sits off the In2 VBAT island and next to the buck output — see
+> "Issue 4" in `CLAUDE.md` for the full argument and the two costs it carries.
 
 The saved layout needs another routing pass before fabrication. The most consequential findings are undersized motor-output copper and inadequate thermal copper around the motor drivers. The segmented bends themselves are not a manufacturing defect.
 
