@@ -23,7 +23,8 @@ The 2S pack is charged separately; no onboard battery charger is required.
 
 - Schematic: `Pixy-M2.kicad_sch` — single flat sheet, no hierarchy
 - KiCad 10.0
-- **PCB layout has not been started.** It will be **4 layers** — see "Board stackup".
+- **PCB layout is placed and fully routed (2026-09-21).** 4 layers — see "Board stackup"
+  and "Routing" below. Every net is connected; DRC reports no routing errors.
 
 ## Current status
 
@@ -1311,7 +1312,72 @@ makes a single plane work — it is the job the 8 header ground pins used to do 
 - Give the input and output capacitors' **GND pads their own via stitching to L2**,
   which the same datasheet section asks for by name.
 
-## Layout constraints (for when layout starts)
+## Routing — done 2026-09-21
+
+The board was routed with a purpose-written grid router (A* on a 0.05 mm grid over
+F.Cu and B.Cu, planes and pours on the inner layers). **2241 mm of track, 242 vias,
+1247 mm on F.Cu and 994 mm on B.Cu.** Every net in the netlist is connected:
+`kicad-cli pcb drc --refill-zones` reports **0 unconnected items** and **0 clearance,
+shorting, dangling, isolated-copper or hole-clearance errors from the routing**.
+
+The four copper zones implement the stackup decided on 2026-09-20:
+
+| Zone | Layer | Net | Priority |
+|---|---|---|---|
+| GND plane | In1.Cu | `GND` | 0 — solid, unbroken, via antipads only |
+| 3V3 pour | In2.Cu | `/ESP_3V3` | 0 |
+| VBAT motor rail island | In2.Cu | `/VBAT` | 1 — x 100.5–127, y 88–122 |
+| GND pour bottom | B.Cu | `GND` | 0 — fragmented by B.Cu routing, as expected |
+
+All zones use **solid pad connections, not thermal reliefs** (island removal on).
+Every SMD pad on `GND`, `/ESP_3V3` and `/VBAT` reaches its plane through a stitching
+via: 77 GND vias, 28 on 3V3, 27 on VBAT.
+
+Track widths, set by net and then widened wherever clearance allowed:
+
+| Net(s) | Width |
+|---|---|
+| `VBAT_RAW`, `VBAT_FUSED`, `VBAT` trunk | 1.0 mm (tapering to 0.2 at small pads) |
+| `MOT_A_*`, `MOT_B_*` | 0.8 mm trunk, 0.64 mm where tight, 0.15 mm at the WSON pads |
+| `VSYS`, `VBUS`, `Net-(F2-Pad1)` | 0.6 mm |
+| `Net-(U3-SW)` | 0.5 mm |
+| GND / 3V3 stubs | 0.4 mm |
+| signals | 0.2 mm, 0.15 mm for escapes from the 0.25 mm-wide DRV8231A pads |
+
+Escapes from fine-pitch parts (U4/U5 WSON-8, J1's 0.3 mm CC/D± pads) are 0.15–0.2 mm
+and sit inside the pad they leave. Plane stitching for those parts is deliberately done
+**after** their signal nets are routed — stitching them first walls in the neighbouring
+pads and makes OUT1 unroutable on both drivers.
+
+### What the router did NOT do — review these by hand
+
+- **`/USB_D+` and `/USB_D-` are ordinary 0.2 mm traces, not a 90 Ω differential pair.**
+  They are on F.Cu over the In1 plane with no vias, and their lengths differ (18.4 mm
+  vs 13.7 mm). Full Speed will work, but this does not meet the layout rule below.
+  Re-routing them as a pair needs a diff-pair netclass and a gap computed against the
+  fab's stackup — a decision this file already says must not be carried over from
+  another board.
+- **None of the placement-sensitive rules below were modelled**: the C12→U3.3→U3.4
+  input loop, the size of the SW island, keeping `REG_EN` and `VBAT_SENSE`
+  (150 kΩ) away from SW and motor current, routing `MOT_x_1/2` as tight pairs, and
+  keeping `GPIO2`/`GPIO10` IPROPI analog runs clear of the motor outputs. The router
+  optimised length and via count only. Walk these five nets in the GUI.
+- **Thermal vias are 2 per driver EP**, which is all that fits at 0.6 mm via / 0.3 mm
+  drill in a 0.9 × 1.6 mm pad. The DRV8231A datasheet wants more; smaller vias
+  (0.45/0.25) would fit ~6 and are worth a fab-rule check. U1's 12 EP pads have one
+  via each.
+- No teardrops, no length matching, no via stitching of the two GND layers beyond the
+  signal/plane vias already placed.
+
+### Pre-existing DRC errors, not caused by routing
+
+Four `hole_clearance` errors between J1's GND pads (A1/A12/B1/B12) and J1's own NPTH
+mounting holes — 0.25 mm against a 0.3 mm rule. They are inside the
+`USB_C_Receptacle_Amazon` footprint and were present before any track was laid. Fix
+the footprint or relax the rule; do not chase them in the routing.
+The `lib_footprint_mismatch` warning on U1 is likewise pre-existing.
+
+## Layout constraints (written before layout; the routing above does not satisfy all of them)
 
 Read "Board stackup" first — several rules below assume the L2 plane exists.
 
@@ -1440,6 +1506,16 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   leftward into the symbol. Write `justify right` to get text starting at the anchor.
   This was caught on D4/D5, whose Value text landed on top of the LED body the first
   time round; it is invisible in a netlist diff, so render and look.
+- **Check the board, not just the schematic.** Zones are only filled by KiCad, so a
+  CLI DRC without a refill reports every plane-connected pad as unconnected:
+
+  ```
+  kicad-cli pcb drc --refill-zones --save-board --format json -o /tmp/drc.json Pixy-M2.kicad_pcb
+  ```
+
+  `--save-board` writes the filled zones back, so the file you commit shows the pours
+  as KiCad will. Read `unconnected_items` as well as `violations` — a net that is not
+  routed at all shows up only there.
 - **`Driver_Motor:DRV8231ADSG` is patched in this file.** Its cached copy has OUT2
   retyped from `power_in` to `output` to fix a stock-library bug. Never run "Update
   Symbols from Library" on U4/U5 without re-applying it — see issue 15.
