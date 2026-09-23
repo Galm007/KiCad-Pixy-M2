@@ -1,105 +1,177 @@
-# Pixy-M2 component list — one board
+# Pixy-M2 bill of materials — one robot
 
-Extracted from `Pixy-M2.kicad_sch` on 2026-09-19, following commit `be64018`
-plus the working-tree VL53L0X sensor-connector block (J4-J7, R15/R16, C15/C16).
+Extracted from `Pixy-M2.kicad_sch` on 2026-09-23 with `kicad-cli sch export bom`,
+after J8/J9 moved to JST SH in the Pololu encoder pin order, then compared with
+the board. The PCB has the same 78
+footprints and no footprint that is only on the board. This file replaces the
+2026-09-19 list. That list predated the motor, IMU and debug blocks, and it still
+showed J2/J3 and R3/R4.
 
-**54 fitted parts**, plus **four PCB test pads**. Quantities are for one board and
-exclude assembly spares. Package codes 0603, 0805, 1812 and 2920 are imperial.
+Quantities are for **one robot**, with no spares. Imperial package codes are used
+(0603, 0805, 1206). **69 parts are fitted to the PCB.** TP1–TP9 are bare 1.5 mm
+copper pads, so nothing is bought for them.
 
-The 2S LiPo pack is charged separately. No charger IC or charging components are
-required on this board. Motors, motor drivers, IMU and any suction fan belong to
-the daughterboard/system and are outside this controller BOM.
+Status key: **Fixed** means the part is named in the schematic or design notes.
+**Spec** means any part meeting the spec will do. **Open** means the design has
+not chosen one yet.
 
-Wall sensing is four **GY-VL53L0XV2 time-of-flight modules**, which are off-board:
-this board carries only their connectors (J4-J7), the shared I2C pull-ups and the
-local rail decoupling. J4-J7 reproduce the module's 6-pin header in its own order,
-so each cable is a straight 1:1 loom. The modules themselves, their cables and the
-mating JST housings are listed under "Off-board sensor parts" below and are not in
-the 54-part count.
+## A. PCB assembly — 69 parts
 
-This records the current schematic. Entries marked TBD or conflict require
-resolution before purchasing; additional capacitors considered in issue 8 are
-not yet present and are not counted here.
+### Semiconductors
 
-| Qty | References | Component / value | Package / footprint | Selection notes |
+| Qty | Ref | Part | Package | Status |
 |---:|---|---|---|---|
-| 1 | U1 | ESP32-S3-WROOM-1-N16 MCU module | ESP32-S3-WROOM-1 | 16MB flash, no PSRAM; retain the N16 variant. |
-| 1 | U2 | USBLC6-2SC6 USB ESD protection | SOT-23-6 |  |
-| 1 | U3 | AP63203WU fixed 3.3V buck regulator | TSOT-23-6 |  |
-| 1 | Q1 | AO4407A P-channel MOSFET | SOIC-8, 3.9 × 4.9mm, 1.27mm pitch | Order AO4407A; IRF7404 is only the compatible symbol used in the schematic. |
-| 2 | D1, D2 | Schottky power diodes — MPN TBD | SMA / DO-214AC | The schematic currently specifies only D_Schottky. Final electrical ratings and exact parts remain open. |
-| 1 | D3 | BAT54W small-signal Schottky diode | SOD-123 | Use the Vishay SOD-123 version, e.g. BAT54W-E3-08; correct the schematic datasheet/manufacturer fields before releasing the BOM. See the package note below. |
-| 1 | D4 | High-efficiency red LED | 0805 | Choose an LED with useful brightness at about 150µA; exact MPN remains open. |
-| 1 | D5 | Green LED | 0805 | Status LED; exact MPN remains open. |
-| 1 | D6 | SMBJ9.0A-E3/52 unidirectional TVS | SMB / DO-214AA |  |
-| 1 | L1 | Bourns SRP5030T-4R7M 4.7µH power inductor | SRP5030T, 5.0 × 5.0 × 3.0mm | 53mΩ DCR max, 4.6A Irms, 6A Isat, shielded; LCSC C2045677. Value, footprint, MPN and datasheet now agree (issue 1 resolved). |
-| 1 | F1 | 2920L300/15DR resettable fuse, 3A hold, 15V | 2920 | Provisional current rating; validate motor/fan load, temperature and pack fault current. |
-| 1 | F2 | MF-MSMF050-2 resettable fuse, 500mA hold, 15V | 1812 |  |
-| 1 | BT1 | AMASS XT30U-M battery connector | Vertical THT, 5mm pitch | Connector model inferred from assigned footprint. BT1 is the PCB connector; the pack is external. |
-| 1 | J1 | Amphenol 12401948E412A USB-C receptacle | Manufacturer-specific USB-C footprint | Part inferred from assigned footprint; use this mechanical pattern, not an arbitrary USB-C socket. |
-| 2 | J2, J3 | 1 × 22-position female socket headers | 2.54mm pitch, vertical THT | Exact manufacturer, socket height and mating header selection remain open. |
-| 4 | J4-J7 | JST SM06B-SRSS-TB 6-position receptacle | JST SH, 1.0mm pitch, side-entry SMD, 2 mounting pegs | VL53L0X module connectors, wired in the GY-VL53L0XV2 header order: 1 VCC, 2 GND, 3 SCL, 4 SDA, 5 GPIO1 (no-connect), 6 XSHUT. Mounting pegs are tied to GND. Order the full suffix, e.g. SM06B-SRSS-TB(LF)(SN). |
-| 2 | SW1, SW2 | Normally-open momentary tactile switches | E-Switch TL3301N-family SMD footprint | RESET and BOOT; select full suffix for actuator height and operating force. |
-| 1 | SW3 | C&K JS102011SAQN SPDT slide switch | Manufacturer-specific SMD footprint | Battery ON/OFF gate control. |
-| 2 | R1, R6 | 5.1kΩ resistors | 0805 | Tolerance and manufacturer part numbers not specified. |
-| 2 | R2, R12 | 10kΩ resistors | 0805 | Tolerance and manufacturer part numbers not specified. |
-| 2 | R3, R4 | 22Ω resistors | 0805 | Current schematic values; USB series-resistor decision is recorded as issue 10. |
-| 1 | R5 | 1MΩ resistor | 0805 | Tolerance and manufacturer part number not specified. |
-| 1 | R7 | 120kΩ resistor, 1% | 0805 | UVLO threshold resistor. |
-| 1 | R8 | 24kΩ resistor, 1% | 0805 | UVLO threshold resistor. |
-| 1 | R9 | 39kΩ resistor, 1% | 0805 | USB enable resistor. |
-| 1 | R10 | 470kΩ resistor, 1% | 0805 | Battery ADC divider. |
-| 1 | R11 | 220kΩ resistor, 1% | 0805 | Battery ADC divider. |
-| 1 | R13 | 2.2kΩ resistor | 0805 | Tolerance and manufacturer part number not specified. |
-| 1 | R14 | 100kΩ resistor | 0805 | MOSFET gate pull-up; tolerance and manufacturer part number not specified. |
-| 2 | R15, R16 | 2.2kΩ resistors | 0805 | I2C SDA/SCL bus pull-ups to 3.3V — one pair for the whole bus, at the host. Tolerance and manufacturer part numbers not specified. |
-| 2 | C1, C12 | 10µF capacitors | 0805 | Voltage ratings, dielectric and exact MPNs are not set. C12 is on VSYS; its effective input capacitance needs review under issue 8. |
-| 4 | C2, C4, C5, C6 | 100nF capacitors | 0603 | Voltage ratings, dielectric and exact MPNs are not set. |
-| 1 | C3 | 1µF capacitor | 0603 | Voltage rating, dielectric and exact MPN are not set. |
-| 2 | C7, C11 | 22µF capacitors | 0805 | Voltage ratings, dielectric and effective capacitance under 3.3V bias need final selection. |
-| 1 | C8 | 4.7nF capacitor | 0603 | Voltage rating, dielectric and exact MPN are not set. |
-| 2 | C13, C14 | 100nF, 50V capacitors | 0603 | Voltage rating is specified; exact manufacturer parts remain open. |
-| 1 | C15 | 10µF, 16V capacitor | 0805 | Reservoir for the four ToF modules at J4-J7. Voltage rating is specified; dielectric and exact manufacturer part remain open. |
-| 1 | C16 | 100nF, 16V capacitor | 0603 | HF decoupling for the ToF module rail. Voltage rating is specified; exact manufacturer part remains open. |
+| 1 | U1 | Espressif **ESP32-S3-WROOM-1-N16** | module | Fixed. Must be N16, not -R8/-N8R8/-N16R8 (issue 11). |
+| 1 | U2 | ST **USBLC6-2SC6** | SOT-23-6 | Fixed |
+| 1 | U3 | Diodes Inc **AP63203WU-7** | TSOT-23-6 | Fixed. The fixed 3.3 V variant; do not substitute the adjustable AP63200. |
+| 2 | U4, U5 | TI **DRV8231ADSGR** | WSON-8 2×2 | Fixed |
+| 1 | Q1 | AOS **AO4407A** | SOIC-8 | Fixed. The symbol is `IRF7404`; do not order that. |
+| 2 | D1, D2 | onsemi **MBRA340T3G** | SMA | Fixed |
+| 1 | D3 | Vishay **BAT54W-E3-08** | SOD-123 | Fixed as a part. The schematic datasheet link is still Nexperia's, whose BAT54W is SOT-323 and does **not** fit. |
+| 1 | D6 | Vishay **SMBJ9.0A-E3/52** | SMB | Fixed |
+| 1 | D4 | Red LED, high-efficiency (AlInGaP) | 0805 | Spec. Runs at ~150 µA, so it must be visibly lit at that current. No blue, white or pure-green part (issue 13). |
+| 1 | D5 | Green LED | 0805 | Spec. Runs at ~550 µA. |
 
-## PCB-only features
+### Passive power parts, protection and switches
 
-TP1 (VBAT), TP2 (3V3), TP3 (GND) and TP4 (SW) are each a 1.5mm copper test pad.
-They do not require purchased test-point posts or loops. The fabricated PCB,
-external 2S pack and its mating XT30 lead are separate from the 54 fitted parts.
+| Qty | Ref | Part | Package | Status |
+|---:|---|---|---|---|
+| 1 | L1 | Bourns **SRP5030T-4R7M**, 4.7 µH | 5.0×5.0 mm | Fixed (LCSC C2045677) |
+| 1 | F1 | Littelfuse **2920L300/15DR**, 3 A hold PPTC | 2920 | Fixed. The rating is provisional pending the issue-17 measurement. |
+| 1 | F2 | Bourns **MF-MSMF050-2**, 500 mA hold PPTC | 1812 | Fixed |
+| 1 | SW3 | C&K **JS102011SAQN** SPDT slide | SMD | Fixed |
+| 2 | SW1, SW2 | E-Switch **TL3301NF160QG** tactile, 160 gf | 6×6 SMD | The footprint is fixed as TL3301N-family. The 160 gf force is a suggestion; 100 gf and 260 gf fit the same footprint. |
 
-## Off-board sensor parts
+### Connectors on the PCB
 
-Needed to make the ToF sensors work, but not fitted to this PCB:
+| Qty | Ref | Part | Status |
+|---:|---|---|---|
+| 1 | J1 | Amphenol **12401948E412A** USB-C receptacle | Fixed by the footprint. Other USB-C sockets do not fit. |
+| 1 | BT1 | AMASS **XT30U-M** (male), vertical in PCB | Fixed by the footprint |
+| 7 | J4–J9, J11 | JST **SM06B-SRSS-TB(LF)(SN)**, SH 6-pin side entry | Fixed. J8/J9 are the motor/encoder ports, in Pololu's pin order. |
+| 1 | J10 | JST **SM09B-SRSS-TB(LF)(SN)**, SH 9-pin side entry | Fixed |
+
+### Capacitors (MLCC)
+
+Use X7R where it is available; X5R is acceptable for the 10 µF and 22 µF parts.
+The voltage ratings are the minimums from issue 8. Do not go lower.
+
+| Qty | Ref | Value | Package |
+|---:|---|---|---|
+| 5 | C2, C4, C5, C16, C22 | 0.1 µF 16 V | 0603 |
+| 2 | C6, C17 | 0.1 µF 25 V | 0603 |
+| 4 | C13, C14, C18, C20 | 0.1 µF 50 V | 0603 |
+| 1 | C3 | 1 µF 16 V | 0603 |
+| 2 | C1, C15 | 10 µF 16 V | 0805 |
+| 2 | C7, C11 | 22 µF 16 V | 0805 |
+| 3 | C12, C19, C21 | 22 µF 25 V | **1206** |
+| 1 | C8 | 4.7 nF **1 kV** | **1206** |
+
+One 0.1 µF 50 V 0603 part can fill all 11 of the 0.1 µF positions. Buying one
+reel instead of three is a valid choice.
+
+### Resistors (0805 thick film)
+
+The design requires **1 %** on the eight parts marked 1 %. Buying 1 % for every
+position costs nothing extra.
+
+| Qty | Ref | Value |
+|---:|---|---|
+| 7 | R2, R12, R19–R23 | 10 kΩ |
+| 3 | R13, R15, R16 | 2.2 kΩ |
+| 2 | R1, R6 | 5.1 kΩ |
+| 2 | R17, R18 | 2.2 kΩ **1 %** (motor current limit, 1.0 A) |
+| 1 | R5 | 1 MΩ |
+| 1 | R7 | 120 kΩ **1 %** |
+| 1 | R8 | 24 kΩ **1 %** |
+| 1 | R9 | 39 kΩ **1 %** |
+| 1 | R10 | 470 kΩ **1 %** |
+| 1 | R11 | 220 kΩ **1 %** |
+| 1 | R14 | 100 kΩ |
+
+## B. The bare PCB
 
 | Qty | Item | Notes |
 |---:|---|---|
-| 4 | GY-VL53L0XV2 breakout module (silkscreen `HW-842`) | The fitted module. 6-pin 2.54mm header: VCC, GND, SCL, SDA, GPIO1, XSHUT. VCC 3.0-5.0V, on-board 2.8V regulator, SCL/SDA level-shifted to the VCC rail, and **XSHUT pulled up on-board** so the sensors are enabled by default. Do not substitute a module with a different header order without re-cutting the cables — the connector reproduces this one 1:1. |
-| 4 | 6-way cable, JST SH to 2.54mm | JST SHR-06V-S-B housing plus SSH-003T-P0.2 crimp contacts (28-32 AWG) at the board end; a 6-way 2.54mm socket or direct-soldered wires at the module end. Straight-through, conductor for conductor. Keep them short, both for bus capacitance and to limit the 40mA VCSEL current loop. |
+| 1 | 4-layer PCB, 1.6 mm, 66 × 100 mm | Use JLC04161H-7628 or an equivalent with ~0.2 mm L1–L2 prepreg. **Order the options below with the PCB:** |
+| | • Impedance control on USB D+/D− | 90 Ω differential, 0.25 / 0.15 mm on L1. Otherwise confirm the geometry with the fab's calculator (see "Board stackup"). |
+| | • Via fill and cap, IPC-4761 type VII | Only for the four thermal vias under U4/U5. It is recorded on `Dwgs.User`. Tenting is not a substitute. |
+| 1 | SMT stencil | Optional, but hard to do without for two 2×2 mm WSON parts with exposed pads. |
 
-## Ordering details to settle
+## C. Off-board modules
 
-- **D1/D2:** choose actual SMA Schottky part numbers and their ratings.
-- **Capacitors:** most voltage ratings and all exact part numbers remain unset.
-  Select dielectric and effective capacitance at operating bias, especially C12
-  and the 22µF output capacitors; finish issue 8 before freezing quantities.
-- **F1:** the 3A hold-current choice is provisional while motor and fan currents
-  remain unknown. Verify the complete battery path before fabrication.
-- **R15/R16:** 2.2kΩ follows the VL53L0X datasheet recommendation (1.5-2kΩ at
-  2.8V, 400kHz) scaled to 3.3V. If the chosen modules carry their own pull-ups,
-  four 10kΩ in parallel with this pair lands near 1.2kΩ — still only 2.8mA of
-  sink, inside the part's 4mA VOL spec, but worth re-checking against the actual
-  module schematic.
-- **D3:** the generic BAT54W name alone is ambiguous between manufacturers.
-  [Vishay BAT54W-E3-08](https://www.vishay.com/docs/86408/bat54w.pdf) is SOD-123
-  and matches the assigned package. [Nexperia BAT54W](https://assets.nexperia.com/documents/data-sheet/BAT54W_SER.pdf)
-  uses SOT323. The schematic currently links a Nexperia BAT54-family datasheet;
-  its manufacturer/MPN/datasheet fields need to identify the chosen SOD-123 part.
-- **Switches, sockets, LEDs and passives:** finalize remaining ordering suffixes,
-  mechanical heights, ratings and manufacturer parts. SW1/SW2 specify the
-  [E-Switch TL3301N footprint family](https://www.e-switch.com/product/tl3301-series-smt-tactile-switch/),
-  not a complete orderable switch number.
+| Qty | Item | Status |
+|---:|---|---|
+| 4 | **GY-VL53L0XV2** ToF module (silkscreen `HW-842`) | Fixed. J4–J7 copy its header order. A different module needs different cables. |
+| 1 | **Adafruit BNO085 9-DoF breakout, #4754** | Fixed. For SPI: wire **P0 to J10.9** (PS0/WAKE) and **tie P1 to VIN** at the module end. SCL is SCK, SDA is MISO and DI is MOSI (Adafruit's pin names). |
+| 2 | **Pololu Micro Metal Gearmotor HP 6V with 12 CPR encoder** (#5153–#5165 series, extended shaft, encoder fitted) | **Ratio open.** Pick one ratio for both motors, e.g. #5155 (10:1) or #5157 (15:1). The side- and back-connector versions have the same pinout. |
+| 1 pack (listing is 4) | **OVONIC 2S 450 mAh 100C, XT30** ([Amazon B0D2KT723L](https://www.amazon.com/gp/product/B0D2KT723L)) | Chosen. The maker lists it at 7.4 V / 4.2 V per cell (standard LiPo, not LiHV, despite "High Voltage" in the title), **62 × 17 × 14 mm, 31 g**, XT30 female, JST-XH balance lead. XT30 female is the battery-side part, so it mates with BT1 (male). **See "Battery" below: it does not fit the drawn reservation, and it is stronger than F1 is rated to interrupt.** |
 
-The USB connector model is taken from the assigned footprint and checked against
-[Amphenol's 12401948E412A product page](https://www.amphenol-cs.com/product/12401948e412a.html).
-No schematic component values or wiring were changed to prepare this list.
+## D. Cables and crimp parts
+
+Hand-crimped JST is fiddly. Pre-crimped single-ended "SH 6-pin" leads
+with bare wire, avoid most of the crimping.
+
+| Qty | Cable | Board end | Far end |
+|---:|---|---|---|
+| 4 | ToF, 6-way, straight 1:1 | SHR-06V-S-B + 6 × SSH-003T-P0.2-H | 6-way 2.54 mm Dupont socket, or solder to the module |
+| 1 | IMU, 9-way | SHR-09V-S-B + 9 × SSH-003T-P0.2-H | Dupont sockets or solder, wired per the J10 table in CLAUDE.md |
+| 2 | Motor/encoder | **Pololu JST SH-style encoder cable, female-female**, straight 1:1: #4765 (10 cm), #4766 (16 cm), #4767 (25 cm), #4768 (40 cm) or #4769 (63 cm) | Ready-made, so no crimping. Both ends are SH, so it plugs straight into J8/J9. |
+| 1 | Debug (optional) | SHR-06V-S-B + 6 × SSH-003T-P0.2-H | a 3.3 V USB-UART adapter with DTR/RTS |
+
+Crimp totals, including the debug lead: **5 × SHR-06V-S-B**, **1 × SHR-09V-S-B** and
+**39 × SSH-003T-P0.2-H**. Buy about 2× the contacts, because hand crimping loses
+some. Also needed: 28–32 AWG wire.
+
+### J8/J9 and the Pololu motors
+
+J8/J9 now use the Pololu encoder board's own connector and pin order (checked on
+[#5161](https://www.pololu.com/product/5161) and the cable page
+[#4766](https://www.pololu.com/product/4766)):
+
+| pin | 1 | 2 | 3 | 4 | 5 | 6 | MP |
+|---|---|---|---|---|---|---|---|
+| encoder / J8 / J9 | GND | OUT B | OUT A | VCC (3.3 V) | M2 | M1 | GND |
+| Pololu cable wire | green | white | yellow | blue | black | red | — |
+
+Pololu's cable is straight 1:1, so it plugs in either way round with no
+re-pinning. Pololu rates these contacts and cables at **1 A**, so **R17/R18 are
+now 2.2 kΩ**. That puts the DRV8231A's current limit at 1.00 A, down from 1.47 A,
+and still gives about 63 % of the motor's 6 V stall torque. IPROPI now reads
+3.3 V/A, so the ADC clips at about 0.94 A, just below the limit.
+
+### Battery
+
+- **Size.** The pack is 62 × 17 × 14 mm; the underside reservation drawn in
+  `layout/README.md` is 40 × 30 × 15 mm. Turned 90°, it fits across the 66 mm
+  board in the front strip (Y ≈ 5–22), clear of the motors and BT1's pads. The
+  reservation drawing and the battery attachment bands have not been updated.
+- **Fault current.** F1 (2920L300/15DR) is rated to interrupt at most **40 A**.
+  This pack is sold as 100C continuous and 200C burst, which is 45 A and 90 A. A
+  hard short downstream of F1 can therefore exceed what F1 is rated to break.
+  This is the issue-17 check, and this pack fails it. It needs a design decision,
+  such as a higher-rated fuse or a pack with lower C; nothing in this change
+  addresses it.
+- **Charging.** You need a 2S balance charger with an XT30 lead (or an adapter)
+  and a JST-XH balance port.
+
+## E. Mechanical — not designed yet
+
+This section is **not definitive**. `layout/README.md` gives only space
+reservations: "idlers, axle supports and gear ratios remain unspecified". Nothing
+here can be ordered from the repo until the drivetrain is designed.
+
+| Qty | Item | Constraint from the layout |
+|---:|---|---|
+| 2 | Wheels, Ø30 mm, ≤ 8 mm tire | They must fit the motor's 3 mm D-shaft or a drivetrain axle |
+| 2 | Micro metal gearmotor brackets | 38 × 16 × 16 mm underside envelopes |
+| ? | Gears, idlers, axles, bearings | Undefined. The motors are staggered at Y = 50 / 82 and are not coaxial with the wheels. |
+| 4 | Sensor brackets | 14 × 19 mm mounts. J6/J7 are aimed 45° ± 15°. |
+| 1 | IMU standoff or bracket | 25 × 25 mm at the rotation centre |
+| — | Fasteners, battery strap | **The PCB has no mounting holes**; the attachment method is open |
+
+## F. Tools and consumables (if you don't already have them)
+
+2S LiPo balance charger (XT30, JST-XH balance) · JST SH crimp tool · solder paste and a hot-air or
+reflow setup (the WSON exposed pads and the module's ground pads need it) · 3.3 V USB-UART adapter (only
+for J11).
