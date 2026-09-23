@@ -1,0 +1,26 @@
+{
+  "source_sha256": "937cd138d159349158178fb3fac13978453f8c3fab4d33f5b9f81a5ac38ffa96",
+  "final_sha256": "3684c1c1f4e321d67de6ec9b3770ebbc7978bd38e57cfd8a91eb391c0d3a29a4",
+  "via_count": 247,
+  "moved_vias": 35,
+  "unintended_overlapping_vias_before": 12,
+  "unintended_overlapping_vias_after": 0,
+  "minimum_ordinary_opening_gap_mm": 0.1,
+  "explicit_filled_capped_vias": 4,
+  "footprints_unchanged": true,
+  "existing_tracks_retained": 2228,
+  "added_local_tracks": 48,
+  "added_track_length_mm": 11.199061684428978,
+  "p3_gpio48_and_motor_trunks_unchanged": true,
+  "via_sizes_nets_and_uuids_unchanged": true,
+  "drc_counts": {
+    "hole_clearance": 4,
+    "lib_footprint_mismatch": 1
+  },
+  "unconnected": 0,
+  "schematic_parity": 0,
+  "unit_tests": 5,
+  "local_replay_matches_candidate": true,
+  "local_replay_idempotent": true,
+  "full_rework_replay_matches_candidate": true
+}

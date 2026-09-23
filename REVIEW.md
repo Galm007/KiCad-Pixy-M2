@@ -23,13 +23,14 @@
 > sense trace to C11 that stays 2.1 mm clear of the switch node. One regression is
 > recorded there too: REG_EN now passes 0.99 mm from switching copper, having moved
 > out of a via-in-pad.
-> Finding 6 followed: 73 vias sat inside a pad's mask opening, 65 of them under
-> solder paste. 54 stepped out of their pad with a stub, the 11 nets holding the
-> other 15 were ripped and routed again, and the only vias left in a pad are the
-> four exposed-pad thermal vias, which now carry a Dwgs.User fabrication note
-> calling for resin fill and cap. KiCad models filling and capping board-wide, not
-> per via, so that requirement cannot live on the vias themselves; confirming the
-> option with the fabricator is a cost decision and is still open.
+> Finding 6 was completed in a follow-up: the earlier centre-only check missed
+> 12 drill overlaps and 23 additional vias below 0.10 mm edge clearance. Those
+> 35 vias now clear all pad mask/paste openings by at least 0.10 mm. The four
+> intentional U4/U5 thermal vias remain under independent paste apertures and now
+> explicitly specify filling and capping per via, which KiCad 10 supports. The
+> fabrication note requires resin fill and copper cap (IPC-4761 type VII); the
+> order must include that process. A persistent DRC rule and an aperture audit
+> protect this correction. See `layout/issue6-complete/README.md` for validation.
 
 The saved layout needs another routing pass before fabrication. The most consequential findings are undersized motor-output copper and inadequate thermal copper around the motor drivers. The segmented bends themselves are not a manufacturing defect.
 

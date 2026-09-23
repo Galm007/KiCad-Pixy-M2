@@ -62,23 +62,31 @@ What it does, in order — the order matters:
 7. re-routes `/VSYS` (through a waypoint north of the buck, or A* threads the
    8.4 V input rail between L1 and the output capacitors), `/REG_EN` and
    `/GPIO6`, all of which were ripped to free space;
-8. moves every via that sits inside a pad's solder-mask opening out of it
-   (`unstick_vias`, review issue 6), leaving a 0.25 mm stub on F.Cu and — only
-   where a back-layer track ended there — on B.Cu.  The margin is measured
-   against the *drill*, not the copper: via and pad are the same net, so copper
-   overlap is harmless and it is the exposed barrel that solder wicks down.
-   Where a via has nowhere to step to, `reroute_stuck_nets` rips its whole net
-   and routes it again — the via search already refuses to land in a pad, so the
-   replacement route does not need one there.  The four thermal vias in the
-   driver exposed pads are exempt by name and carry a fabrication note instead;
-   KiCad models via filling and capping board-wide, not per via;
+8. runs the historical centre-based relocation (`unstick_vias`) and its whole-net
+   fallback. This stage alone misses drill-edge overlaps and paste-only pads;
+   it is retained to reproduce the original routing, then corrected in step 10;
 9. restores the verified local GPIO48 route with `encoder48_cleanup` (2026-09-22
    audit P3). The generic via relocation had stretched this encoder net to
    72.36 mm around TP5 and J11; the replacement is 26.03 mm, keeps the J8/R20/U1
    connections, and puts all four via holes at least 0.45 mm clear of SMD mask
    openings. This runs after the generic reroute so regeneration preserves it;
-10. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
-   areas that `Pixy-M2.kicad_dru` conditions on, and the `Dwgs.User` fab note.
+10. applies `finish_issue6.py`: 35 local via moves and their layer connections,
+    with per-via fill/cap on the four intentional driver thermal vias;
+11. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
+   areas that `Pixy-M2.kicad_dru` conditions on, and the `Dwgs.User` fab note;
+12. serializes a temporary candidate and runs `via_openings.py` before replacing
+    the output PCB. Any missing expected via or aperture violation stops the run.
+
+The final aperture check measures drill edges against mask and paste, including
+independent paste-only pads, rotated pads and rounded corners. It requires
+0.10 mm clearance except for the four explicitly filled/capped driver thermal
+vias. To check an edited board without regenerating routing, run from repo root:
+
+    /usr/bin/python3 tools/autoroute/via_openings.py Pixy-M2.kicad_pcb --output /tmp/apertures.json
+    /usr/bin/python3 tools/autoroute/test_via_openings.py
+
+The first command exits nonzero on a violation; it complements, not replaces,
+KiCad DRC and schematic parity. See `layout/issue6-complete/README.md`.
 
 `! no neck+via for GND from (109.0,114.8)` and the same for `(117.0,114.8)` are
 **expected output**, not failures: the ESP_3V3 VREF feed blocks a wide neck out of the

@@ -1659,56 +1659,51 @@ pads silently stayed 0.95 × 0.9 — and DRC reports it as
 edit. `pcbedit.move_footprint` now turns every `(at …)` in the block.
 
 
-### Issue 6 — vias inside pad openings (2026-09-22)
+### Issue 6 — vias inside pad openings (completed 2026-09-22)
 
-**73 vias sat inside a pad's solder-mask opening, 65 of them under solder paste.**
-That is the original router's doing: `wire.py` deliberately drops stitching vias
-into pads 1.2 mm or larger, and its A* via search never excluded pads at all.
+The first pass moved via **centres** out of pads, but that was not sufficient:
+12 ordinary drill holes still overlapped solder-mask openings, and another 23
+had less than 0.10 mm edge clearance. It also overlooked the independent,
+unnumbered paste apertures over the four U4/U5 thermal vias. The earlier claim
+that none of the remaining vias was under paste was incorrect.
 
-| | before | after |
+The completion pass moves these **35 vias locally**, retaining every existing
+track segment, all footprints, all via sizes and all 247 vias. Short connections
+on the affected copper layers preserve the original routes. The P3 GPIO48
+cleanup, USB routing and motor-output trunks are unchanged.
+
+| Check | Before completion | After completion |
 |---|---:|---:|
-| vias inside a pad opening | 73 | **4** |
-| …of those, under solder paste | 65 | **0** |
-| board track / vias | 2313.8 mm / 247 | 2431.8 mm / 247 |
+| Ordinary drill holes overlapping pad openings | 12 | **0** |
+| Ordinary vias below the 0.10 mm opening clearance | 35 | **0** |
+| Intentional thermal vias under paste | 4 | **4, explicitly filled/capped** |
 
-The four that remain are the U4/U5 exposed-pad thermal vias from issue 2, which are
-in a pad on purpose. Everything else moved out, two ways:
+`tools/autoroute/via_openings.py` checks complete drill circles against all front
+and back mask and paste apertures, including paste-only pads, pad rotation and
+rounded corners. It uses the pad's resolved mask/paste margins and fails on
+unsupported geometry. The minimum measured ordinary drill-to-opening clearance
+is **0.10 mm**; this is a board design allowance, not a quoted fabricator minimum.
+`Pixy-M2.kicad_dru` also enforces 0.10 mm physical hole-to-SMD-pad clearance,
+regardless of net. The only exceptions pair the four specified thermal vias with
+their own U4/U5 exposed-pad apertures; the Python audit additionally requires
+explicit fill and cap on each one.
 
-- **54 stepped out of their pad** and left a 0.25 mm stub behind on F.Cu, plus one
-  on B.Cu where a back-layer track ended at the old position. The constraint is the
-  **mask opening, not the copper**: via and pad are the same net, so copper overlap
-  is harmless and only the drill needs the margin (hole radius + 0.1 mm clear of the
-  pad edge).
-- **15 had nowhere to step to** — U1's castellations, the 0.6 mm JST-SH pads on
-  J4/J5/J7/J10/J11, U2, R20, R23. Rather than force them, their **11 nets were
-  ripped and routed again**: `rework.py`'s via search already refuses to land in a
-  pad, so the replacement route simply does not need a via there. All 11 re-routed.
+**KiCad 10 supports filling and capping per via.** The earlier assertion that
+these properties were board-wide only was wrong. Each 0.45/0.25 mm GND via at
+(109, 113.6), (109, 114.4), (117, 113.6) and (117, 114.4) now has `(filling yes)`
+and `(capping yes)`, verified after saving and reopening. Board-wide filling and
+capping remain off. The `Dwgs.User` fabrication note requires resin fill and
+copper cap, IPC-4761 type VII, for these four holes. The fabrication order must
+include that process; tenting does not replace it.
 
-The 4 vias in the test-point pads (TP1 ×2, TP2, TP9) moved too, although those pads
-take no paste and so were never a wicking risk. Moving them makes the rule on this
-board a single sentence that is cheap to re-check: **no via lies in a pad opening
-except the four thermal vias, and those carry a fabrication note.**
+`finish_issue6.py` replays the local repairs after the historical centre-based
+pass and the P3 correction. Regeneration now audits apertures before replacing
+the output board and stops if the expected geometry has changed. Always refill
+zones and run DRC plus schematic parity afterward. The saved board has zero
+unconnected items and zero parity issues; DRC still reports only the four known
+J1 hole-clearance errors and the U1 library-footprint warning.
 
-**KiCad cannot express the via-in-pad requirement per via, and that is worth
-knowing before someone goes looking.** A via accepts `(covering …)`, `(plugging …)`
-and `(tenting …)`, but **`filling` and `capping` are board-wide settings only** —
-verified by trying each form against `kicad-cli`. Turning them on globally would
-change the process and the price for all 247 vias, which is an ordering decision,
-not a layout one. So the requirement goes on `Dwgs.User` instead, at (100, 164):
-
-> FAB NOTE - VIA IN PAD — The four 0.25 mm vias inside the U4 and U5 exposed pads
-> (DRV8231A) are thermal vias and sit under solder paste. They require resin fill
-> and cap (IPC-4761 type VII). Confirm the option with the fabricator: tenting and
-> filled/capped via-in-pad are different processes. No other via on this board lies
-> inside a pad opening.
-
-**That confirmation is still open and is a cost decision, not a drawing change.**
-The board is tented front and back, so solder cannot escape out of the barrel; what
-fill-and-cap buys is stopping it sinking *in*. The exposed pad's split paste window
-(two 0.73 × 0.64 mm apertures, ~50 % coverage) is the usual mitigation and is
-already in the footprint. Moving the vias out from under the paste is not an option
-— the pad is 0.9 mm wide, two 0.45 mm vias side by side would break the 0.45 mm
-hole-to-hole rule, and the gap between the paste windows is 0.16 mm.
+Measurements and validation: `layout/issue6-complete/README.md`.
 
 
 ### What this pass did not touch

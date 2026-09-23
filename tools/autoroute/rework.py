@@ -75,17 +75,9 @@ RIP_BOXES = [
 REFS = {'C18': (-2.15, 0.0), 'C20': (-2.15, 0.0), 'C21': (-2.1, 2.7),
         'U5': (0.0, -2.2), 'C17': (-3.2, -0.8), 'U3': (0.0, -4.5)}
 
-# Fabrication note.  KiCad models filling and capping as board-wide settings, so
-# the requirement for the two exposed pads cannot be attached to those four vias in
-# the file; it goes on a documentation layer and into the docs instead.
-FAB_NOTE = [
-    'FAB NOTE - VIA IN PAD',
-    'The four 0.25 mm vias inside the U4 and U5 exposed pads (DRV8231A) are',
-    'thermal vias and sit under solder paste. They require resin fill and cap',
-    '(IPC-4761 type VII). Confirm the option with the fabricator: tenting and',
-    'filled/capped via-in-pad are different processes. No other via on this',
-    'board lies inside a pad opening.',
-]
+# KiCad 10 supports per-via filling/capping. Keep the drawing and native
+# via properties consistent; this final pass also clears complete drill edges.
+from finish_issue6 import finish_issue6, FAB_NOTE
 FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
@@ -839,10 +831,12 @@ def main():
         n2, failed2 = unstick_vias(p)
         print(f'  second pass moved {n2} more' +
               (f'; still stuck: {", ".join(f[0] for f in failed2)}' if failed2 else
-               '; no via left in a solder pad'))
+               '; no via centre left in a solder pad (drill audit still required)'))
 
     encoder48_cleanup(p)
     print('  /GPIO48: restored compact encoder route (audit P3)')
+    finish_issue6(p)
+    print('  issue 6: cleared drill edges and specified four filled/capped vias')
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'
@@ -850,8 +844,19 @@ def main():
                            pts=rect(*GND_POUR)))
     for a in ESCAPE_AREAS:
         p.add_zone(RULE_AREA.format(uuid=uuid.uuid4(), pts=rect(*a)))
-    p.write(OUT)
-    print('wrote', OUT)
+    # Keep the current PCB intact if replay or the drill/paste audit fails.
+    import pathlib, shutil, subprocess, tempfile
+    out = pathlib.Path(OUT)
+    with tempfile.TemporaryDirectory(prefix='issue6-check-') as tmp:
+        candidate = pathlib.Path(tmp) / out.name
+        project = out.with_suffix('.kicad_pro')
+        if project.exists():
+            shutil.copy2(project, candidate.with_suffix('.kicad_pro'))
+        p.write(candidate)
+        subprocess.run(['/usr/bin/python3', str(pathlib.Path(__file__).with_name('via_openings.py')),
+                        str(candidate), '--output', str(pathlib.Path(tmp) / 'apertures.json')], check=True)
+        shutil.copyfile(candidate, out)
+    print('wrote', OUT, '(aperture audit passed; refill zones and run DRC)')
 
 
 if __name__ == '__main__':
