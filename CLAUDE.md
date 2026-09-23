@@ -155,25 +155,26 @@ more devices on it.
 
 ## Motor drive nets (extracted, authoritative)
 
-Added 2026-09-20. Two identical channels, U4/J8 and U5/J9.
+Added 2026-09-20. Two identical channels, U4/J8 and U5/J9. **J8/J9 pins changed
+on 2026-09-23** to the Pololu encoder order (see "Connectors J8/J9").
 
 | Net | Members |
 |---|---|
-| `MOT_A_1` | U4.6 (OUT1), J8.1 |
-| `MOT_A_2` | U4.8 (OUT2), J8.6 |
-| `MOT_B_1` | U5.6 (OUT1), J9.1 |
-| `MOT_B_2` | U5.8 (OUT2), J9.6 |
+| `MOT_A_1` | U4.6 (OUT1), J8.6 (M1) |
+| `MOT_A_2` | U4.8 (OUT2), J8.5 (M2) |
+| `MOT_B_1` | U5.6 (OUT1), J9.6 (M1) |
+| `MOT_B_2` | U5.8 (OUT2), J9.5 (M2) |
 | `GPIO39` / `GPIO40` | U4.3 (IN1) / U4.2 (IN2) — motor A |
 | `GPIO41` / `GPIO42` | U5.3 (IN1) / U5.2 (IN2) — motor B |
-| `GPIO47` / `GPIO48` | J8.3 + R19.2 / J8.4 + R20.2 — encoder A |
-| `GPIO21` / `GPIO38` | J9.3 + R21.2 / J9.4 + R22.2 — encoder B |
+| `GPIO47` / `GPIO48` | J8.3 (A) + R19.2 / J8.2 (B) + R20.2 — encoder A |
+| `GPIO21` / `GPIO38` | J9.3 (A) + R21.2 / J9.2 (B) + R22.2 — encoder B |
 | `GPIO2` (ADC1_CH1) | U4.1 (IPROPI), R17.1 — motor A current sense |
 | `GPIO10` (ADC1_CH9) | U5.1 (IPROPI), R18.1 — motor B current sense |
 
 `VBAT` additionally gained U4.5, U5.5 (VM) and C18/C19/C20/C21.1.
-`ESP_3V3` gained U4.4, U5.4 (VREF), J8.5, J9.5 and R19–R22.1.
+`ESP_3V3` gained U4.4, U5.4 (VREF), J8.4, J9.4 and R19–R22.1.
 `GND` gained U4.7, U5.7, **U4.9 and U5.9 (the thermal pads)**, C18–C21.2,
-R17.2, R18.2, J8.2 and J9.2.
+R17.2, R18.2, J8.1, J9.1 and the J8/J9 `MP` mounting pads.
 
 **The drivers' thermal pads are netted.** The KiCad symbol puts pin 9 at the same
 coordinate as pin 7, so grounding GND connects the pad automatically — confirmed in
@@ -240,7 +241,7 @@ except the seven deliberate no-connects**.
   connectors, J8–J11 and the USB-C port all have to coexist. That is what now gates
   layout.
 - **Issue 17 is a measurement task.** The current budget is bounded by the motor
-  drivers' 1.47A limit; what is left is confirming it on assembled hardware, and it
+  drivers' current limit (1.00A since 2026-09-23); what is left is confirming it on assembled hardware, and it
   gates *routing* the power path rather than fabrication.
 
 Issue 16 is resolved. The suction fan was dropped from the design.
@@ -1004,14 +1005,22 @@ a 4.9 × 6.0 mm package and a different symbol.
 #### Current limit, and why it is set where it is
 
 `VREF` is tied to `ESP_3V3` (3.3V, inside the 0–3.6V recommended range, 6V abs max).
-With **AIPROPI = 1500 µA/A** and R17/R18 = 1.5kΩ:
+With **AIPROPI = 1500 µA/A** and R17/R18 = **2.2kΩ** (1.5kΩ until 2026-09-23):
 
 ```
-   ITRIP = VREF / (AIPROPI x RIPROPI) = 3.3 / (1500u x 1500) = 1.47 A
-   IPROPI sense scale = AIPROPI x RIPROPI = 2.25 V/A   (ADC full scale 3.1V ~ 1.38A)
+   ITRIP = VREF / (AIPROPI x RIPROPI) = 3.3 / (1500u x 2200) = 1.00 A
+   IPROPI sense scale = AIPROPI x RIPROPI = 3.3 V/A   (ADC full scale 3.1V ~ 0.94A)
 ```
 
-**1.47A is chosen to protect the driver, not the motor.** Left unregulated, a stalled
+**2026-09-23: the limit is now 1.00 A, set by the connector, not the driver.**
+J8/J9 became JST SH to take Pololu's own encoder cable, and SH contacts and that
+cable are rated 1 A. At 1.00 A the driver dissipates ~0.6 W (~40 °C rise) and the
+motor gets ~63 % of its 6 V stall torque. The ADC clips at ~0.94 A, just under the
+limit — a stall reads as full scale, which is still unambiguous. The paragraph
+below is the original 1.47 A reasoning, kept because the driver-thermal argument
+still bounds any future increase.
+
+**1.47A was chosen to protect the driver, not the motor.** Left unregulated, a stalled
 N20 at 8.4V draws 8.4 / (3.75Ω motor + 0.6Ω driver) ≈ **1.93A**, which puts 2.24W
 into a package with RθJA 66.5°C/W — a 149°C rise, i.e. thermal shutdown. Regulating
 at 1.47A drops that to 1.29W. The cost is small: torque is proportional to current,
@@ -1027,19 +1036,27 @@ unusable while Wi-Fi is active — the same constraint as issue 5.
 
 #### Connectors J8/J9
 
-`S6B-PH-K`, 6-pin JST-PH at 2.00mm, side-entry. **The pin order mirrors the encoder
-module** — 1 = M1, 2 = GND, 3 = OUT A, 4 = OUT B, 5 = VCC, 6 = M2 — so the cable is a
-straight-through loom, the same principle as J4–J7 (issue 14).
+**Since 2026-09-23: `SM06B-SRSS-TB`, 1.0 mm JST SH side-entry — the same part as
+J4–J7 and J11 — in the Pololu 12 CPR encoder board's own pin order** (Pololu
+#5153–#5165 gearmotors, encoder kits #4760/#4761):
 
-**JST-PH is rated 2A per contact and the motor pins carry the full motor current.**
-That is why the current limit matters here too: 1.47A regulated keeps M1/M2 inside
-the contact rating, where the 1.93A natural stall would not. **Do not raise R17/R18
-without re-checking the connector.**
+| Pin | 1 | 2 | 3 | 4 | 5 | 6 | MP |
+|---|---|---|---|---|---|---|---|
+| Signal | GND | OUT B | OUT A | VCC | M2 | M1 | GND |
+| J8 net | `GND` | `GPIO48` | `GPIO47` | `ESP_3V3` | `MOT_A_2` | `MOT_A_1` | `GND` |
+| J9 net | `GND` | `GPIO38` | `GPIO21` | `ESP_3V3` | `MOT_B_2` | `MOT_B_1` | `GND` |
 
-The pinout does put M1 and M2 at opposite ends of the connector, which is a larger
-current loop than adjacent pins would give. That is accepted for the same reason as
-issue 14: mirroring the module makes the cable unmistakable, and a mis-wired motor
-cable is a worse failure than the loop area.
+The cable is Pololu's straight 1:1 SH-SH encoder cable (#4765–#4769), so there is
+no loom to build. It replaced 2.0 mm JST PH `S6B-PH-K` wired M1 GND A B VCC M2,
+which matched neither Pololu's pinout nor its connector: a 1:1 cable from a Pololu
+encoder into the old J8/J9 would have put motor voltage on the encoder's supply.
+
+**SH and the Pololu cable are rated 1 A, and the motor pins carry the full motor
+current** — that is why R17/R18 went to 2.2 kΩ (1.00 A). **Do not lower R17/R18
+without re-checking the connector and cable.**
+
+M1 and M2 are now adjacent (pins 5/6), so both channels route as tight pairs —
+see "J8/J9 in the Pololu pin order" under the layout notes.
 
 **R19–R22 (10kΩ) pull up the encoder outputs.** Fitted because cheap N20 encoder
 boards commonly use open-drain Hall sensors, which produce nothing at all without
@@ -1230,7 +1247,7 @@ D2 → `VSYS` → U3 — so the 3.3V rail's ~0.43A reflected input current count
 | Both motors free-running | ~0.7A | trivial |
 | Normal driving, both motors loaded | ~1.4A | comfortable |
 | Hard acceleration, ~1A per motor | ~2.4A | just above the **60°C** hold; fine for a 30s run, not indefinitely |
-| **Both** motors at the 1.47A current limit | **~3.4A** | above the 3A hold, below the 5A trip — trips slowly |
+| **Both** motors at the current limit — 1.00A since 2026-09-23 | **~2.4A** | under the 3A hold at room temperature, just above the 60°C hold (was ~3.4A at the old 1.47A limit) |
 | Unregulated double stall (**cannot happen now**) | 4.9A | this is what the limit removes |
 
 **The verdict is that F1 is adequate, with one caveat.** The worst case the hardware
@@ -1252,9 +1269,11 @@ matters. The hardware current limit is the backstop; F1 is the backstop's backst
   cheaper ones are worse. A higher-stall motor does not change the *supply* current
   any more — the 1.47A limit caps it — but it does change how hard regulation works
   and therefore how hot U4/U5 run.
-- **F1's 40A maximum fault current against the pack.** Unchanged from issue 7 — a
-  low-impedance 2S LiPo can deliver far more than that into a hard short. This is
-  independent of the motor choice and is still open.
+- **F1's 40A maximum fault current against the pack — FAILS with the chosen pack
+  (2026-09-23).** The pack is an OVONIC 2S 450 mAh 100C with XT30, 62 × 17 × 14 mm
+  (see `BOM.md`). It is sold as 100C continuous and 200C burst — 45 A and 90 A — so
+  a hard short downstream of F1 can exceed F1's 40 A rating. Still open: it needs a
+  fuse with a higher interrupt rating, or a lower-C pack.
 - **Q1 (AO4407A, 17mΩ at VGS = −6V).** At 4.5A that is ~0.34W in a SOIC-8 — fine with
   reasonable copper on all three source and all four drain pads, where the previous
   ≥3A-class figure of ~0.61W was pushing it.
@@ -1943,6 +1962,52 @@ overhangs the board edge (recorded in `layout/README.md`). They now live in:
 Evidence: `layout/drc-clean/`.
 
 
+### J8/J9 in the Pololu pin order (2026-09-23)
+
+J8/J9 moved from 2.0 mm JST PH (M1 GND A B VCC M2) to `SM06B-SRSS-TB` in the
+Pololu 12 CPR encoder order (GND B A VCC M2 M1, MP to GND), so the motors plug in
+with Pololu's straight SH-SH cable; R17/R18 went 1.5 → 2.2 kΩ for the 1 A contact
+rating. See "Connectors J8/J9" and "Current limit". The copper is
+`tools/autoroute/pololu_conn.py`, which runs after `issue8.py`.
+
+- **Placement.** J8 is at (110, 125.5) rot 180 and J9 is at (160, 103.4) rot 90.
+  Each keeps its old rotation, so its cable still exits toward its motor, and
+  each sits inside the old PH courtyard. J9's x is the eastmost that stays clear
+  of the 0.6 mm `/VBUS` run at x ≈ 160.
+- **What moved with it.** The PH part was through-hole, so `GPIO2`, `GPIO39` and
+  `GPIO40` ran between its pins. The new SMD pad row lands on them, so they were
+  cut and re-routed round or under it. So were the encoder nets and U4's VREF
+  feed. That feed was a B.Cu run to the old through-hole J8 pin 5, and it is
+  the only 3V3 path under the In2 VBAT island. It now reaches the J8.4 stitch
+  via, about 22 mm on B.Cu, because no 3V3 via sits between the island edge
+  and J8.
+- **Only 13 nets changed.** A track/via diff against the previous board touches
+  only the four motor nets, the four encoder nets, `GPIO2/39/40`, `/ESP_3V3` and
+  `GND`. There are 253 vias, up from 243.
+- **Checks.**
+  - DRC: 0 violations, 0 unconnected, 0 schematic-parity issues.
+  - ERC: 0.
+  - The aperture audit passes.
+  - The Motor trunk rule still holds; the fan-in stubs are 0.6 mm, the rule's
+    floor.
+
+| | before | after |
+|---|---:|---:|
+| motor A loop area | 103.3 mm² | **23.9 mm²** |
+| motor B loop area | 83.4 mm² | **9.8 mm²** |
+| `MOT_A_1` / `MOT_A_2` path | 17.2 / 19.2 mm | 20.3 / 23.7 mm |
+| `MOT_B_1` / `MOT_B_2` path | 44.0 / 60.9 mm | 47.0 / 52.8 mm |
+| IPROPI to motor copper | 0.29 mm | **0.53 mm** |
+| `REG_EN` to motor, and other guarded clearances | — | unchanged |
+
+**Motor A pairs now.** Issue 4's "do not re-try it" was about J8's M1/M2
+straddling U4 at opposite ends of a PH header. They are now adjacent pins, and
+both trunks drop straight from U4 onto pins 6/5 under the housing.
+
+**Expected output, not failures.** J8.1, J8's west MP and J9.1 have no room for
+a via of their own, so the stage prints `! no stitch via for GND …` for them and
+then ties each to the nearest stitched pad or GND via.
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
@@ -2055,14 +2120,17 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   **Sized and paired 2026-09-21. 0.8 mm trunks enforced by the `Motor` netclass and
   `Pixy-M2.kicad_dru`; `MOT_B_1`/`MOT_B_2` now run as a pair (loop 423.6 → 111.5 mm²)
   without moving U5. `MOT_A_1`/`MOT_A_2` cannot be paired usefully — see issue 4
-  below for why, and do not re-try it.**
+  below for why, and do not re-try it.** *Superseded 2026-09-23: with M1/M2 on
+  adjacent SH pins both pairs route together — see "J8/J9 in the Pololu pin
+  order".*
 - **`GPIO2` and `GPIO10` carry IPROPI analog current**, not logic. Keep them short,
   away from the motor outputs and the SW node. They no longer run anywhere else —
   J2/J3 are gone, so there is no header stub on them to keep short.
 - **Place J8/J9 facing their motors** with the cable exit pointing at the motor, and
   keep them out of the antenna keep-out. Silkscreen pin 1 and which motor each one
-  is — the pinout mirrors the encoder module, so a cable built "the usual way round"
-  will put motor voltage into the encoder.
+  is. Since 2026-09-23 the pinout is Pololu's own and the cable is Pololu's
+  straight SH-SH encoder cable, so the cable cannot be built wrong — but a
+  non-Pololu motor plugged in 1:1 can still put motor voltage on its encoder.
 - **J11 and TP5–TP9 go where a hand and a probe can reach them** — a board edge, not
   under the chassis or behind a motor. J11 is the only way back in if USB-Serial-JTAG
   is ever disabled, so burying it defeats the point. Keep TP9 within probe-tip reach

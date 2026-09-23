@@ -83,13 +83,24 @@ What it does, in order — the order matters:
     nets the router left at 0.15 mm to 0.2 mm outside the DRV8231A pin fields,
     re-routes the USB supply (`Net-(F2-Pad1)`, `/VBUS`) at 0.6 mm with the D3 tap
     pinned to its old corridor, and the R14 tap on `/VBAT_FUSED` at 0.8 mm;
-13. points U1 at the project footprint `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`
+13. moves J8/J9 to JST SH in the Pololu encoder pin order (`pololu_conn.py`,
+    2026-09-23).  It swaps the two PH footprints for SH clones of J4, rips the
+    motor trunks back to the driver escapes, drops other-net copper under the
+    new pad rows, prunes what that leaves dangling *within 2 mm of the new
+    pads only*, then re-routes: 0.6 mm fan-in stubs and paired 0.8 mm trunks on
+    M1/M2, 0.2 mm reconnections for the cut signals, plane stitches for GND,
+    VCC and the MP pads, and U4's VREF feed (its B.Cu run to the old
+    through-hole J8 pin was the only 3V3 path under the In2 VBAT island).
+    It also sets R17/R18 to 2.2 kΩ.  `! no stitch via for GND near …` for
+    J8.1, J8's west MP and J9.1 is **expected**: those pads are then tied to
+    the nearest stitched pad or GND via;
+14. points U1 at the project footprint `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`
     (`Pcb.set_fpid`), matching the schematic, so the placed copy matches its
     library (see `layout/drc-clean/`);
-14. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+15. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
    areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
    on, and the `Dwgs.User` fab note;
-15. serializes a temporary candidate and runs `via_openings.py` before replacing
+16. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including
@@ -118,4 +129,5 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `pcbedit.py` | text-level surgery on the `.kicad_pcb`: add/drop segments and vias, move footprints, their pads' and texts' angles and board-level labels, append zones. **A footprint or text edit re-splits the file from `self.text` and drops any track/via edit not yet in it** — which is why `rework.py` does its moves first; a late move must call `sync()` first to fold pending block edits back in. **Rotating a footprint must rotate every `(at …)` inside it** — pads included, since each stores its angle in the board frame. Miss them and DRC reports `lib_footprint_mismatch`, which reads like a library problem rather than a bad edit |
 | `issue8.py` | review issue 8: the copper the Power/Battery/signal-width rules require. Two router caveats live here: `Router.route_waypoints` offers each waypoint on both layers, so consecutive legs can meet on different layers with no via between them (pin waypoints to one layer); and `G.smd_block` keeps via *centres* only 0.15 mm off SMD pads, which lets a drill touch the mask opening — `issue8.py` rebuilds it at drill radius + 0.10 mm for its own stage |
 | `usb_pair.py` | review issue 7: U2 rotation, the hand-placed USB pair, and the CC1/CC2 reroute around it. Geometry constants (`WIDTH`, `GAP`, `U2_AT`, `GND_VIA`) are at the top; the impedance behind them is `../impedance/zdiff.py` |
-| `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |
+| `pololu_conn.py` | the J8/J9 connector swap (step 13).  Its `prune()` subtracts a baseline taken before the swap, because on plane nets every bare stitching via looks dangling, and it only trims near the new pads: pruning a cut GPIO40 all the way back ate the 0.15 mm DRV8231A pin escape, which the router cannot re-create.  Its dangling test counts a T onto a segment only if that segment does not share an end with the one tested, because the router's 0.05 mm staircase steps each lie within half a width of the next |
+| `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. The connector end of each pair is looked up by net, so it measures boards from before and after the J8/J9 re-pin alike. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |

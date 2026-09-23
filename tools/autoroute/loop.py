@@ -70,16 +70,28 @@ def length(poly):
     return sum(math.dist(poly[i], poly[i + 1]) for i in range(len(poly) - 1))
 
 
-PAIRS = [('motor A', '/MOT_A_1', (109.95, 114.25), (115.0, 128.0),
-          '/MOT_A_2', (109.95, 113.25), (105.0, 128.0)),
-         ('motor B', '/MOT_B_1', (117.95, 114.25), (158.0, 107.0),
-          '/MOT_B_2', (117.95, 113.25), (158.0, 97.0))]
+# (name, OUT1 net, driver pin, OUT2 net, driver pin, connector).  The connector
+# end is looked up by net, so this measures a board from before J8/J9 moved to
+# the Pololu pin order (M1 on pin 1) and one after it (M1 on pin 6) alike.
+PAIRS = [('motor A', '/MOT_A_1', (109.95, 114.25), '/MOT_A_2', (109.95, 113.25), 'J8'),
+         ('motor B', '/MOT_B_1', (117.95, 114.25), '/MOT_B_2', (117.95, 113.25), 'J9')]
+
+
+def connector_pad(p, ref, net):
+    from sexp import parse, children
+    from load import fp_info
+    for fp in children(parse(p.text), 'footprint'):
+        f = fp_info(fp)
+        if f['ref'] == ref:
+            return next((q['x'], q['y']) for q in f['pads'] if q['net'] == net)
+    raise KeyError(ref)
 
 
 def report(path, verbose=False):
     p = Pcb(path)
     out = {}
-    for name, n1, d1, c1, n2, d2, c2 in PAIRS:
+    for name, n1, d1, n2, d2, ref in PAIRS:
+        c1, c2 = connector_pad(p, ref, n1), connector_pad(p, ref, n2)
         a = polyline(p, n1, d1, c1)
         b = polyline(p, n2, d2, c2)
         out[name] = area(a + b[::-1])

@@ -12,9 +12,9 @@ Reads `base-routed.kicad_pcb` (the 2026-09-21 autorouted board) and writes
      closes in local top copper; C21 shifted clear of the new escape corridor.
 
 Later review findings run as further stages of main(): 4 (motor-B pairing),
-5 (buck block), 6 (vias out of pad openings, finish_issue6.py) and, last,
-7 (the USB pair, usb_pair.py) and 8 (the copper the rule set requires,
-issue8.py).
+5 (buck block), 6 (vias out of pad openings, finish_issue6.py), 7 (the USB
+pair, usb_pair.py), 8 (the copper the rule set requires, issue8.py) and, last,
+J8/J9 moved to JST SH in the Pololu encoder pin order (pololu_conn.py).
 """
 import sys, math, heapq, os, uuid
 import numpy as np
@@ -84,7 +84,8 @@ REFS = {'C18': (-2.15, 0.0), 'C20': (-2.15, 0.0), 'C21': (-2.1, 2.7),
 # via properties consistent; this final pass also clears complete drill edges.
 from finish_issue6 import finish_issue6, FAB_NOTE
 from usb_pair import usb_pair
-from issue8 import issue8, rule_areas as issue8_rule_areas
+from issue8 import issue8, rule_areas as issue8_rule_areas, _drill_clear_of_pads
+from pololu_conn import pololu_conn
 FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
@@ -848,6 +849,9 @@ def main():
     usb_pair(p, Router)
     print('rule-set copper (issue 8)')
     issue8(p, Router)
+    print('J8/J9 in the Pololu encoder pin order')
+    if not pololu_conn(p, Router, pair_waypoints, _drill_clear_of_pads):
+        raise RuntimeError('J8/J9 connector routing failed')
 
     # U1 keeps its antenna outline on F.Fab (it overhangs the board edge); that
     # variant lives in the project library, so the placed copy matches it
