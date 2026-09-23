@@ -94,13 +94,17 @@ What it does, in order — the order matters:
     It also sets R17/R18 to 2.2 kΩ.  `! no stitch via for GND near …` for
     J8.1, J8's west MP and J9.1 is **expected**: those pads are then tied to
     the nearest stitched pad or GND via;
-14. points U1 at the project footprint `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`
+14. replaces F1 with a Littelfuse 885 fuse (`f1_fuse.py`, 2026-09-23): builds
+    the footprint from the stock library file, moves BT1 0.4 mm north so its
+    courtyard fits, drops the stubs left on the old 2920 pads, and re-routes
+    `/VBAT_RAW` and `/VBAT_FUSED` at 1.0 mm;
+15. points U1 at the project footprint `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`
     (`Pcb.set_fpid`), matching the schematic, so the placed copy matches its
     library (see `layout/drc-clean/`);
-15. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+16. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
    areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
    on, and the `Dwgs.User` fab note;
-16. serializes a temporary candidate and runs `via_openings.py` before replacing
+17. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including
@@ -130,4 +134,5 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `issue8.py` | review issue 8: the copper the Power/Battery/signal-width rules require. Two router caveats live here: `Router.route_waypoints` offers each waypoint on both layers, so consecutive legs can meet on different layers with no via between them (pin waypoints to one layer); and `G.smd_block` keeps via *centres* only 0.15 mm off SMD pads, which lets a drill touch the mask opening — `issue8.py` rebuilds it at drill radius + 0.10 mm for its own stage |
 | `usb_pair.py` | review issue 7: U2 rotation, the hand-placed USB pair, and the CC1/CC2 reroute around it. Geometry constants (`WIDTH`, `GAP`, `U2_AT`, `GND_VIA`) are at the top; the impedance behind them is `../impedance/zdiff.py` |
 | `pololu_conn.py` | the J8/J9 connector swap (step 13).  Its `prune()` subtracts a baseline taken before the swap, because on plane nets every bare stitching via looks dangling, and it only trims near the new pads: pruning a cut GPIO40 all the way back ate the 0.15 mm DRV8231A pin escape, which the router cannot re-create.  Its dangling test counts a T onto a segment only if that segment does not share an end with the one tested, because the router's 0.05 mm staircase steps each lie within half a width of the next |
+| `f1_fuse.py` | the F1 swap (step 14).  Reuses `pololu_conn.py`'s rip / prune / reconnect helpers; its pruning zone is the pads' *extent* plus 2 mm, since F1's pads are 7.3 mm tall and a zone built from pad centres missed a track under the pad's own edge |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. The connector end of each pair is looked up by net, so it measures boards from before and after the J8/J9 re-pin alike. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |

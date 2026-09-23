@@ -132,8 +132,11 @@ def dangling(p, g, nets):
         pads = [pd for _, pd in _pads(g, net)]
         for b, (x1, y1, x2, y2, w, l) in sg:
             for (px, py) in ((x1, y1), (x2, y2)):
-                if any(l in _layers(pd) and _in_pad(pd, px, py) for pd in pads): continue
-                if any(math.hypot(px - vx, py - vy) <= s / 2 for _, (vx, vy, s, d) in vg): continue
+                # an end whose copper overlaps a pad or via is connected: the
+                # router can finish a 0.8 mm track 0.36 mm from a 0.6 mm via
+                ov = w / 2 - 0.02
+                if any(l in _layers(pd) and _in_pad(pd, px, py, ov) for pd in pads): continue
+                if any(math.hypot(px - vx, py - vy) <= s / 2 + ov for _, (vx, vy, s, d) in vg): continue
                 # a shared end, or a T onto a segment that is not this one's
                 # neighbour: the router's 0.05 mm staircase steps each lie within
                 # half a width of the next, so a looser test calls a dead spur live
@@ -159,10 +162,14 @@ ZONE_MARGIN = 2.0
 
 
 def _zone(g, ref):
-    """the new connector's pad extent plus ZONE_MARGIN"""
+    """the footprint's pad extent plus ZONE_MARGIN -- pad edges, not centres,
+    or a 7 mm pad (F1) leaves a track under its own edge outside the zone"""
     pads = g.byref[ref]['pads']
-    return (min(q['x'] for q in pads) - ZONE_MARGIN, min(q['y'] for q in pads) - ZONE_MARGIN,
-            max(q['x'] for q in pads) + ZONE_MARGIN, max(q['y'] for q in pads) + ZONE_MARGIN)
+    r = [max(q['w'], q['h']) / 2 for q in pads]
+    return (min(q['x'] - e for q, e in zip(pads, r)) - ZONE_MARGIN,
+            min(q['y'] - e for q, e in zip(pads, r)) - ZONE_MARGIN,
+            max(q['x'] + e for q, e in zip(pads, r)) + ZONE_MARGIN,
+            max(q['y'] + e for q, e in zip(pads, r)) + ZONE_MARGIN)
 
 
 def _near(b, zones):

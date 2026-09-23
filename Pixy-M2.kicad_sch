@@ -4835,6 +4835,158 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Device:Fuse"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "F"
+				(at 2.032 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Fuse"
+				(at -1.905 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at -1.778 0 90)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Fuse"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "fuse"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "*Fuse*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Fuse_0_1"
+				(rectangle
+					(start -0.762 -2.54)
+					(end 0.762 2.54)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "Fuse_1_1"
+				(pin passive line
+					(at 0 3.81 270)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name ""
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:Polyfuse"
 			(pin_numbers
 				(hide yes)
@@ -14196,7 +14348,7 @@
 		(uuid "283977a6-ef41-4b2e-b9ef-ff73a7fe65b1")
 	)
 	(symbol
-		(lib_id "Device:Polyfuse")
+		(lib_id "Device:Fuse")
 		(at 161.29 73.66 90)
 		(unit 1)
 		(body_style 1)
@@ -14214,7 +14366,7 @@
 				)
 			)
 		)
-		(property "Value" "3A 15V"
+		(property "Value" "5A 1500A@125VDC"
 			(at 161.29 68.58 90)
 			(effects
 				(font
@@ -14222,7 +14374,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Fuse:Fuse_2920_7451Metric"
+		(property "Footprint" "Fuse:Fuse_Littelfuse-NANO2-885"
 			(at 161.29 73.66 0)
 			(hide yes)
 			(effects
@@ -14231,7 +14383,7 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.littelfuse.com/assetdocs/2920l_datasheet_update.pdf?assetguid=f237e8c2-1ed9-4c13-a738-dbe0738b3d2c"
+		(property "Datasheet" "https://www.littelfuse.com/assetdocs/littelfuse-fuse-885-datasheet?assetguid=f4426cf6-2a53-41b3-b8da-211f7a44fad1"
 			(at 161.29 73.66 0)
 			(hide yes)
 			(effects
@@ -14240,7 +14392,7 @@
 				)
 			)
 		)
-		(property "Description" "Battery PPTC: 3A hold / 5A trip at 20C, 15V, 40A maximum fault current. Provisional; verify motor/fan load and pack fault current."
+		(property "Description" "Battery fuse, one-time: Littelfuse 885 series 5A, breaks 1500A @ 125VDC. Sized for the pack short-circuit current (OVONIC 2S 450mAh 100C, est. 200-400A); the old 2920 PPTC was rated for 40A max fault. 200% opens in 2 min max; max normal load ~2.4A."
 			(at 161.29 73.66 0)
 			(hide yes)
 			(effects
@@ -14249,7 +14401,7 @@
 				)
 			)
 		)
-		(property "MPN" "2920L300/15DR"
+		(property "MPN" "0885005.DR"
 			(at 161.29 73.66 0)
 			(hide yes)
 			(effects

@@ -37,7 +37,7 @@ not chosen one yet.
 | Qty | Ref | Part | Package | Status |
 |---:|---|---|---|---|
 | 1 | L1 | Bourns **SRP5030T-4R7M**, 4.7 µH | 5.0×5.0 mm | Fixed (LCSC C2045677) |
-| 1 | F1 | Littelfuse **2920L300/15DR**, 3 A hold PPTC | 2920 | Fixed. The rating is provisional pending the issue-17 measurement. |
+| 1 | F1 | Littelfuse **0885005.DR**, 5 A fast-acting fuse, **breaks 1500 A @ 125 VDC** | 885 series, 10.9 × 4.8 × 4.8 mm | Fixed. One-time, not resettable. It replaced the 2920L300/15DR PPTC, which could only break 40 A; this pack can put an estimated 200–400 A into a dead short. |
 | 1 | F2 | Bourns **MF-MSMF050-2**, 500 mA hold PPTC | 1812 | Fixed |
 | 1 | SW3 | C&K **JS102011SAQN** SPDT slide | SMD | Fixed |
 | 2 | SW1, SW2 | E-Switch **TL3301NF160QG** tactile, 160 gf | 6×6 SMD | The footprint is fixed as TL3301N-family. The 160 gf force is a suggestion; 100 gf and 260 gf fit the same footprint. |
@@ -146,12 +146,11 @@ and still gives about 63 % of the motor's 6 V stall torque. IPROPI now reads
   `layout/README.md` is 40 × 30 × 15 mm. Turned 90°, it fits across the 66 mm
   board in the front strip (Y ≈ 5–22), clear of the motors and BT1's pads. The
   reservation drawing and the battery attachment bands have not been updated.
-- **Fault current.** F1 (2920L300/15DR) is rated to interrupt at most **40 A**.
-  This pack is sold as 100C continuous and 200C burst, which is 45 A and 90 A. A
-  hard short downstream of F1 can therefore exceed what F1 is rated to break.
-  This is the issue-17 check, and this pack fails it. It needs a design decision,
-  such as a higher-rated fuse or a pack with lower C; nothing in this change
-  addresses it.
+- **Fault current — handled by F1.** The pack is sold as 100C continuous and
+  200C burst (45 A and 90 A), and its dead-short current is estimated at
+  200–400 A. The original F1 PPTC could break only 40 A. Rather than give up the
+  burst current with a lower-C pack, F1 is now a Littelfuse 0885005.DR rated to
+  break 1500 A.
 - **Charging.** You need a 2S balance charger with an XT30 lead (or an adapter)
   and a JST-XH balance port.
 

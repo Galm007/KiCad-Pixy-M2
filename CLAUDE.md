@@ -16,7 +16,7 @@ through two 22-pin headers (J2, J3). **Those headers were deleted on 2026-09-20*
 once the motor, IMU and debug blocks that replaced them were built.
 
 Power comes from a **2S LiPo (7.4V nominal, 8.4V full charge)** via an XT30 connector,
-F1 battery polyfuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
+F1 battery fuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
 and down-converted to 3.3V by an AP63203WU buck. `VBAT` is the switched, fused
 motor/high-current supply; `VBUS` is downstream of the USB polyfuse F2.
 The 2S pack is charged separately; no onboard battery charger is required.
@@ -494,7 +494,7 @@ the budget is recomputed against real numbers.
 
 | Ref | Fitted part / value | Footprint | Selection |
 |---|---|---|---|
-| F1 | Littelfuse `2920L300/15DR`, 3A 15V | `Fuse:Fuse_2920_7451Metric` | 3A hold, 5A trip at 20°C; 40A maximum fault current |
+| F1 | **Littelfuse `0885005.DR`** (since 2026-09-23; was `2920L300/15DR` PPTC) | `Fuse:Fuse_Littelfuse-NANO2-885` | 5A one-time fuse, **breaks 1500A @ 125VDC** — see issue 17, "F1 is now a 1500 A-breaking fuse" |
 | F2 | Bourns `MF-MSMF050-2`, 500mA 15V | `Fuse:Fuse_1812_4532Metric` | 0.5A hold, 1A trip at 23°C |
 | Q1 | AOS `AO4407A` | `Package_SO:SOIC-8_3.9x4.9mm_P1.27mm` | −30V P-FET, ±25V gate; 17mΩ max at VGS = −6V |
 | R14 | 100kΩ | `Resistor_SMD:R_0805_2012Metric` | Gate-to-source pull-up, defaults OFF |
@@ -535,7 +535,9 @@ drivers a defined disabled state (see issue 15).
 **Current-budget check — now needed before *routing*, not just before fabrication
 (issue 17):** verify steady load at the actual
 fuse temperature, both motor stalls, pack short-circuit capability,
-and the copper/header/wiring ratings. F1 is a thermal PPTC, not a hard 3A limiter:
+and the copper/header/wiring ratings. *(2026-09-23: the rest of this paragraph
+describes the original PPTC. F1 is now a one-time 885-series fuse — see issue 17.)*
+F1 was a thermal PPTC, not a hard 3A limiter:
 its specified maximum trip time is 20s at 8A, and its hold current falls to about
 2.31A at 60°C. Its 40A maximum fault-current rating must also suit the selected
 pack. Do not increase F1 without checking the entire power path. F2 similarly does not enforce a USB host's negotiated current budget;
@@ -1269,11 +1271,11 @@ matters. The hardware current limit is the backstop; F1 is the backstop's backst
   cheaper ones are worse. A higher-stall motor does not change the *supply* current
   any more — the 1.47A limit caps it — but it does change how hard regulation works
   and therefore how hot U4/U5 run.
-- **F1's 40A maximum fault current against the pack — FAILS with the chosen pack
-  (2026-09-23).** The pack is an OVONIC 2S 450 mAh 100C with XT30, 62 × 17 × 14 mm
-  (see `BOM.md`). It is sold as 100C continuous and 200C burst — 45 A and 90 A — so
-  a hard short downstream of F1 can exceed F1's 40 A rating. Still open: it needs a
-  fuse with a higher interrupt rating, or a lower-C pack.
+- **F1's maximum fault current against the pack — RESOLVED 2026-09-23.** The
+  chosen pack (OVONIC 2S 450 mAh 100C, XT30, see `BOM.md`) exceeded the old PPTC's
+  40 A rating, and a lower-C pack was rejected: the burst current is the point of
+  it. F1 is now a fuse that breaks 1500 A — see "F1 is now a 1500 A-breaking fuse"
+  below.
 - **Q1 (AO4407A, 17mΩ at VGS = −6V).** At 4.5A that is ~0.34W in a SOIC-8 — fine with
   reasonable copper on all three source and all four drain pads, where the previous
   ≥3A-class figure of ~0.61W was pushing it.
@@ -1286,7 +1288,47 @@ survive what D6 lets through, not just the 8.4V pack. Either pick a driver with
 headroom above 15.4V, or accept the risk knowingly — **do not assume the TVS protects
 the driver**, because at these ratings it does not.
 
-**Do not simply fit a bigger polyfuse** if measurement shows F1 nuisance-tripping.
+### F1 is now a 1500 A-breaking fuse (2026-09-23)
+
+**Why.** The pack's short-circuit current is set by its internal resistance, which
+Ovonic does not publish. Taking 8–15 mΩ per cell for a fresh high-C 450 mAh pack,
+plus the XT30s, the lead, the fuse and the copper, a dead short on a full pack
+(8.4 V) comes to roughly **200–400 A**. The 2920L300/15DR PPTC was rated to break
+40 A. Littelfuse's 451/453 NANO2 parts, 300–400 A @ 32 VDC, sit inside that
+estimate, so they were rejected too.
+
+**Part.** F1 is now a Littelfuse **0885005.DR**: 885 series, 5 A, fast-acting,
+**1500 A breaking at 125 VDC**, 11.9 mΩ cold resistance, AEC-Q200-based
+qualification. It opens in at least 1 h at 125 % of rating, at most 2 min at 200 %,
+and at most 1 s at 1000 %.
+
+**Why 5 A.** The largest normal `VBAT` load is ~2.4 A: both motors at the 1.00 A
+limit plus the buck. After the datasheet's standard 25 % derating, 5 A still
+carries 3.75 A continuous at 25 °C, with room for the temperature rerating on top.
+Its 35 A²s melting I²t is ~20× the bulk capacitors' charge at switch-on.
+
+**What changed in behaviour.** F1 is **one-time**. It no longer trips slowly on a
+jammed robot and resets. That job is now done by the drivers' 1.00 A current limit
+plus firmware stall detection on IPROPI. F1 only opens on a real fault, and
+replacing it means reworking an SMD part. The symbol changed from
+`Device:Polyfuse` to `Device:Fuse` (same pins). **F2 stays a PPTC**: USB fault
+current is small.
+
+**Layout** (`tools/autoroute/f1_fuse.py`, after `pololu_conn.py`):
+- **F1's position.** The land pattern is 16.1 × 7.3 mm, so F1 moved to
+  (110.2, 100.7). Pad 1 sits under BT1's + pin, and pad 2 has a short run to Q1's
+  source pins.
+- **BT1 moved 0.4 mm north,** to (105, 93.6). F1's 7.76 mm courtyard did not fit
+  the 7.65 mm gap between BT1 and D6. D6 stays put, since it sits in the tuned
+  motor region. J6 is still 2.6 mm above BT1, and BT1's holes still clear the
+  underside reservations (`layout/verify_placement.py`: no clashes).
+- **Routing.** `/VBAT_RAW` and `/VBAT_FUSED` are re-routed at 1.0 mm. No other
+  net changed.
+- **D6's silkscreen reference** moved off F1's pad 2.
+- **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. ERC 0. The aperture
+  audit passes.
+
+**Do not simply fit a bigger fuse** if measurement shows F1 nuisance-blowing.
 Raising F1 raises the fault current every downstream part must survive. The cheaper
 fixes come first: lower the ITRIP resistors, or tighten the firmware duty cap.
 
