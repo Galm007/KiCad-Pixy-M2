@@ -5893,7 +5893,7 @@
 			)
 		)
 	)
-	(footprint "PCM_Espressif:ESP32-S3-WROOM-1"
+	(footprint "Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang"
 		(layer "F.Cu")
 		(uuid "5a9dde43-6f36-49fe-81c7-699c74d3ee13")
 		(at 133 150 180)

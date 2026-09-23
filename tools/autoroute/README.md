@@ -83,10 +83,13 @@ What it does, in order — the order matters:
     nets the router left at 0.15 mm to 0.2 mm outside the DRV8231A pin fields,
     re-routes the USB supply (`Net-(F2-Pad1)`, `/VBUS`) at 0.6 mm with the D3 tap
     pinned to its old corridor, and the R14 tap on `/VBAT_FUSED` at 0.8 mm;
-13. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+13. points U1 at the project footprint `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`
+    (`Pcb.set_fpid`), matching the schematic, so the placed copy matches its
+    library (see `layout/drc-clean/`);
+14. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
    areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
    on, and the `Dwgs.User` fab note;
-14. serializes a temporary candidate and runs `via_openings.py` before replacing
+15. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including

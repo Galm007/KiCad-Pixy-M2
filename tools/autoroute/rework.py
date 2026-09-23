@@ -849,6 +849,10 @@ def main():
     print('rule-set copper (issue 8)')
     issue8(p, Router)
 
+    # U1 keeps its antenna outline on F.Fab (it overhangs the board edge); that
+    # variant lives in the project library, so the placed copy matches it
+    p.set_fpid('U1', 'Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang')
+
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'
     p.add_zone(ZONE.format(uuid=uuid.uuid4(), name='GND pour motor region',

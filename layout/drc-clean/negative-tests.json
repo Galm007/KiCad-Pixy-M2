@@ -1,0 +1,15 @@
+{
+  "neg_other": {
+    "edit": "a 0.2 mm track 0.25 mm from an SW3 locating hole (not J1)",
+    "fired": [
+      "Hole clearance violation (rule 'Hole clearance' clearance 0.3000 mm; actual 0.2500 mm)"
+    ]
+  },
+  "neg_j1": {
+    "edit": "J1 left locating hole moved 0.1 mm toward its GND pads (0.25 -> 0.15 mm)",
+    "fired": [
+      "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1500 mm)",
+      "Hole clearance violation (rule 'Hole clearance' clearance 0.3000 mm; actual 0.2005 mm)"
+    ]
+  }
+}

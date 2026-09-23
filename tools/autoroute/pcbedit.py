@@ -138,6 +138,16 @@ class Pcb:
         self.text = self.text[:i] + blk2 + self.text[j:]
         self._split()
 
+    def set_fpid(self, ref, fpid):
+        """point a footprint at another library id; geometry is untouched"""
+        self.sync()
+        i, j = self.footprint_span(ref)
+        blk = self.text[i:j]
+        m = re.match(r'\t\(footprint "[^"]*"', blk)
+        assert m, f'{ref}: no footprint header'
+        self.text = self.text[:i] + f'\t(footprint "{fpid}"' + blk[m.end():] + self.text[j:]
+        self._split()
+
     def move_text(self, text, x, y):
         """move a board-level (gr_text "...") to an absolute position"""
         m = re.search(r'\(gr_text "%s"\s*\n\s*\(at (?P<a>[-\d.]+ [-\d.]+)' % re.escape(text), self.text)

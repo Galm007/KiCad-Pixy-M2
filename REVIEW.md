@@ -16,6 +16,11 @@
 > `REG_EN` 0.40 mm from the SW pin, IPROPI 0.29 mm from motor copper; see
 > `layout/issue8-rules/README.md`. The shield-return and D6 side observations
 > are untouched. DRC verdict unchanged throughout.
+> **2026-09-23: DRC is clean** — 0 violations, 0 unconnected, 0 parity issues. The
+> J1 pad-to-hole gaps are the Amphenol land pattern, now allowed at JLCPCB's
+> 0.20 mm by a rule scoped to J1's own pads and holes (0.30 mm everywhere else);
+> U1's antenna-silkscreen customization moved into a project library footprint.
+> See `layout/drc-clean/README.md`.
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1

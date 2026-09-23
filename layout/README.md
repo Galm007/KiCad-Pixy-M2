@@ -37,6 +37,11 @@ J4 = forward left / GPIO4, J5 = forward right / GPIO5, J6 = look-ahead left / GP
 
 ## Five retained DRC findings
 
+> **Resolved 2026-09-23** without changing the land patterns: see
+> `layout/drc-clean/README.md`. J1's gap is allowed at JLCPCB's 0.20 mm by a rule
+> scoped to J1's own pads and holes; U1's variant is now the project library
+> footprint `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`.
+
 1. **Four J1 pad-to-hole clearance errors:** the assigned stock Amphenol footprint has 0.25 mm between its locator holes and adjacent GND pads, versus the project's 0.30 mm minimum. These are intrinsic footprint geometry, not overlaps between placed components. Verify the connector drawing and fabricator capability before routing/fabrication; the rule has not been weakened and the findings have not been excluded. The original 0.20 mm board-edge clearance rule is satisfied.
 2. **One U1 library-footprint mismatch warning:** antenna silkscreen segments crossing or crowding the rear edge were moved to F.Fab. Pads, electrical mapping, courtyard, antenna geometry and keepout remain unchanged. Updating this footprint from its library would restore those silkscreen segments.
 

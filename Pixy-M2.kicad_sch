@@ -12667,7 +12667,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "PCM_Espressif:ESP32-S3-WROOM-1"
+		(property "Footprint" "Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang"
 			(at 83.82 129.54 0)
 			(hide yes)
 			(show_name no)

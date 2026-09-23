@@ -368,6 +368,15 @@ R9 ≥ 94k. The two constraints do not intersect, so the reverse path must be bl
 U1 is now `ESP32-S3-WROOM-1-N16` with footprint `PCM_Espressif:ESP32-S3-WROOM-1`.
 No component in the design is missing a footprint.
 
+**Since 2026-09-23 the footprint is `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`**, in
+the project library `Pixy-M2.pretty`. It is Espressif's footprint with the
+antenna-area outline and label moved from F.SilkS to F.Fab, because the antenna
+overhangs the board edge. See "DRC clean" below. **Do not "Update footprint from
+library" back to `PCM_Espressif`**: that restores silkscreen that prints off the
+board. The cached *symbol* still says `PCM_Espressif:ESP32-S3-WROOM-1` as its
+default footprint, deliberately; editing the cache raises an ERC
+`lib_symbol_mismatch`. Only the placed U1's Footprint field changed.
+
 ### 4. Dead header pins — RESOLVED
 
 The `5V0`, `GPIO19` and `GPIO20` header pins are gone. **Superseded entirely on
@@ -1378,13 +1387,15 @@ pads and makes OUT1 unroutable on both drivers.
 - No teardrops, no length matching, no via stitching of the two GND layers beyond the
   signal/plane vias already placed.
 
-### Pre-existing DRC errors, not caused by routing
+### Pre-existing DRC errors, not caused by routing — RESOLVED 2026-09-23
 
 Four `hole_clearance` errors between J1's GND pads (A1/A12/B1/B12) and J1's own NPTH
-mounting holes — 0.25 mm against a 0.3 mm rule. They are inside the
-`USB_C_Receptacle_Amazon` footprint and were present before any track was laid. Fix
-the footprint or relax the rule; do not chase them in the routing.
-The `lib_footprint_mismatch` warning on U1 is likewise pre-existing.
+mounting holes — 0.25 mm against a 0.3 mm rule. ~~They are inside the
+`USB_C_Receptacle_Amazon` footprint~~. **Correction: J1 is the stock
+`Connector_USB:USB_C_Receptacle_Amphenol_12401948E412A`. The
+`USB_C_Receptacle_Amazon.kicad_mod` in the repo root is not used by anything.**
+They were present before any track was laid, as was the `lib_footprint_mismatch`
+warning on U1. **Both are resolved; see "DRC clean" below.**
 
 ## Motor-region rework — 2026-09-21 (review issues 1–3)
 
@@ -1897,6 +1908,39 @@ reports the first violating shape pair it meets, not the closest. A single
 `clearmin.py` descends from several thresholds.
 
 Measurements and validation: `layout/issue8-rules/README.md`.
+
+
+### DRC clean — J1 hole clearance and the U1 footprint (2026-09-23)
+
+The five DRC items carried since placement are gone. **DRC reports 0
+violations, 0 unconnected items, and 0 schematic-parity issues.** ERC is still
+0. No copper, geometry or placement changed.
+
+**J1: the land pattern stays, and the rule is scoped.** The stock Amphenol
+12401948E412A footprint puts its GND pads 0.25 mm from its own 0.6 mm locating
+holes. That is the land pattern KiCad's librarians merged against Amphenol's
+drawing c12401948 (kicad-footprints MR !3540). Amphenol blocks automated
+download, so I have not re-measured the drawing myself. JLCPCB's stated
+NPTH-to-track minimum is 0.20 mm. Board-setup hole clearance is **absolute**:
+like the minimum track width, custom rules cannot relax it. So the board setup
+is 0.30 → **0.20 mm**, and a custom **"Hole clearance"** rule restores 0.30 mm
+for every pair except J1's own pads against J1's own holes. Both directions
+were tested:
+
+- a track 0.25 mm from an SW3 hole still fails at 0.30 mm;
+- J1's hole moved to 0.15 mm fails the 0.20 mm floor.
+
+**U1: the customization is now a library footprint.** The mismatch was five
+items: the antenna-area outline and label, moved to F.Fab because the antenna
+overhangs the board edge (recorded in `layout/README.md`). They now live in:
+
+- `Pixy-M2.pretty/ESP32-S3-WROOM-1_AntennaOverhang.kicad_mod`, which is
+  Espressif's file with those five layer changes and nothing else;
+- the project `fp-lib-table`, which registers the `Pixy-M2` library;
+- U1's footprint id in the board, and in the schematic's placed-U1 field;
+- `rework.py`, which now sets the same id through `Pcb.set_fpid`.
+
+Evidence: `layout/drc-clean/`.
 
 
 ### What this pass did not touch
