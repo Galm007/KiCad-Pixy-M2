@@ -1,0 +1,96 @@
+{
+  "signal": {
+    "edit": "a 3 mm+ /GPIO21 segment at 0.15 mm",
+    "fired": [
+      [
+        "track_width",
+        "Signal minimum width"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "motor": {
+    "edit": "a /MOT_B_1 trunk segment at 0.4 mm",
+    "fired": [
+      [
+        "track_width",
+        "Motor trunk minimum width"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "usb": {
+    "edit": "a /USB_D+ segment at 0.2 mm",
+    "fired": [
+      [
+        "diff_pair_gap_out_of_range",
+        "Differential pair gap out of range (USB pair coupling maximu"
+      ],
+      [
+        "diff_pair_uncoupled_length_too_long",
+        "Differential uncoupled length too long (USB pair coupling ma"
+      ],
+      [
+        "track_width",
+        "USB line width"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "power": {
+    "edit": "a /VBUS main-run segment at 0.3 mm",
+    "fired": [
+      [
+        "track_width",
+        "Power path width"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "battery": {
+    "edit": "a /VBAT_FUSED trunk segment at 0.6 mm",
+    "fired": [
+      [
+        "track_width",
+        "Battery path width"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "reg_en": {
+    "edit": "the REG_EN via under U3 moved 0.1 mm toward the SW pin (0.30 mm)",
+    "fired": [
+      [
+        "clearance",
+        "Clearance violation (zone clearance 0.2500 mm; actual 0.1505"
+      ],
+      [
+        "clearance",
+        "Clearance violation (zone clearance 0.2500 mm; actual 0.2007"
+      ],
+      [
+        "clearance",
+        "REG_EN clear of the switch node"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "ipropi": {
+    "edit": "the GPIO2 via near U4 moved 0.06 mm toward MOT_A_2 (0.23 mm)",
+    "fired": [
+      [
+        "clearance",
+        "Clearance violation (zone clearance 0.2500 mm; actual 0.1905"
+      ],
+      [
+        "clearance",
+        "Clearance violation (zone clearance 0.2500 mm; actual 0.1985"
+      ],
+      [
+        "clearance",
+        "IPROPI clear of motor outputs"
+      ]
+    ],
+    "unconnected": 0
+  }
+}

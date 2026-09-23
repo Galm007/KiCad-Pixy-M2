@@ -1,14 +1,21 @@
 # Pixy-M2 layout review — 2026-09-21
 
-> **Status, 2026-09-22: findings 1–7 are fixed on the board; 8 is open for its
-> non-USB part.** Finding 7: U2 turned 90° so its flow-through pins face J1 and
-> U1, and D+/D− run as one 0.25 / 0.15 mm pair (field-solved ≈ 88–94 Ω; confirm
-> with the fab) from J1 to U1 on F.Cu over the In1 plane with **no vias** — the
-> connector-side D− had 4 and 8 mm of B.Cu. End-to-end skew 8.08 → 1.04 mm.
-> A `USB` netclass and three DRC rules (width, F.Cu only, pair gap/uncoupled
-> length) enforce it; each was shown to fire on a deliberately broken copy. That
-> is the USB half of finding 8. The shield-return observation is untouched. DRC
-> verdict unchanged; see `layout/issue7-usb/README.md`.
+> **Status, 2026-09-22: findings 1–8 are fixed on the board.** Finding 7: U2
+> turned 90° so its flow-through pins face J1 and U1, and D+/D− run as one
+> 0.25 / 0.15 mm pair (field-solved ≈ 88–94 Ω; confirm with the fab) from J1 to
+> U1 on F.Cu over the In1 plane with **no vias** — the connector-side D− had 4
+> and 8 mm of B.Cu. End-to-end skew 8.08 → 1.04 mm. A `USB` netclass and three
+> DRC rules enforce it; see `layout/issue7-usb/README.md`. Finding 8: `Battery`
+> and `Power` netclasses; DRC floors for every signal (0.2 mm, pin fields
+> excepted), the USB and battery supply paths (0.5 / 0.8 mm), and clearance
+> guards on `REG_EN`, `VBAT_SENSE` and the IPROPI lines. The rules caught real
+> copper, now fixed: 219 mm of 0.15 mm signal track (8.7 mm left, all in the
+> driver pin fields), and a USB supply that was 0.24 mm end to end (VBUS
+> 105 → 44 mΩ). Every rule was shown to fire on a deliberately broken copy. Two
+> clearance floors are recorded below the CLAUDE.md intent rather than met:
+> `REG_EN` 0.40 mm from the SW pin, IPROPI 0.29 mm from motor copper; see
+> `layout/issue8-rules/README.md`. The shield-return and D6 side observations
+> are untouched. DRC verdict unchanged throughout.
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1

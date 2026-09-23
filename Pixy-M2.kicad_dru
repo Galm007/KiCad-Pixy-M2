@@ -1,5 +1,14 @@
 (version 1)
 
+# Issue 8: the board-setup minimum (0.15 mm) is an absolute floor that custom
+# rules cannot relax, so it stays at what the DRV8231A's 0.5 mm pin field needs,
+# and this rule raises every other track to 0.2 mm.  It must stay FIRST: when two
+# rules set the same constraint, KiCad uses the later one, and every stricter
+# rule below (motor, USB, power, battery) has to be able to override it.
+(rule "Signal minimum width"
+	(constraint track_width (min 0.2mm))
+	(condition "A.Type == 'Track' && !A.enclosedByArea('Motor pin escape')"))
+
 # Motor outputs carry the DRV8231A's 1.47 A regulated limit (issue 15/17), so the
 # trunks are 0.8 mm.  Only the escapes inside each driver's 0.5 mm pin field may
 # neck below that, and those are fenced by the "Motor pin escape" rule areas —
@@ -42,3 +51,41 @@
 	(constraint diff_pair_gap (min 0.14mm) (opt 0.15mm) (max 0.16mm))
 	(constraint diff_pair_uncoupled (max 4mm))
 	(condition "A.inDiffPair('/USB_D*')"))
+
+# Issue 8: supply paths.  Power (USB input -> F2 -> VBUS -> D1 -> VSYS) carries
+# the whole board on USB, F2 holding 0.5 A and tripping at 1 A; Battery (BT1 ->
+# F1 -> Q1) carries up to ~3.4 A with both motors at their current limit (issue
+# 17).  The netclasses route them at 0.6 / 1.0 mm; these are the floors.  The
+# only exception is U2's VBUS pin, which leaves under the package between the
+# pin rows at 0.3 mm, fenced by the 'Power pin escape' rule area.  /VBAT is not
+# in either class: its current runs in the In2 island, and its tracks are pad
+# stubs to plane vias whose width the pin pitch sets, not the current.
+(rule "Power path width"
+	(constraint track_width (min 0.5mm))
+	(condition "A.NetClass == 'Power' && !A.enclosedByArea('Power pin escape')"))
+
+(rule "Battery path width"
+	(constraint track_width (min 0.8mm))
+	(condition "A.NetClass == 'Battery'"))
+
+# Issue 8: the "keep away" layout constraints in CLAUDE.md, as floors.  Each is
+# set just under what the board achieves (measured exactly, see
+# layout/issue8-rules/), so these guard against erosion; they do not certify
+# the constraint.  Two of them sit well below what CLAUDE.md asks for:
+#   REG_EN  (~20 kOhm, 1.2 V above a comparator threshold): 0.40 mm, U3's EN
+#           via under the package to the SW pin.  The standing fix is to put
+#           R8/C13 next to U3.2 and re-place the EN network.
+#   IPROPI  (GPIO2/GPIO10, 1.5 kOhm): 0.29 mm, a GPIO2 via beside a MOT_A_2
+#           B.Cu trunk near U4.  Validate the current reading on hardware.
+# REG_EN and VBAT_SENSE (150 kOhm) are 7.75 mm and >20 mm from motor copper.
+(rule "REG_EN clear of the switch node"
+	(constraint clearance (min 0.35mm))
+	(condition "A.NetName == '/REG_EN' && (B.NetName == 'Net-(U3-SW)' || B.NetName == 'Net-(U3-BST)')"))
+
+(rule "Sense nodes clear of motor and switch copper"
+	(constraint clearance (min 5mm))
+	(condition "(A.NetName == '/REG_EN' && B.NetClass == 'Motor') || (A.NetName == '/VBAT_SENSE' && (B.NetClass == 'Motor' || B.NetName == 'Net-(U3-SW)' || B.NetName == 'Net-(U3-BST)'))"))
+
+(rule "IPROPI clear of motor outputs"
+	(constraint clearance (min 0.25mm))
+	(condition "(A.NetName == '/GPIO2' || A.NetName == '/GPIO10') && B.NetClass == 'Motor'"))

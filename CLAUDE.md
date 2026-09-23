@@ -1347,10 +1347,10 @@ Track widths, set by net and then widened wherever clearance allowed:
 |---|---|
 | `VBAT_RAW`, `VBAT_FUSED`, `VBAT` trunk | 1.0 mm (tapering to 0.2 at small pads) |
 | `MOT_A_*`, `MOT_B_*` | **superseded by the rework: 0.8 mm throughout, 0.2–0.4 mm only in the driver pin escapes** |
-| `VSYS`, `VBUS`, `Net-(F2-Pad1)` | 0.6 mm |
+| `VSYS`, `VBUS`, `Net-(F2-Pad1)` | 0.6 mm — **was not true of `VBUS`/`Net-(F2-Pad1)` until issue 8**: they were 0.24 mm |
 | `Net-(U3-SW)` | 0.5 mm |
 | GND / 3V3 stubs | 0.4 mm |
-| signals | 0.2 mm, 0.15 mm for escapes from the 0.25 mm-wide DRV8231A pads |
+| signals | 0.2 mm, 0.15 mm for escapes from the 0.25 mm-wide DRV8231A pads — **issue 8: the router had used 0.15 mm end to end on five nets; now only inside the pin fields** |
 
 Escapes from fine-pitch parts (U4/U5 WSON-8, J1's 0.3 mm CC/D± pads) are 0.15–0.2 mm
 and sit inside the pad they leave. Plane stitching for those parts is deliberately done
@@ -1640,7 +1640,9 @@ between L1 and C7/C11; it now enters the block only as the 4.4 mm IN→C17 leg a
 the bulk feed from C12.
 
 **One thing got worse and is not hidden:** `REG_EN` copper now passes **0.99 mm**
-from switching copper where it was 2.12 mm. Its via moved out of U3.2's pad —
+from switching copper where it was 2.12 mm. *(Corrected by issue 8: measured
+exactly, the EN via under the package is **0.40 mm** from the SW pin. 0.99 mm was
+not the closest pair. The issue-8 rule set guards 0.35 mm.)* Its via moved out of U3.2's pad —
 which is review issue 6's defect, so that part is an improvement — into the
 0.95 mm gap between the pin columns, the only spot left once vias are barred from
 pads. With the In1 plane 0.2 mm below both, a via-to-trace gap of 1 mm is not a
@@ -1806,15 +1808,108 @@ separate observation, still takes its long B.Cu path behind U2.
 Measurements and validation: `layout/issue7-usb/README.md`.
 
 
+### Issue 8 — the rule set (2026-09-22)
+
+Review issue 8 said the project rules did not encode its routing requirements.
+There was only the Default netclass and a 0.15 mm global minimum, so narrow
+copper anywhere passed DRC. Issue 1 added the `Motor` class and trunk rule;
+issue 7 added the `USB` class and its width, layer and coupling rules. **This
+pass does the rest, and fixes the copper the new rules caught.** The copper
+stage is `tools/autoroute/issue8.py`, which runs after `usb_pair.py`.
+
+**New netclasses** in `Pixy-M2.kicad_pro`:
+
+- `Battery`: `/VBAT_RAW`, `/VBAT_FUSED`, 1.0 mm.
+- `Power`: `/VBUS`, `/VSYS`, `Net-(F2-Pad1)`, 0.6 mm.
+
+`/VBAT` is in neither. Its current runs in the In2 island, and its tracks are
+pad-to-plane stubs sized by pin pitch, so a width rule on it would test nothing.
+
+**New rules** in `Pixy-M2.kicad_dru`:
+
+| rule | floor | exception |
+|---|---|---|
+| Signal minimum width | every track 0.2 mm | `Motor pin escape` areas (DRV8231A pin fields) |
+| Power path width | 0.5 mm | `Power pin escape` area: U2's VBUS pin, out under the package |
+| Battery path width | 0.8 mm | none |
+| REG_EN clear of the switch node | 0.35 mm | — |
+| Sense nodes clear of motor and switch copper | 5 mm for `REG_EN` to motor, and for `VBAT_SENSE` to motor, SW and BST | — |
+| IPROPI clear of motor outputs | 0.25 mm | — |
+
+**Three KiCad behaviours fix how these rules must be written.** Each was
+verified, and each will bite whoever edits them next:
+
+- **The board-setup minimum track width is absolute.** A custom rule cannot
+  relax it, so it stays at 0.15 mm, what the pin fields need, and the 0.2 mm
+  floor is a custom rule. Raising the board setting to 0.2 mm breaks the pin
+  fields.
+- **The later of two rules setting the same constraint wins.** "Signal minimum
+  width" is therefore the **first rule in the file**. Move it below the motor,
+  USB, power or battery rule and it silently relaxes that rule to 0.2 mm.
+- **`enclosedByArea` tests the whole track outline, round caps included.** A
+  segment ending exactly on an area edge is *not* enclosed.
+
+**The clearance rules are floors just under what the board achieves, not the
+constraints in "Layout constraints".** Two sit well below them:
+
+- **`REG_EN`**: 0.40 mm from the SW pin, via the EN via under U3; see issue 5.
+- **IPROPI**: 0.29 mm from a `MOT_A_2` trunk near U4.
+
+They stop further erosion; they do not certify either constraint.
+
+**Copper the rules required:**
+
+| | before | after |
+|---|---:|---:|
+| track below 0.2 mm | 219.4 mm | **8.7 mm**, all inside the pin fields |
+| `/VBUS` F2 → D1 | 0.24 mm, 105.4 mΩ | **0.6 mm, 44.4 mΩ** |
+| `Net-(F2-Pad1)`, J1.A9 / J1.A4 → F2 | 9.7 / 32.7 mΩ | **4.0 / 8.2 mΩ** |
+| `/VBAT_FUSED` R14 tap | 0.2 mm | 0.8 mm |
+
+- **The five 0.15 mm nets** were `GPIO39/40/41` (motor IN) and `GPIO2/10`
+  (IPROPI). The router had used 0.15 mm end to end because it takes one width
+  per net. Each segment is split at the pin-field areas, shrunk by 0.1 mm for
+  the caps, and widened outside them. One GPIO41 corner doglegs round the GPIO47
+  via that issue 6 moved.
+- **The USB supply carries the whole board on USB**, yet it was 0.24 mm despite
+  the width table above. It is re-routed at 0.6 mm. **The D3 tap is pinned to
+  its old corridor along the top edge.** Left free, A* ran it 0.5 mm from C6's
+  switch-node pad, and that tap feeds `REG_EN` through R9.
+- **`Router.route_waypoints` can leave a leg unconnected.** Each waypoint is
+  offered on both layers, so consecutive legs can meet on different layers with
+  no via. The MOT_B_2 pairing happens not to hit this; `issue8.py` pins its
+  waypoints to F.Cu.
+- **The router's via-to-pad bar is too small for issue 6's floor.** It keeps via
+  centres 0.15 mm from pads, which lets a drill touch the mask opening; this
+  landed 0.04 mm from both J1 VBUS pads. `issue8.py` rebuilds the bar at drill
+  radius + 0.10 mm + one grid step, for its own stage only.
+
+DRC is unchanged: 0 unconnected, 0 parity issues, and the same five
+pre-existing items. The aperture audit passes with 243 vias. Every new rule
+fired on a copy of the board broken to violate it, including the motor rule
+under the new generic rule. A track/via diff against the issue-7 board touches
+only the eight nets above. Exact clearances, from `layout/issue8-rules/clearmin.py`,
+are identical before and after.
+
+**Measuring clearance with DRC needs care.** With a large threshold, DRC
+reports the first violating shape pair it meets, not the closest. A single
+20 mm threshold gave 0.95 mm for `REG_EN` and 0.75 mm for IPROPI, both wrong.
+`clearmin.py` descends from several thresholds.
+
+Measurements and validation: `layout/issue8-rules/README.md`.
+
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
 - **Review issue 5** was open after this pass and is closed by the next one.
 - **Review issue 6** was open after this pass and is closed below.
 - **Review issue 7** (the USB pair) was open after this pass and is closed above,
-  together with the USB half of issue 8. **Review issue 8** is otherwise untouched.
+  together with the USB half of issue 8.
+- **Review issue 8** (the rule set) was open after this pass and is closed above.
 - `GPIO2` / `GPIO10` (IPROPI) still pass within **0.29 mm** of motor copper near U4,
-  essentially unchanged from 0.26 mm. The review's own note applies: their 1.5 kΩ
+  essentially unchanged from 0.26 mm (confirmed exactly by issue 8, which guards
+  0.25 mm). The review's own note applies: their 1.5 kΩ
   source impedance is not `VBAT_SENSE`'s 150 kΩ, so validate this on hardware rather
   than assuming it is a fault.
 
@@ -1865,6 +1960,8 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
 - Keep the **`REG_EN` node away from SW and L1**. It is a ~20kΩ-impedance node sitting
   1.2V above a comparator threshold, so it is easy to couple into. Put R8 and C13
   physically next to U3.2 and run the long leg from R7/R9 into them, not the reverse.
+  **Not met: the EN via under U3 is 0.40 mm from the SW pin (issue 8). DRC guards
+  0.35 mm so it cannot get worse; the fix above is still outstanding.**
 - **`VBAT_SENSE` is worse — 150kΩ.** Same rule, more strictly: C14 goes hard against
   U1.39 and R10/R11 sit behind it, so the high-impedance run is as short as possible.
   Keep the whole node away from SW, L1 and any motor current on `VBAT`, and do not

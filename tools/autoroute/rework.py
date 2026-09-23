@@ -13,7 +13,8 @@ Reads `base-routed.kicad_pcb` (the 2026-09-21 autorouted board) and writes
 
 Later review findings run as further stages of main(): 4 (motor-B pairing),
 5 (buck block), 6 (vias out of pad openings, finish_issue6.py) and, last,
-7 (the USB pair, usb_pair.py).
+7 (the USB pair, usb_pair.py) and 8 (the copper the rule set requires,
+issue8.py).
 """
 import sys, math, heapq, os, uuid
 import numpy as np
@@ -83,6 +84,7 @@ REFS = {'C18': (-2.15, 0.0), 'C20': (-2.15, 0.0), 'C21': (-2.1, 2.7),
 # via properties consistent; this final pass also clears complete drill edges.
 from finish_issue6 import finish_issue6, FAB_NOTE
 from usb_pair import usb_pair
+from issue8 import issue8, rule_areas as issue8_rule_areas
 FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
@@ -844,6 +846,8 @@ def main():
     print('  issue 6: cleared drill edges and specified four filled/capped vias')
     print('USB pair (issue 7)')
     usb_pair(p, Router)
+    print('rule-set copper (issue 8)')
+    issue8(p, Router)
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'
@@ -851,6 +855,8 @@ def main():
                            pts=rect(*GND_POUR)))
     for a in ESCAPE_AREAS:
         p.add_zone(RULE_AREA.format(uuid=uuid.uuid4(), pts=rect(*a)))
+    for z in issue8_rule_areas():
+        p.add_zone(z)
     # Keep the current PCB intact if replay or the drill/paste audit fails.
     import pathlib, shutil, subprocess, tempfile
     out = pathlib.Path(OUT)

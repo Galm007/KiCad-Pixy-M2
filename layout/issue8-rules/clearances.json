@@ -1,0 +1,161 @@
+{
+ "before": {
+  "REG_EN-SW": [
+   0.4,
+   [
+    [
+     "Pad 5 [Net-(U3-SW)] of U3 on F.Cu",
+     140.1375,
+     96.0
+    ],
+    [
+     "Via [/REG_EN] on F.Cu - B.Cu",
+     138.775,
+     96.1
+    ]
+   ]
+  ],
+  "REG_EN-motor": [
+   7.7539,
+   [
+    [
+     "Pad 2 [/REG_EN] of R9 on F.Cu",
+     129.0,
+     103.0875
+    ],
+    [
+     "Track [/MOT_B_2] on F.Cu, length 4.0",
+     130.4,
+     111.7
+    ]
+   ]
+  ],
+  "VBAT_SENSE-SW": null,
+  "VBAT_SENSE-motor": null,
+  "IPROPI-motor": [
+   0.2899,
+   [
+    [
+     "Track [/MOT_A_2] on B.Cu, length 4.1",
+     105.15,
+     117.55
+    ],
+    [
+     "Via [/GPIO2] on F.Cu - B.Cu",
+     106.6,
+     117.5
+    ]
+   ]
+  ],
+  "USB-other": [
+   0.2,
+   [
+    [
+     "Pad A5 [Net-(J1-CC1)] of J1 on F.Cu",
+     152.75,
+     153.54
+    ],
+    [
+     "Pad B7 [Net-(J1-D--PadA7)] of J1 on ",
+     153.25,
+     153.54
+    ]
+   ]
+  ],
+  "VBUS-SW": [
+   1.1089,
+   [
+    [
+     "Pad 3 [/VSYS] of U3 on F.Cu",
+     137.8625,
+     96.95
+    ],
+    [
+     "Pad 5 [Net-(U3-SW)] of U3 on F.Cu",
+     140.1375,
+     96.0
+    ]
+   ]
+  ]
+ },
+ "after": {
+  "REG_EN-SW": [
+   0.4,
+   [
+    [
+     "Pad 5 [Net-(U3-SW)] of U3 on F.Cu",
+     140.1375,
+     96.0
+    ],
+    [
+     "Via [/REG_EN] on F.Cu - B.Cu",
+     138.775,
+     96.1
+    ]
+   ]
+  ],
+  "REG_EN-motor": [
+   7.7539,
+   [
+    [
+     "Pad 2 [/REG_EN] of R9 on F.Cu",
+     129.0,
+     103.0875
+    ],
+    [
+     "Track [/MOT_B_2] on F.Cu, length 4.0",
+     130.4,
+     111.7
+    ]
+   ]
+  ],
+  "VBAT_SENSE-SW": null,
+  "VBAT_SENSE-motor": null,
+  "IPROPI-motor": [
+   0.2899,
+   [
+    [
+     "Track [/MOT_A_2] on B.Cu, length 4.1",
+     105.15,
+     117.55
+    ],
+    [
+     "Via [/GPIO2] on F.Cu - B.Cu",
+     106.6,
+     117.5
+    ]
+   ]
+  ],
+  "USB-other": [
+   0.2,
+   [
+    [
+     "Pad A5 [Net-(J1-CC1)] of J1 on F.Cu",
+     152.75,
+     153.54
+    ],
+    [
+     "Pad B7 [Net-(J1-D--PadA7)] of J1 on ",
+     153.25,
+     153.54
+    ]
+   ]
+  ],
+  "VBUS-SW": [
+   1.1089,
+   [
+    [
+     "Pad 3 [/VSYS] of U3 on F.Cu",
+     137.8625,
+     96.95
+    ],
+    [
+     "Pad 5 [Net-(U3-SW)] of U3 on F.Cu",
+     140.1375,
+     96.0
+    ]
+   ]
+  ]
+ },
+ "note": "exact minimum copper clearance by DRC descent (clearmin.py); null = more than 20 mm"
+}
