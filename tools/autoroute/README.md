@@ -72,9 +72,16 @@ What it does, in order — the order matters:
    openings. This runs after the generic reroute so regeneration preserves it;
 10. applies `finish_issue6.py`: 35 local via moves and their layer connections,
     with per-via fill/cap on the four intentional driver thermal vias;
-11. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
+11. lays the USB pair (`usb_pair.py`, review issue 7).  It rips the four USB
+    nets and CC1/CC2, turns U2 to rot 90 so its flow-through pins face J1 and
+    U1, hand-places the 0.25 / 0.15 mm pair J1 → U2 → U1 on F.Cu with no vias,
+    takes U2's GND and VBUS out under the body, then A*-routes CC1/CC2 with the
+    pair inflated 0.15 mm so they cross it on B.Cu and keep their vias clear.
+    It runs last so that every stage before it replays unchanged; the U2 move
+    therefore goes through `Pcb.sync()` (below) rather than the up-front MOVES;
+12. adds the F.Cu `GND pour motor region` zone and the two `Motor pin escape` rule
    areas that `Pixy-M2.kicad_dru` conditions on, and the `Dwgs.User` fab note;
-12. serializes a temporary candidate and runs `via_openings.py` before replacing
+13. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including
@@ -100,5 +107,6 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `load.py` | footprint / pad extraction with rotation applied |
 | `board.py` | 0.05 mm raster helpers, board outline fill, keepout zones |
 | `grid.py` | obstacle raster of the **current** board — pads *and* existing tracks, vias and holes — with per-net distance fields. This is what lets `rework.py` route against a board that is already wired, which `wire.py` could not do |
-| `pcbedit.py` | text-level surgery on the `.kicad_pcb`: add/drop segments and vias, move footprints, their pads' and texts' angles and board-level labels, append zones. **Rotating a footprint must rotate every `(at …)` inside it** — pads included, since each stores its angle in the board frame. Miss them and DRC reports `lib_footprint_mismatch`, which reads like a library problem rather than a bad edit |
+| `pcbedit.py` | text-level surgery on the `.kicad_pcb`: add/drop segments and vias, move footprints, their pads' and texts' angles and board-level labels, append zones. **A footprint or text edit re-splits the file from `self.text` and drops any track/via edit not yet in it** — which is why `rework.py` does its moves first; a late move must call `sync()` first to fold pending block edits back in. **Rotating a footprint must rotate every `(at …)` inside it** — pads included, since each stores its angle in the board frame. Miss them and DRC reports `lib_footprint_mismatch`, which reads like a library problem rather than a bad edit |
+| `usb_pair.py` | review issue 7: U2 rotation, the hand-placed USB pair, and the CC1/CC2 reroute around it. Geometry constants (`WIDTH`, `GAP`, `U2_AT`, `GND_VIA`) are at the top; the impedance behind them is `../impedance/zdiff.py` |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |

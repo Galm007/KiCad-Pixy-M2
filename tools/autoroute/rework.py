@@ -10,6 +10,10 @@ Reads `base-routed.kicad_pcb` (the 2026-09-21 autorouted board) and writes
      pad, extra plane vias and an F.Cu GND pour over the whole motor region.
   3  C18/C20 moved hard against their driver's VM/GND pins so the bypass loop
      closes in local top copper; C21 shifted clear of the new escape corridor.
+
+Later review findings run as further stages of main(): 4 (motor-B pairing),
+5 (buck block), 6 (vias out of pad openings, finish_issue6.py) and, last,
+7 (the USB pair, usb_pair.py).
 """
 import sys, math, heapq, os, uuid
 import numpy as np
@@ -78,6 +82,7 @@ REFS = {'C18': (-2.15, 0.0), 'C20': (-2.15, 0.0), 'C21': (-2.1, 2.7),
 # KiCad 10 supports per-via filling/capping. Keep the drawing and native
 # via properties consistent; this final pass also clears complete drill edges.
 from finish_issue6 import finish_issue6, FAB_NOTE
+from usb_pair import usb_pair
 FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
@@ -837,6 +842,8 @@ def main():
     print('  /GPIO48: restored compact encoder route (audit P3)')
     finish_issue6(p)
     print('  issue 6: cleared drill edges and specified four filled/capped vias')
+    print('USB pair (issue 7)')
+    usb_pair(p, Router)
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'

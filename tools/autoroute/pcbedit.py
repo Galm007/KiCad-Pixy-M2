@@ -18,8 +18,10 @@ class Pcb:
         t = self.text
         # region of top-level (segment / (via blocks
         first = min(i for i in (t.find('\n\t(segment\n'), t.find('\n\t(via\n')) if i >= 0)
-        # end = start of first top-level zone after that
-        end = t.find('\n\t(zone\n', first)
+        # end = the first top-level item after that which is not a track or via:
+        # a zone on the routed board, but after sync() it can be the gr_text
+        # that add_notes() put at the head of the tail
+        end = re.compile(r'\n\t\((?!segment\n|via\n)').search(t, first + 1).start()
         assert end > first
         self.head = t[:first + 1]
         self.mid = t[first + 1:end + 1]
@@ -36,6 +38,12 @@ class Pcb:
             i = j + 4
         assert ''.join(out) == mid, 'block split mismatch'
         return out
+
+    def sync(self):
+        """fold pending block edits back into the text, so a footprint move made
+        late in a pass (which re-splits the text) does not discard them"""
+        self.text = self.head + ''.join(self.blocks) + self.tail
+        self._split()
 
     # ---------- queries ----------
     @staticmethod
@@ -118,13 +126,15 @@ class Pcb:
         self.text = self.text[:i] + blk2 + self.text[j:]
         self._split()
 
-    def move_property(self, ref, prop, dx, dy):
-        """set a footprint text field's offset in the footprint's own frame"""
+    def move_property(self, ref, prop, dx, dy, angle=None):
+        """set a footprint text field's offset in the footprint's own frame, and
+        optionally its angle, which KiCad stores in the board frame"""
         i, j = self.footprint_span(ref)
         blk = self.text[i:j]
-        m = re.search(r'\(property "%s" "[^"]*"\s*\n\s*\(at (?P<a>[-\d.]+ [-\d.]+)' % prop, blk)
+        m = re.search(r'\(property "%s" "[^"]*"\s*\n\s*\(at (?P<a>[-\d.]+ [-\d.]+)(?P<r> [-\d.]+)?\)' % prop, blk)
         assert m, f'{ref}: no {prop} (at ...)'
-        blk2 = blk[:m.start('a')] + f'{fx(dx)} {fx(dy)}' + blk[m.end('a'):]
+        rot = (m.group('r') or '') if angle is None else f' {fx(angle)}'
+        blk2 = blk[:m.start('a')] + f'{fx(dx)} {fx(dy)}{rot})' + blk[m.end():]
         self.text = self.text[:i] + blk2 + self.text[j:]
         self._split()
 

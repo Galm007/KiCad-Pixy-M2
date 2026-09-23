@@ -21,3 +21,24 @@
 (rule "Filled capped driver thermal vias"
 	(constraint physical_hole_clearance (min -1mm))
 	(condition "A.Type == 'Via' && A.NetName == 'GND' && A.Hole == 0.25mm && A.Diameter == 0.45mm && (A.Position_Y == 113.6mm || A.Position_Y == 114.4mm) && B.Type == 'Pad' && (B.Pad_Number == '9' || B.Pad_Number == '') && ((A.Position_X == 109mm && B.Reference == 'U4') || (A.Position_X == 117mm && B.Reference == 'U5'))"))
+
+# Issue 7: USB D+/D- are a 90 ohm pair, 0.25 mm / 0.15 mm on F.Cu over the In1
+# ground plane (field-solved against this stackup; confirm with the fab's
+# calculator before ordering).  The USB netclass carries the geometry; these
+# rules make DRC fail if a later edit narrows a line, spreads the pair, or
+# moves either line off the ground-referenced top layer.  The pair has to split
+# to reach U2's 1.9 mm and U1's 1.27 mm pin pitch; that is ~3.4 mm uncoupled
+# as routed, so 4 mm catches a pair that separates anywhere else.
+(rule "USB line width"
+	(constraint track_width (min 0.24mm) (opt 0.25mm) (max 0.26mm))
+	(condition "A.NetClass == 'USB'"))
+
+(rule "USB lines stay on F.Cu"
+	(layer "B.Cu")
+	(constraint disallow track via)
+	(condition "A.NetClass == 'USB'"))
+
+(rule "USB pair coupling"
+	(constraint diff_pair_gap (min 0.14mm) (opt 0.15mm) (max 0.16mm))
+	(constraint diff_pair_uncoupled (max 4mm))
+	(condition "A.inDiffPair('/USB_D*')"))

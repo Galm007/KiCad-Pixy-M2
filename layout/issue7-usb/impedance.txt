@@ -1,0 +1,8 @@
+# tools/impedance/zdiff.py 0.25 0.15 --sweep   (mesh 5 um)
+w=0.25 s=0.15 h=0.2 mask=0.01  Zdiff= 93.0 ohm  eeff=2.84
+w=0.25 s=0.15 h=0.2 mask=0.025  Zdiff= 89.5 ohm  eeff=3.06
+w=0.25 s=0.15 h=0.2104 mask=0.01  Zdiff= 94.2 ohm  eeff=2.83
+w=0.25 s=0.15 h=0.2104 mask=0.025  Zdiff= 90.6 ohm  eeff=3.05
+
+# tools/impedance/zdiff.py 0.25 0.15 --d 0.0025   (mesh 2.5 um: ~1.5 ohm lower)
+w=0.25 s=0.15 h=0.2 mask=0.01  Zdiff= 91.5 ohm  eeff=2.84

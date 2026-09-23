@@ -1,0 +1,181 @@
+{
+  "before": {
+    "nets": {
+      "Net-(J1-D+-PadA6)": {
+        "track_mm": 5.52,
+        "vias": 0,
+        "widths": [
+          0.2
+        ],
+        "layers": {
+          "F.Cu": 5.51
+        }
+      },
+      "/USB_D+": {
+        "track_mm": 18.43,
+        "vias": 0,
+        "widths": [
+          0.2
+        ],
+        "layers": {
+          "F.Cu": 18.42
+        }
+      },
+      "Net-(J1-D--PadA7)": {
+        "track_mm": 17.91,
+        "vias": 4,
+        "widths": [
+          0.2
+        ],
+        "layers": {
+          "F.Cu": 9.88,
+          "B.Cu": 8.01
+        }
+      },
+      "/USB_D-": {
+        "track_mm": 13.74,
+        "vias": 0,
+        "widths": [
+          0.2
+        ],
+        "layers": {
+          "F.Cu": 13.74
+        }
+      }
+    },
+    "end_to_end": {
+      "D+": {
+        "connector_to_U2": 5.14,
+        "U2_to_U1": 19.4,
+        "total": 24.54
+      },
+      "D-": {
+        "connector_to_U2": 17.66,
+        "U2_to_U1": 14.96,
+        "total": 32.62
+      },
+      "skew_mm": -8.08
+    },
+    "module_side_pair": {
+      "coupled_mm": 11.74,
+      "gap_min": 0.249,
+      "gap_max": 0.349
+    },
+    "connector_side_pair": {
+      "coupled_mm": 0.0,
+      "gap_min": null,
+      "gap_max": null
+    },
+    "nearest_other_fcu": {
+      "min_mm": 0.22,
+      "net": "/VBUS"
+    },
+    "vias_total": 247
+  },
+  "after": {
+    "nets": {
+      "Net-(J1-D+-PadA6)": {
+        "track_mm": 3.9,
+        "vias": 0,
+        "widths": [
+          0.25
+        ],
+        "layers": {
+          "F.Cu": 3.9
+        }
+      },
+      "/USB_D+": {
+        "track_mm": 16.0,
+        "vias": 0,
+        "widths": [
+          0.25
+        ],
+        "layers": {
+          "F.Cu": 15.99
+        }
+      },
+      "Net-(J1-D--PadA7)": {
+        "track_mm": 4.35,
+        "vias": 0,
+        "widths": [
+          0.25
+        ],
+        "layers": {
+          "F.Cu": 4.35
+        }
+      },
+      "/USB_D-": {
+        "track_mm": 15.04,
+        "vias": 0,
+        "widths": [
+          0.25
+        ],
+        "layers": {
+          "F.Cu": 15.04
+        }
+      }
+    },
+    "end_to_end": {
+      "D+": {
+        "connector_to_U2": 3.19,
+        "U2_to_U1": 16.96,
+        "total": 20.15
+      },
+      "D-": {
+        "connector_to_U2": 3.19,
+        "U2_to_U1": 15.92,
+        "total": 19.11
+      },
+      "skew_mm": 1.04
+    },
+    "module_side_pair": {
+      "coupled_mm": 13.75,
+      "gap_min": 0.15,
+      "gap_max": 0.345
+    },
+    "connector_side_pair": {
+      "coupled_mm": 1.13,
+      "gap_min": 0.25,
+      "gap_max": 0.346
+    },
+    "nearest_other_fcu": {
+      "min_mm": 0.275,
+      "net": "Net-(J1-CC1)"
+    },
+    "vias_total": 243
+  },
+  "changed_nets": {
+    "/USB_D+": {
+      "removed": 34,
+      "added": 7
+    },
+    "Net-(J1-D+-PadA6)": {
+      "removed": 21,
+      "added": 5
+    },
+    "Net-(J1-CC2)": {
+      "removed": 38,
+      "added": 26
+    },
+    "/VBUS": {
+      "removed": 35,
+      "added": 3
+    },
+    "Net-(J1-D--PadA7)": {
+      "removed": 69,
+      "added": 6
+    },
+    "Net-(J1-CC1)": {
+      "removed": 7,
+      "added": 15
+    },
+    "/USB_D-": {
+      "removed": 2,
+      "added": 6
+    },
+    "GND": {
+      "removed": 2,
+      "added": 2
+    }
+  }
+}

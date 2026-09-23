@@ -1,6 +1,14 @@
 # Pixy-M2 layout review — 2026-09-21
 
-> **Status, 2026-09-22: findings 1–6 are fixed on the board; 7–8 are open.**
+> **Status, 2026-09-22: findings 1–7 are fixed on the board; 8 is open for its
+> non-USB part.** Finding 7: U2 turned 90° so its flow-through pins face J1 and
+> U1, and D+/D− run as one 0.25 / 0.15 mm pair (field-solved ≈ 88–94 Ω; confirm
+> with the fab) from J1 to U1 on F.Cu over the In1 plane with **no vias** — the
+> connector-side D− had 4 and 8 mm of B.Cu. End-to-end skew 8.08 → 1.04 mm.
+> A `USB` netclass and three DRC rules (width, F.Cu only, pair gap/uncoupled
+> length) enforce it; each was shown to fire on a deliberately broken copy. That
+> is the USB half of finding 8. The shield-return observation is untouched. DRC
+> verdict unchanged; see `layout/issue7-usb/README.md`.
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1

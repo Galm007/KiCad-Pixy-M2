@@ -1,0 +1,20 @@
+{
+  "narrow": [
+    "diff_pair_gap_out_of_range",
+    "track_width"
+  ],
+  "toback": [
+    "clearance",
+    "items_not_allowed",
+    "track_dangling"
+  ],
+  "spread": [
+    "diff_pair_gap_out_of_range",
+    "diff_pair_uncoupled_length_too_long"
+  ],
+  "_cases": {
+    "narrow": "one /USB_D+ segment on the west run at 0.20 mm",
+    "toback": "the J1 D- loop segment moved to B.Cu",
+    "spread": "the long /USB_D- west segment moved 0.10 mm away from D+"
+  }
+}

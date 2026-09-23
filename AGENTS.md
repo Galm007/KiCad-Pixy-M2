@@ -1291,9 +1291,12 @@ makes a single plane work — it is the job the 8 header ground pins used to do 
   makes the 90Ω pair achievable with sane trace geometry and keeps every L1 return
   path directly beneath its trace.
 - **Compute the USB pair geometry against the fab's actual stackup** with their
-  impedance calculator. Do not carry a number over from another board. On ~0.2mm
-  prepreg it lands somewhere near 0.2mm trace / 0.15mm gap — treat that as a starting
-  point to verify, not as a specification.
+  impedance calculator. Do not carry a number over from another board. **Done
+  2026-09-22 (review issue 7), by field solver: 0.25 mm trace / 0.15 mm gap, about
+  88–94 Ω across 0.200/0.2104 mm prepreg and 10–25 µm mask.** The earlier guess in
+  this bullet, 0.2 mm / 0.15 mm, solves to ~100 Ω, which is outside 90 Ω ± 10 %.
+  The solver's figure is still not the fab's — confirm it with JLCPCB's
+  calculator, or order impedance control, before fabrication.
 - **The antenna keep-out must now be cut out of four layers, including both pours.**
   This is the main new risk the stackup introduces: it is far easier to let a ground
   or power pour flood under the antenna than it was to forget a trace. Define the
@@ -1356,12 +1359,10 @@ pads and makes OUT1 unroutable on both drivers.
 
 ### What the router did NOT do — review these by hand
 
-- **`/USB_D+` and `/USB_D-` are ordinary 0.2 mm traces, not a 90 Ω differential pair.**
-  They are on F.Cu over the In1 plane with no vias, and their lengths differ (18.4 mm
-  vs 13.7 mm). Full Speed will work, but this does not meet the layout rule below.
-  Re-routing them as a pair needs a diff-pair netclass and a gap computed against the
-  fab's stackup — a decision this file already says must not be carried over from
-  another board.
+- ~~**`/USB_D+` and `/USB_D-` are ordinary 0.2 mm traces, not a 90 Ω differential pair.**~~
+  **Fixed by review issue 7 (2026-09-22)** — see "Issue 7" below. As routed here they
+  were 0.2 mm traces with lengths of 18.4 mm and 13.7 mm, and the issue-6 via pass
+  later pushed the connector-side D− onto B.Cu through four vias.
 - **None of the placement-sensitive rules below were modelled**: the C12→U3.3→U3.4
   input loop, the size of the SW island, keeping `REG_EN` and `VBAT_SENSE`
   (150 kΩ) away from SW and motor current, routing `MOT_x_1/2` as tight pairs, and
@@ -1706,12 +1707,112 @@ J1 hole-clearance errors and the U1 library-footprint warning.
 Measurements and validation: `layout/issue6-complete/README.md`.
 
 
+### Issue 7 — the USB pair (2026-09-22)
+
+D+/D− were ordinary 0.2 mm traces. They had varying separation, a D+ detour round
+U2, and asymmetric layer changes. By the time issue 6 had finished, D− had 4 vias
+and 8 mm on B.Cu, and the end-to-end skew was 8.08 mm. **Both polarities now run
+as one pair, J1 to U1, entirely on F.Cu over the In1 plane, with no via anywhere
+on the USB path.** `tools/autoroute/usb_pair.py` does it. `rework.py` runs it as
+its last routing stage, after the issue-6 repairs, so no earlier stage changes.
+
+| | before | after |
+|---|---:|---:|
+| USB vias / B.Cu copper | 4 / 8.01 mm | **0 / 0** |
+| width, module-side gap | 0.20 mm, 0.25–0.35 mm | **0.25 mm, 0.15 mm** |
+| J1 → U2 → U1 path, D+ / D− | 24.54 / 32.62 mm | **20.15 / 19.11 mm** |
+| end-to-end skew | 8.08 mm | **1.04 mm** (≈ 6 ps) |
+| U2 GND pin to plane via | 1.11 mm | **0.71 mm** |
+
+**U2 turned 90°**, (154, 148) rot 0 → (153.5, 149.5) rot 90. That is the change
+that makes a clean pair possible. The USBLC6-2SC6 is flow-through: D− enters on
+pin 1 and leaves on pin 6, D+ enters on 3 and leaves on 4, and each pair of pins
+sits on opposite sides of the package. At rot 0 that flow ran west→east across a
+signal travelling south→north-west, so D+ had to wrap round the part. At rot 90
+the connector row (1, 2, 3) faces J1 and the module row (6, 5, 4) faces U1, with
+D− on the west in both. **Do not turn U2 back without re-routing the pair.**
+
+**U2's middle pins leave under the body.** GND (2) and VBUS (5) sit between the
+two lines of the pair, so both use the 1 mm gap between the pin rows:
+
+- GND goes to a plane via *under the package* at (153.0, 149.5), which clears
+  pins 1, 5 and 6 by 0.22 mm of copper and every pad opening by ≥ 0.37 mm of
+  drill.
+- VBUS runs east, between pins 3 and 4, to the existing feed from F2.
+
+**J1's USB-C pads alternate D−, D+, D−, D+** (B7 A6 A7 B6), so one polarity has
+to cross the other. Both crossings stay on F.Cu:
+
+- D+ bridges A6 → B6 over the top of A7.
+- D− loops A7 → B7 under the bottom of A6, where the old route used a via.
+
+Each join is a ~1.4 mm stub, which is irrelevant at 12 Mbps. The pair is 0.25 mm
+wide there too; that leaves 0.225 mm to the neighbouring pads.
+
+**The 1.04 mm of remaining skew is geometric, not an oversight.** Two sources
+make it:
+
+- D− is the inner line at both 45° bends, so it is shorter there.
+- D+ climbs into U1 pin 14.
+
+The skew is below the 1.25 mm (50 mil) figure commonly used for *High* Speed
+matching, and the ESP32-S3 PHY is Full Speed only. **Do not add a serpentine**;
+it would cost more coupling than it buys.
+
+**CC1/CC2 were ripped and re-searched**, because their vias sat where the pair now
+runs. They cross under the pair on B.Cu with the In1 plane in between. While
+they were routed, the pair was inflated by 0.15 mm, so their F.Cu copper and
+vias keep that extra distance, except in J1's pad field. CC1 is 4.92 → 5.81 mm;
+CC2 is 13.57 → 8.53 mm.
+
+**Enforced by rules, and each rule was tested by breaking it.** The new rules
+are:
+
+- a **`USB` netclass** in `Pixy-M2.kicad_pro`, with 0.25 mm width, a 0.15 mm
+  gap, and 0.15 mm clearance *inside* the class (0.2 mm to everything else).
+  It matches `/USB_D*` and `Net-(J1-D*`.
+- a **width rule** in `Pixy-M2.kicad_dru`: 0.24–0.26 mm.
+- a **layer rule**: no track or via of a USB net on B.Cu.
+- a **coupling rule** on `/USB_D±`: the gap must be 0.14–0.16 mm, with at most
+  4 mm uncoupled. The routed pair has 3.4 mm uncoupled, forced by U2's 1.9 mm
+  and U1's 1.27 mm pin pitch.
+
+KiCad pairs nets by a trailing ±, so the connector-side nets get the width and
+layer rules but not the coupling rule. Each rule fired on a copy of the board
+with the matching defect: a 0.20 mm segment, a D− loop on B.Cu, and D− spread
+0.10 mm. This covers the USB half of review issue 8. The netclass and rules
+belong to this fix, because they are the geometry it chose.
+
+**Impedance is a calculation, not a fab figure.** `tools/impedance/zdiff.py` is a
+2D field solver of the coupled microstrip, and it gives:
+
+| prepreg | mask 10 µm | mask 25 µm |
+|---|---:|---:|
+| 0.200 mm | 93.0 Ω | 89.5 Ω |
+| 0.2104 mm | 94.2 Ω | 90.6 Ω |
+
+At its default 5 µm mesh it reads about 1.5 Ω high. IPC-2141 gives 90.4 Ω. Call
+it 88–94 Ω. Confirm with JLCPCB's calculator, or order impedance control.
+
+DRC is unchanged: 0 unconnected, 0 parity issues, and only the four J1
+`hole_clearance` errors and the U1 warning. The aperture audit passes, with 243
+vias, down from 247. A track/via diff against the issue-6 board touches only the
+USB nets, CC1, CC2, and U2's own GND and VBUS stubs. Motor loop areas are
+unchanged at 103.3 / 83.4 mm².
+
+**Not touched:** the shield return (J1 shell → C8/R5), which the review lists as a
+separate observation, still takes its long B.Cu path behind U2.
+
+Measurements and validation: `layout/issue7-usb/README.md`.
+
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
 - **Review issue 5** was open after this pass and is closed by the next one.
 - **Review issue 6** was open after this pass and is closed below.
-- **Review issues 7–8** (the USB pair, the rest of the rule set) are untouched.
+- **Review issue 7** (the USB pair) was open after this pass and is closed above,
+  together with the USB half of issue 8. **Review issue 8** is otherwise untouched.
 - `GPIO2` / `GPIO10` (IPROPI) still pass within **0.29 mm** of motor copper near U4,
   essentially unchanged from 0.26 mm. The review's own note applies: their 1.5 kΩ
   source impedance is not `VBAT_SENSE`'s 150 kΩ, so validate this on hardware rather
@@ -1768,7 +1869,8 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   U1.39 and R10/R11 sit behind it, so the high-impedance run is as short as possible.
   Keep the whole node away from SW, L1 and any motor current on `VBAT`, and do not
   route it as a long thin trace beside a switching node.
-- USB D+/D− as a **90Ω differential pair** over unbroken ground reference.
+- USB D+/D− as a **90Ω differential pair** over unbroken ground reference. **Done
+  2026-09-22 (issue 7): 0.25 / 0.15 mm on F.Cu over In1, no vias, J1 to U1.**
 - Ground the module's thermal pad with a via array.
 - **D4 (power LED) goes where a user can see it**, near the USB-C port or a board
   edge. With the daughterboard gone nothing shadows the board any more, so the old
