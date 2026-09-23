@@ -1,0 +1,144 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-09-22T08:50:33",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.5",
+    "schematic_parity": [],
+    "source": "Pixy-M2.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.3000 mm; actual 0.2500 mm)",
+            "items": [
+                {
+                    "description": "Pad A1 [GND] of J1 on F.Cu",
+                    "pos": {
+                        "x": 150.5,
+                        "y": 153.54
+                    },
+                    "uuid": "39fe8c07-f897-4bb8-aabb-bcdcddae4a65"
+                },
+                {
+                    "description": "NPTH pad of J1",
+                    "pos": {
+                        "x": 150.5,
+                        "y": 154.79
+                    },
+                    "uuid": "e0a08e63-708a-4804-8f70-4ce276e2d632"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.3000 mm; actual 0.2500 mm)",
+            "items": [
+                {
+                    "description": "Pad B12 [GND] of J1 on F.Cu",
+                    "pos": {
+                        "x": 150.5,
+                        "y": 153.54
+                    },
+                    "uuid": "7bbf4267-d278-4a3f-b30a-d7ce2ec65afb"
+                },
+                {
+                    "description": "NPTH pad of J1",
+                    "pos": {
+                        "x": 150.5,
+                        "y": 154.79
+                    },
+                    "uuid": "e0a08e63-708a-4804-8f70-4ce276e2d632"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.3000 mm; actual 0.2500 mm)",
+            "items": [
+                {
+                    "description": "Pad A12 [GND] of J1 on F.Cu",
+                    "pos": {
+                        "x": 157.5,
+                        "y": 153.54
+                    },
+                    "uuid": "b93aacab-b7f5-44f5-aaba-5fbe5f7ce7f0"
+                },
+                {
+                    "description": "NPTH pad of J1",
+                    "pos": {
+                        "x": 157.5,
+                        "y": 154.79
+                    },
+                    "uuid": "1611c937-0365-426e-8e4a-cb427cf78bd7"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.3000 mm; actual 0.2500 mm)",
+            "items": [
+                {
+                    "description": "Pad B1 [GND] of J1 on F.Cu",
+                    "pos": {
+                        "x": 157.5,
+                        "y": 153.54
+                    },
+                    "uuid": "10f4f696-a2ce-4934-bf85-4429a5fdecdf"
+                },
+                {
+                    "description": "NPTH pad of J1",
+                    "pos": {
+                        "x": 157.5,
+                        "y": 154.79
+                    },
+                    "uuid": "1611c937-0365-426e-8e4a-cb427cf78bd7"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Footprint 'ESP32-S3-WROOM-1' does not match copy in library 'PCM_Espressif'",
+            "items": [
+                {
+                    "description": "Footprint U1",
+                    "pos": {
+                        "x": 133.0,
+                        "y": 150.0
+                    },
+                    "uuid": "5a9dde43-6f36-49fe-81c7-699c74d3ee13"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        }
+    ]
+}

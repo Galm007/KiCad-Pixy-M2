@@ -1,0 +1,364 @@
+{
+  "/CHIP_PU": {
+    "before_length_mm": 70.28746750430835,
+    "after_length_mm": 71.4276429294075,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/ESP_3V3": {
+    "before_length_mm": 57.87979144036341,
+    "after_length_mm": 79.70550979411881,
+    "before_vias": 28,
+    "after_vias": 26
+  },
+  "/GPIO0": {
+    "before_length_mm": 88.64919907732865,
+    "after_length_mm": 89.78937450242778,
+    "before_vias": 9,
+    "after_vias": 9
+  },
+  "/GPIO10": {
+    "before_length_mm": 40.674220741123065,
+    "after_length_mm": 40.674220741123065,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO11": {
+    "before_length_mm": 32.37695526217005,
+    "after_length_mm": 32.37695526217005,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO12": {
+    "before_length_mm": 32.561269837220806,
+    "after_length_mm": 34.287537487384014,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO13": {
+    "before_length_mm": 31.732842712474618,
+    "after_length_mm": 34.561269837220806,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO14": {
+    "before_length_mm": 32.871930009000636,
+    "after_length_mm": 34.59819765916384,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO15": {
+    "before_length_mm": 43.40243866176395,
+    "after_length_mm": 45.12870631192716,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO16": {
+    "before_length_mm": 47.04116882454314,
+    "after_length_mm": 47.96396103067893,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO17": {
+    "before_length_mm": 40.07401153701776,
+    "after_length_mm": 40.38761543394987,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO18": {
+    "before_length_mm": 45.39934700697015,
+    "after_length_mm": 46.25374738150191,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO2": {
+    "before_length_mm": 52.02152954766495,
+    "after_length_mm": 53.02152954766495,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO21": {
+    "before_length_mm": 55.3286363288515,
+    "after_length_mm": 55.16650429449553,
+    "before_vias": 4,
+    "after_vias": 2
+  },
+  "/GPIO3": {
+    "before_length_mm": 31.217009357883867,
+    "after_length_mm": 31.217009357883867,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "/GPIO35": {
+    "before_length_mm": 27.598023074035524,
+    "after_length_mm": 29.974995938836468,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO36": {
+    "before_length_mm": 16.969343417595166,
+    "after_length_mm": 16.969343417595166,
+    "before_vias": 4,
+    "after_vias": 4
+  },
+  "/GPIO37": {
+    "before_length_mm": 6.629036790187178,
+    "after_length_mm": 6.629036790187178,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO38": {
+    "before_length_mm": 75.02777413171634,
+    "after_length_mm": 75.02777413171634,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO39": {
+    "before_length_mm": 40.71381310103742,
+    "after_length_mm": 41.63576754676671,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO4": {
+    "before_length_mm": 75.13574311003805,
+    "after_length_mm": 74.8064537881567,
+    "before_vias": 4,
+    "after_vias": 4
+  },
+  "/GPIO40": {
+    "before_length_mm": 43.93746750430836,
+    "after_length_mm": 44.85942195003765,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO41": {
+    "before_length_mm": 39.96726188957803,
+    "after_length_mm": 39.96726188957803,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "/GPIO42": {
+    "before_length_mm": 42.10010460205265,
+    "after_length_mm": 42.332947314527274,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO43": {
+    "before_length_mm": 17.443502884254443,
+    "after_length_mm": 21.149747468305833,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO44": {
+    "before_length_mm": 16.05,
+    "after_length_mm": 18.187755832643195,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO47": {
+    "before_length_mm": 20.859292911256333,
+    "after_length_mm": 20.969343417595166,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO48": {
+    "before_length_mm": 21.609292911256333,
+    "after_length_mm": 72.35655839020936,
+    "before_vias": 3,
+    "after_vias": 4
+  },
+  "/GPIO5": {
+    "before_length_mm": 69.80512985522208,
+    "after_length_mm": 71.53139750538527,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO6": {
+    "before_length_mm": 82.89650788387053,
+    "after_length_mm": 107.08832970144351,
+    "before_vias": 6,
+    "after_vias": 2
+  },
+  "/GPIO7": {
+    "before_length_mm": 68.53477631085023,
+    "after_length_mm": 74.91564209736038,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/GPIO8": {
+    "before_length_mm": 119.43904396893716,
+    "after_length_mm": 114.34310242291876,
+    "before_vias": 8,
+    "after_vias": 7
+  },
+  "/GPIO9": {
+    "before_length_mm": 130.62091988222397,
+    "after_length_mm": 133.44934700697016,
+    "before_vias": 5,
+    "after_vias": 5
+  },
+  "/MOT_A_1": {
+    "before_length_mm": 15.018986283848344,
+    "after_length_mm": 16.652691193458118,
+    "before_vias": 0,
+    "after_vias": 0,
+    "after_track_resistance_ohms_35um_20C": 0.014378585577686358,
+    "after_neck_length_below_0_5mm": 2.5
+  },
+  "/MOT_A_2": {
+    "before_length_mm": 16.243250352560274,
+    "after_length_mm": 18.95685424949238,
+    "before_vias": 1,
+    "after_vias": 1,
+    "after_track_resistance_ohms_35um_20C": 0.012489864234402666,
+    "after_neck_length_below_0_5mm": 0.9949747468305833
+  },
+  "/MOT_B_1": {
+    "before_length_mm": 41.94594154601839,
+    "after_length_mm": 43.50929291125633,
+    "before_vias": 0,
+    "after_vias": 1,
+    "after_track_resistance_ohms_35um_20C": 0.030914578921073545,
+    "after_neck_length_below_0_5mm": 2.5
+  },
+  "/MOT_B_2": {
+    "before_length_mm": 48.06226137916231,
+    "after_length_mm": 59.41467529817257,
+    "before_vias": 0,
+    "after_vias": 7,
+    "after_track_resistance_ohms_35um_20C": 0.03740032262294719,
+    "after_neck_length_below_0_5mm": 0.9949747468305833
+  },
+  "/REG_EN": {
+    "before_length_mm": 16.434062043356594,
+    "after_length_mm": 17.439696961966998,
+    "before_vias": 3,
+    "after_vias": 2
+  },
+  "/USB_D+": {
+    "before_length_mm": 18.429646455628166,
+    "after_length_mm": 18.429646455628166,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "/USB_D-": {
+    "before_length_mm": 13.741168824543143,
+    "after_length_mm": 13.741168824543143,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "/VBAT": {
+    "before_length_mm": 69.0847469598012,
+    "after_length_mm": 76.26084757872961,
+    "before_vias": 27,
+    "after_vias": 24
+  },
+  "/VBAT_FUSED": {
+    "before_length_mm": 15.638477631085024,
+    "after_length_mm": 15.638477631085024,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "/VBAT_RAW": {
+    "before_length_mm": 2.898528137423857,
+    "after_length_mm": 2.898528137423857,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "/VBAT_SENSE": {
+    "before_length_mm": 12.011017305526643,
+    "after_length_mm": 12.011017305526643,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "/VBUS": {
+    "before_length_mm": 91.34985207035848,
+    "after_length_mm": 92.55401152823772,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "/VSYS": {
+    "before_length_mm": 32.870205614730324,
+    "after_length_mm": 37.16053868574529,
+    "before_vias": 0,
+    "after_vias": 2
+  },
+  "GND": {
+    "before_length_mm": 72.76512719937593,
+    "after_length_mm": 93.78638278435677,
+    "before_vias": 77,
+    "after_vias": 84
+  },
+  "Net-(D3-K)": {
+    "before_length_mm": 7.65,
+    "after_length_mm": 10.510640478507664,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "Net-(D4-A)": {
+    "before_length_mm": 4.847056274847715,
+    "after_length_mm": 4.847056274847715,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "Net-(D5-A)": {
+    "before_length_mm": 4.847056274847715,
+    "after_length_mm": 4.847056274847715,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "Net-(F2-Pad1)": {
+    "before_length_mm": 20.636500705120547,
+    "after_length_mm": 22.136500705120547,
+    "before_vias": 3,
+    "after_vias": 3
+  },
+  "Net-(J1-CC1)": {
+    "before_length_mm": 4.922792206135786,
+    "after_length_mm": 4.922792206135786,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "Net-(J1-CC2)": {
+    "before_length_mm": 13.569595949289333,
+    "after_length_mm": 13.569595949289333,
+    "before_vias": 2,
+    "after_vias": 2
+  },
+  "Net-(J1-D+-PadA6)": {
+    "before_length_mm": 5.519238815542512,
+    "after_length_mm": 5.519238815542512,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "Net-(J1-D--PadA7)": {
+    "before_length_mm": 9.833452377915608,
+    "after_length_mm": 17.914570696119917,
+    "before_vias": 2,
+    "after_vias": 4
+  },
+  "Net-(J1-SHIELD)": {
+    "before_length_mm": 32.2572113832392,
+    "after_length_mm": 32.2572113832392,
+    "before_vias": 1,
+    "after_vias": 1
+  },
+  "Net-(Q1-G)": {
+    "before_length_mm": 41.849347006970156,
+    "after_length_mm": 44.07514193373997,
+    "before_vias": 3,
+    "after_vias": 3
+  },
+  "Net-(U3-BST)": {
+    "before_length_mm": 3.715685424949238,
+    "after_length_mm": 2.1058261688894393,
+    "before_vias": 0,
+    "after_vias": 0
+  },
+  "Net-(U3-SW)": {
+    "before_length_mm": 8.44350288425444,
+    "after_length_mm": 7.852972076366338,
+    "before_vias": 2,
+    "after_vias": 0
+  }
+}
