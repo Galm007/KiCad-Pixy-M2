@@ -2050,6 +2050,38 @@ both trunks drop straight from U4 onto pins 6/5 under the housing.
 a via of their own, so the stage prints `! no stitch via for GND …` for them and
 then ties each to the nearest stitched pad or GND via.
 
+### Assembly marks on the silkscreen (2026-09-23)
+
+The mechanical reservations in `layout/README.md` were only on Dwgs.User and
+User.1/2, and those layers are not fabricated. `tools/autoroute/assembly_marks.py`
+prints marks for the off-board parts. `rework.py` runs it after `f1_fuse.py`.
+
+- **ToF sensors (F.SilkS).** Four 13 × 18 mm mount outlines. These are the
+  14 × 19 mm reservations inset 0.5 mm, so the corner ones clear the R3 corners.
+  Each has its aim arrow and the connector its cable plugs into: LOOK L → J6,
+  FL → J4, FR → J5, LOOK R → J7. The outlines mark mounting areas, not the
+  module's outline. The GY-VL53L0XV2 is quoted as 25 × 13 mm, so it has to stand
+  upright or angled in a bracket.
+- **IMU (F.SilkS).** The Adafruit BNO085 #4754 outline (25.4 × 22.86 mm), its
+  four 2.5 mm holes, and a circle at the chip centre, which sits on the
+  rotation centre (133, 126). The geometry comes from Adafruit's
+  `Adafruit_BNO08x.brd`. **Module +Y points forward and +X to the right**, so
+  the sensor frame is the robot frame. That puts the BT/P0/P1/RST/DI/CS header
+  at the front, nearest J10. The module is 0.2 mm wider than the 25 mm
+  reservation on each side. It stands on its own holes, above the parts, so
+  nothing collides.
+- **Motors (B.SilkS, mirrored text).** Both Pololu HP 6V bodies, 12 mm wide:
+  gearbox 9, motor 15 and encoder 8 mm (Pololu drawing 0J949). The gearbox face
+  is on the board edge and the shaft is on the wheel axle, y = 110 (left,
+  **motor A → J8**) and y = 142 (right, **motor B → J9**). The label
+  sits in the 4 mm side-connector allowance.
+- **C20 and R15 reference fields moved** 0.6 mm west and 0.45 mm south, clear of
+  the IMU outline.
+- **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit
+  passes. Tracks and vias are unchanged. The B.Cu pour fill differs from the
+  previous commit only because that fill was stale: refilling the previous board
+  gives the same polygons.
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.

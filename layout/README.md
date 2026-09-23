@@ -20,7 +20,7 @@ Coordinates in `placement.json` are millimetres from the board's front-left corn
 | Four top sensor mounts | X = 1…15, 17…31, 35…49, 51…65; Y = 1…20 | 14 × 19 mm provisional mount/module envelope each |
 | Antenna | Rear-centre; module reaches Y = 105.75 | Overhang, all-layer copper keepout and additional no-metal drawing |
 
-`Dwgs.User` shows top reservations, drive lanes, wheels, axes, aim directions and dimensions. `User.1` shows underside body envelopes. `User.2` shows provisional attachment bands and RF clearance. These bands are reserved space, not final bolt patterns. The left battery attachment band ends at Y = 29 to avoid the battery connector's through-hole pads.
+`Dwgs.User` shows top reservations, drive lanes, wheels, axes, aim directions and dimensions. `User.1` shows underside body envelopes. `User.2` shows provisional attachment bands and RF clearance. These bands are reserved space, not final bolt patterns. *(2026-09-23: the ToF mounts, the IMU and both motors are now also printed on F.SilkS / B.SilkS by `tools/autoroute/assembly_marks.py`; see CLAUDE.md, "Assembly marks on the silkscreen".)* The left battery attachment band ends at Y = 29 to avoid the battery connector's through-hole pads.
 
 Board-level placement keepouts cover top modules and underside bodies. The antenna has a board-level all-layer copper keepout; the footprint also retains its original antenna rule area. The board-level antenna area permits U1 itself to overlap the area, while the footprint's own keepout protects against other footprints.
 
