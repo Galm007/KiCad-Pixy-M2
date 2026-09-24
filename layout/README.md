@@ -13,14 +13,16 @@ Coordinates in `placement.json` are millimetres from the board's front-left corn
 | Complete width allowance | X = −12…78 | 90 mm including wheels, gears, brackets and cable protrusions |
 | Side drive lanes | X = −12…0 and 66…78 | 12 mm each; illustrative 8 mm tire + 4 mm gear/clearance allocation |
 | Wheel axes | Y = 50 and 82 | Ø30 mm wheels, 32 mm wheelbase |
-| Left underside motor | X = 0…38, Y = 44…60 | 38 × 16 × 16 mm including encoder/cable allowance; shaft toward left |
-| Right underside motor | X = 28…66, Y = 72…88 | 38 × 16 × 16 mm including encoder/cable allowance; shaft toward right |
-| Underside battery | X = 13…53, Y = 5…35 | 40 × 30 × 15 mm |
+| Left underside motor | X = 0…38, Y = 40…56 | 38 × 16 × 16 mm including encoder/cable allowance; shaft toward left. *Was Y = 44…60 until 2026-09-24: the 4 mm encoder allowance now faces outboard (forward)* |
+| Right underside motor | X = 28…66, Y = 76…92 | 38 × 16 × 16 mm including encoder/cable allowance; shaft toward right. *Was Y = 72…88 until 2026-09-24: the allowance now faces outboard (rearward)* |
+| Underside battery | X = 0.5…62.5, Y = 57.5…74.5, between the motors; rule area to X = 66 for the lead exit | 62 × 17 × 14 mm (OVONIC 2S 450 mAh, maker's envelope), wide face on the board, leads at the +X end. *Was X = 13…53, Y = 5…35 (40 × 30 × 15) until 2026-09-24* |
 | Top-side IMU | X = 20.5…45.5, Y = 53.5…78.5 | 25 × 25 mm around nominal rotation centre (33, 66) |
 | Four top sensor mounts | X = 1…15, 17…31, 35…49, 51…65; Y = 1…20 | 14 × 19 mm provisional mount/module envelope each |
 | Antenna | Rear-centre; module reaches Y = 105.75 | Overhang, all-layer copper keepout and additional no-metal drawing |
 
-`Dwgs.User` shows top reservations, drive lanes, wheels, axes, aim directions and dimensions. `User.1` shows underside body envelopes. `User.2` shows provisional attachment bands and RF clearance. These bands are reserved space, not final bolt patterns. *(2026-09-23: the ToF mounts, the IMU and both motors are now also printed on F.SilkS / B.SilkS by `tools/autoroute/assembly_marks.py`; see CLAUDE.md, "Assembly marks on the silkscreen".)* The left battery attachment band ends at Y = 29 to avoid the battery connector's through-hole pads.
+`Dwgs.User` shows top reservations, drive lanes, wheels, axes, aim directions and dimensions. `User.1` shows underside body envelopes. `User.2` shows provisional attachment bands and RF clearance. These bands are reserved space, not final bolt patterns. *(2026-09-23: the ToF mounts, the IMU and both motors are now also printed on F.SilkS / B.SilkS by `tools/autoroute/assembly_marks.py`; see CLAUDE.md, "Assembly marks on the silkscreen".)*
+
+**Battery bay, 2026-09-24** (`tools/autoroute/battery_bay.py`; CLAUDE.md, "Battery between the axles"). The pack now lies across the board between the two motors, with its centre on the rotation centre's Y. The motor envelopes are unchanged in size, but their 4 mm encoder allowance now faces outboard. Pololu's encoder board stands 3–4 mm proud of one face of the gearmotor, so each motor is mounted with that face outboard or toward the floor, never toward the battery. The inboard motor attachment bands and both battery strap bands are deleted. The pack is held on the board with hook-and-loop tape: no strap can pass the drive lanes beside it. Each outboard band moves 4 mm out with its envelope, to Y = 37…40 (left motor) and Y = 92…95 (right motor). The right one stops either side of J1 (X = 28…46.5 and 61.5…66). `User.2` also shows the lead route: from the pack's +X end, forward along X = 64.5, across the front strip at Y = 29.5, then round the left edge between J6 and BT1 to BT1 on top. That is about 13 cm of lead.
 
 Board-level placement keepouts cover top modules and underside bodies. The antenna has a board-level all-layer copper keepout; the footprint also retains its original antenna rule area. The board-level antenna area permits U1 itself to overlap the area, while the footprint's own keepout protects against other footprints.
 

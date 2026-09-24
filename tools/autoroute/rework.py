@@ -15,8 +15,9 @@ Later review findings run as further stages of main(): 4 (motor-B pairing),
 5 (buck block), 6 (vias out of pad openings, finish_issue6.py), 7 (the USB
 pair, usb_pair.py), 8 (the copper the rule set requires, issue8.py), J8/J9
 moved to JST SH in the Pololu encoder pin order (pololu_conn.py), F1
-replaced by a high-breaking-capacity fuse (f1_fuse.py) and, last, silkscreen
-marks for the ToF sensors, IMU and motors (assembly_marks.py).
+replaced by a high-breaking-capacity fuse (f1_fuse.py), silkscreen marks for
+the ToF sensors, IMU and motors (assembly_marks.py) and, last, the battery bay
+between the axles (battery_bay.py).
 """
 import sys, math, heapq, os, uuid
 import numpy as np
@@ -90,6 +91,7 @@ from issue8 import issue8, rule_areas as issue8_rule_areas, _drill_clear_of_pads
 from pololu_conn import pololu_conn
 from f1_fuse import f1_fuse
 from assembly_marks import assembly_marks
+from battery_bay import battery_bay
 FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
@@ -864,6 +866,7 @@ def main():
     # variant lives in the project library, so the placed copy matches it
     p.set_fpid('U1', 'Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang')
     print('silkscreen assembly marks:', assembly_marks(p), 'items')
+    print('battery bay between the axles:', battery_bay(p), 'items edited')
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'

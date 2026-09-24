@@ -104,8 +104,8 @@ position costs nothing extra.
 |---:|---|---|
 | 4 | **GY-VL53L0XV2** ToF module (silkscreen `HW-842`) | Fixed. J4–J7 copy its header order. A different module needs different cables. |
 | 1 | **Adafruit BNO085 9-DoF breakout, #4754** | Fixed. For SPI: wire **P0 to J10.9** (PS0/WAKE) and **tie P1 to VIN** at the module end. SCL is SCK, SDA is MISO and DI is MOSI (Adafruit's pin names). |
-| 2 | **Pololu Micro Metal Gearmotor HP 6V with 12 CPR encoder** (#5153–#5165 series, extended shaft, encoder fitted) | **Ratio open.** Pick one ratio for both motors, e.g. #5155 (10:1) or #5157 (15:1). The side- and back-connector versions have the same pinout. |
-| 1 pack (listing is 4) | **OVONIC 2S 450 mAh 100C, XT30** ([Amazon B0D2KT723L](https://www.amazon.com/gp/product/B0D2KT723L)) | Chosen. The maker lists it at 7.4 V / 4.2 V per cell (standard LiPo, not LiHV, despite "High Voltage" in the title), **62 × 17 × 14 mm, 31 g**, XT30 female, JST-XH balance lead. XT30 female is the battery-side part, so it mates with BT1 (male). **See "Battery" below: it does not fit the drawn reservation, and it is stronger than F1 is rated to interrupt.** |
+| 2 | **Pololu Micro Metal Gearmotor HP 6V with 12 CPR encoder** (#5153–#5165 series, extended shaft, encoder fitted) | **Ratio open.** Pick one ratio for both motors, e.g. #5155 (10:1) or #5157 (15:1). The side- and back-connector versions have the same pinout. Either encoder version stands 3–4 mm proud of one face of the motor. **Mount each motor with that face outboard (A forward, B rearward) or toward the floor:** the battery sits 1.5 mm from their inboard faces. |
+| 1 pack (listing is 4) | **OVONIC 2S 450 mAh 100C, XT30** ([Amazon B0D2KT723L](https://www.amazon.com/gp/product/B0D2KT723L)) | Chosen. The maker lists it at 7.4 V / 4.2 V per cell (standard LiPo, not LiHV, despite "High Voltage" in the title), **62 × 17 × 14 mm, 31 g**, XT30 female, JST-XH balance lead. XT30 female is the battery-side part, so it mates with BT1 (male). **See "Battery" below: it goes across the underside between the motors, and F1 was changed to interrupt its fault current.** |
 
 ## D. Cables and crimp parts
 
@@ -142,10 +142,20 @@ and still gives about 63 % of the motor's 6 V stall torque. IPROPI now reads
 
 ### Battery
 
-- **Size.** The pack is 62 × 17 × 14 mm; the underside reservation drawn in
-  `layout/README.md` is 40 × 30 × 15 mm. Turned 90°, it fits across the 66 mm
-  board in the front strip (Y ≈ 5–22), clear of the motors and BT1's pads. The
-  reservation drawing and the battery attachment bands have not been updated.
+- **Where it goes (2026-09-24).** Across the underside, between the two
+  motors: board X 0.5–62.5, Y 57.5–74.5, wide face on the board, with its
+  leads at the +X (right-hand) end. Its centre is on the rotation centre's Y.
+  The listing gives 61.5 × 15.77 × 13.48 mm and the maker 62 × 17 × 14 mm, so
+  the bay is drawn at the larger size, 1.5 mm from each motor body. The front
+  strip also fits, but it puts the robot's CG about 6 mm ahead of the front
+  axle. See CLAUDE.md, "Battery between the axles".
+- **Fixing.** Hook-and-loop tape on the pack's top face. The drive lanes beside
+  it leave no path for a strap.
+- **Lead.** The XT30 and balance leads leave the +X end and run forward on the
+  underside along X = 64.5. They cross the front strip at Y = 29.5 and wrap the
+  left edge between J6 and BT1. From the pack to the back of the XT30 plug that
+  is **about 13 cm**. If the pack's own lead is shorter, add an XT30
+  extension (below) or re-lead the pack.
 - **Fault current — handled by F1.** The pack is sold as 100C continuous and
   200C burst (45 A and 90 A), and its dead-short current is estimated at
   200–400 A. The original F1 PPTC could break only 40 A. Rather than give up the
@@ -163,11 +173,13 @@ here can be ordered from the repo until the drivetrain is designed.
 | Qty | Item | Constraint from the layout |
 |---:|---|---|
 | 2 | Wheels, Ø30 mm, ≤ 8 mm tire | They must fit the motor's 3 mm D-shaft or a drivetrain axle |
-| 2 | Micro metal gearmotor brackets | 38 × 16 × 16 mm underside envelopes |
+| 2 | Micro metal gearmotor brackets | 38 × 16 × 16 mm underside envelopes. **Outboard side only:** the battery fills the space between the motors, so nothing may clamp or fasten on their inboard faces. |
 | ? | Gears, idlers, axles, bearings | Undefined. The motors are staggered at Y = 50 / 82 and are not coaxial with the wheels. |
 | 4 | Sensor brackets | 14 × 19 mm mounts. J6/J7 are aimed 45° ± 15°. |
 | 1 | IMU standoff or bracket | 25 × 25 mm at the rotation centre |
-| — | Fasteners, battery strap | **The PCB has no mounting holes**; the attachment method is open |
+| — | Fasteners | **The PCB has no mounting holes**; the attachment method is open |
+| 1 | Hook-and-loop tape, ~60 × 15 mm | Holds the battery to the underside between the motors |
+| 1 | XT30 male-to-female extension, 10–15 cm | Only if the pack's lead is shorter than the ~13 cm route to BT1 |
 
 ## F. Tools and consumables (if you don't already have them)
 

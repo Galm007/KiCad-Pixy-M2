@@ -107,10 +107,17 @@ What it does, in order — the order matters:
     axes on F.SilkS, and both Pololu N20 bodies on their wheel axles on
     B.SilkS.  It nudges the C20 and R15 reference fields clear of the IMU
     outline.  Standalone, it adds the marks to an existing board once;
-17. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+17. moves the battery bay between the axles (`battery_bay.py`, 2026-09-24):
+    the underside battery rule area goes to board x 0.5-66, y 57.5-74.5 (the
+    62 x 17 mm pack plus its lead exit), both motor reservations turn their
+    4 mm encoder allowance outboard, and User.1 / User.2 are redrawn to match,
+    with the pack's lead route to BT1.  Every edit asserts the placement-era
+    geometry it replaces.  Standalone, it converts an existing board once and
+    checks every drilled pad against the new envelopes and bands;
+18. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
    areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
    on, and the `Dwgs.User` fab note;
-18. serializes a temporary candidate and runs `via_openings.py` before replacing
+19. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including
@@ -142,4 +149,5 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `pololu_conn.py` | the J8/J9 connector swap (step 13).  Its `prune()` subtracts a baseline taken before the swap, because on plane nets every bare stitching via looks dangling, and it only trims near the new pads: pruning a cut GPIO40 all the way back ate the 0.15 mm DRV8231A pin escape, which the router cannot re-create.  Its dangling test counts a T onto a segment only if that segment does not share an end with the one tested, because the router's 0.05 mm staircase steps each lie within half a width of the next |
 | `f1_fuse.py` | the F1 swap (step 14).  Reuses `pololu_conn.py`'s rip / prune / reconnect helpers; its pruning zone is the pads' *extent* plus 2 mm, since F1's pads are 7.3 mm tall and a zone built from pad centres missed a track under the pad's own edge |
 | `assembly_marks.py` | silkscreen marks for the off-board parts (step 16). Every dimension is a constant at the top: the ToF reservations, Adafruit's BNO085 board geometry (from `Adafruit_BNO08x.brd`) and Pololu's gearbox / motor / encoder lengths (drawing 0J949). Each part's marks are one KiCad group, so they move together in the GUI |
+| `battery_bay.py` | the battery bay (step 17). Its constants are KiCad coordinates, old and new side by side, so a changed board fails an assertion instead of being half-edited. `check()` repeats `layout/verify_placement.py`'s drilled-pad test against the new envelopes on a routed board, which that script cannot load |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. The connector end of each pair is looked up by net, so it measures boards from before and after the J8/J9 re-pin alike. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |

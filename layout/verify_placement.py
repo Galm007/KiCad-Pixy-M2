@@ -18,6 +18,8 @@ for c in net.findall('components/comp'):
  for pad in f.Pads():
   k=(f.GetReference(),pad.GetNumber());actual=pad.GetNetname()
   if actual!=expected.get(k,''):errors.append([k,actual,expected.get(k,'')])
+# placement-era envelopes; the battery and motor ones moved on 2026-09-24 and are
+# checked on the routed board by tools/autoroute/battery_bay.py
 reservations=[('battery',13,5,53,35),('motor L',0,44,38,60),('motor R',28,72,66,88),('battery bracket L',10,5,13,29),('battery bracket R',53,5,56,35),('motor L bracket 1',0,41,38,44),('motor L bracket 2',0,60,20,63),('motor R bracket 1',28,69,66,72),('motor R bracket 2',28,88,66,91)]
 clashes=[];through=0
 for f in fps.values():

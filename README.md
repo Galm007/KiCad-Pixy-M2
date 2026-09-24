@@ -610,10 +610,11 @@ rule set and the silkscreen assembly marks.
 
 **Open before or during first fabrication:**
 
-- [ ] **Mechanical design.** The drivetrain, wheel mounts, sensor brackets and
-      battery strap are not designed. The PCB has **no mounting holes** yet.
-      The battery reservation drawn on the board (40 × 30 mm) predates the
-      chosen 62 × 17 mm pack.
+- [ ] **Mechanical design.** The drivetrain, wheel mounts and sensor brackets
+      are not designed. The PCB has **no mounting holes** yet. The battery
+      goes across the underside between the motors (2026-09-24), so the motor
+      brackets may only fasten on the motors' outboard sides. The pack's lead
+      needs about 13 cm to reach BT1; see `BOM.md`, "Battery".
 - [ ] **Motor gear ratio.** Pick one for both motors. 12 CPR before gearing is
       low, so check that the ratio gives enough encoder edges for the control
       loop.

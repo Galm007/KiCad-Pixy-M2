@@ -2091,6 +2091,58 @@ prints marks for the off-board parts. `rework.py` runs it after `f1_fuse.py`.
   previous commit only because that fill was stale: refilling the previous board
   gives the same polygons.
 
+### Battery between the axles (2026-09-24)
+
+The underside battery reservation from placement predates the pack.
+It is 40 × 30 × 15 mm at board X 13–53, Y 5–35. The OVONIC 2S 450 mAh measures
+61.5 × 15.77 × 13.48 mm by its listing and 62 × 17 × 14 mm by its maker, so it
+fits that reservation neither way round. **The pack now lies across the
+underside, between the two motors.** `tools/autoroute/battery_bay.py` does
+this, and `rework.py` runs it after `assembly_marks.py`.
+
+- **Why not the front strip.** The pack fits there, and `BOM.md` suggested it.
+  But the wheels are at Y = 50 and 82, so the front half of the board sits
+  ahead of the front axle. The 31 g pack is about 30 % of the robot. At Y ≈ 13
+  it moves the estimated CG to about 6 mm ahead of the front axle, and the
+  robot rests on its nose. Between the axles, the pack's centre sits on the
+  rotation centre's Y (66). Its yaw inertia is about a ninth of the
+  front-strip figure.
+- **Geometry** (board frame; KiCad = board + (100, 60)):
+
+  | | now | was |
+  |---|---|---|
+  | battery body (User.1) | X 0.5–62.5, Y 57.5–74.5 (62 × 17) | X 13–53, Y 5–35 |
+  | `Battery underside reservation` | the body, extended to X = 66 for the lead exit | the body |
+  | left motor envelope | X 0–38, Y 40–56 | Y 44–60 |
+  | right motor envelope | X 28–66, Y 76–92 | Y 72–88 |
+
+- **The motors' 4 mm allowance now faces outboard.** Pololu's encoder board
+  stands 3 mm (side connector, #5155) or 4 mm (back connector, #5154) proud of
+  one face of the gearmotor, at the encoder end. That is what the allowance was
+  for, and it used to face the middle of the board. Mount each motor with that
+  face outboard or toward the floor. The drawn pack envelope sits 1.5 mm from
+  each motor body.
+- **Brackets fasten on the outboard side only.** The inboard attachment bands
+  and both battery strap bands are deleted. The outboard bands move 4 mm out
+  with their envelopes. Motor B's band stops either side of J1, because J1's
+  shell tabs and body sit under the rear edge. Hook-and-loop tape holds the
+  pack: the drive lanes beside it leave no path for a strap.
+- **The lead is the cost.** The XT30 and balance leads leave the pack's +X end
+  and run forward along X = 64.5. They cross the front strip at Y = 29.5 and
+  wrap the left edge between J6 and BT1. From the pack to the back of the XT30
+  plug that is **about 13 cm**, probably more than the pack's own lead, so
+  plan on an XT30 extension. User.2 shows the route. Moving BT1 to the pack's
+  end would drag F1, Q1 and the unfused `/VBAT_RAW` run out of the motor
+  corner, and "Keep unfused copper short" rules that out.
+- **Checks.**
+  - DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit passes.
+    Copper is unchanged.
+  - `battery_bay.py` checks all 10 drilled pads (BT1, J1, SW3) against the new
+    envelopes and bands: no clashes. BT1 is 1.5 mm from motor A's band. J1 is
+    1.57 mm from motor B's envelope.
+  - `layout/verify_placement.py` cannot load a routed board, so this check
+    stands in for it on these envelopes.
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
