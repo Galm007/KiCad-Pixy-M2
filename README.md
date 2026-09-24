@@ -419,9 +419,74 @@ before/after images) are under [`layout/`](layout/).
 
 ## Parts list
 
-A condensed list for **one board**. See **[`BOM.md`](BOM.md)** for the full
-bill of materials: status of each part, cables, crimp contacts, off-board
-modules, mechanical parts and tools.
+Parts for **one robot**, taken from **[`BOM.md`](BOM.md)**. BOM.md also has
+each part's status, the cable wiring, the mechanical parts and the tools. The
+shopping list has one line per part to buy. The tables after it list the same
+PCB parts by reference designator.
+
+### Shopping list
+
+Quantities are exact, with no spares except the crimp contacts. Where BOM.md
+lets one part fill several positions, the list merges them: one 0.1 µF 50 V
+part covers all eleven 0.1 µF positions, and every resistor is bought at 1 %.
+
+| Qty | Part | For |
+|---:|---|---|
+| 1 | Espressif **ESP32-S3-WROOM-1-N16** | U1. N16 only, not an `-R8` variant |
+| 2 | TI **DRV8231ADSGR** | U4, U5 |
+| 1 | Diodes Inc **AP63203WU-7** | U3. Fixed 3.3 V, not the AP63200 |
+| 1 | ST **USBLC6-2SC6** | U2 |
+| 1 | AOS **AO4407A** | Q1. Not the IRF7404 the symbol names |
+| 2 | onsemi **MBRA340T3G** | D1, D2 |
+| 1 | Vishay **BAT54W-E3-08** (SOD-123) | D3. Nexperia's BAT54W is SOT-323 and won't fit |
+| 1 | Vishay **SMBJ9.0A-E3/52** | D6 |
+| 1 | Red LED, high-efficiency, 0805 | D4. Must be visibly lit at ~150 µA |
+| 1 | Green LED, 0805 | D5 |
+| 1 | Bourns **SRP5030T-4R7M** | L1 |
+| 1 | Littelfuse **0885005.DR** | F1 |
+| 1 | Bourns **MF-MSMF050-2** | F2 |
+| 1 | C&K **JS102011SAQN** | SW3 |
+| 2 | E-Switch **TL3301NF160QG** | SW1, SW2 |
+| 1 | Amphenol **12401948E412A** | J1 |
+| 1 | AMASS **XT30U-M** | BT1 |
+| 7 | JST **SM06B-SRSS-TB(LF)(SN)** | J4–J9, J11 |
+| 1 | JST **SM09B-SRSS-TB(LF)(SN)** | J10 |
+| 11 | 0.1 µF 50 V X7R, 0603 | C2, C4–C6, C13, C14, C16–C18, C20, C22 |
+| 1 | 1 µF 16 V X7R, 0603 | C3 |
+| 2 | 10 µF 16 V X5R/X7R, 0805 | C1, C15 |
+| 2 | 22 µF 16 V X5R/X7R, 0805 | C7, C11 |
+| 3 | 22 µF 25 V X5R/X7R, 1206 | C12, C19, C21 |
+| 1 | 4.7 nF 1 kV, 1206 | C8 |
+| 7 | 10 kΩ 1 %, 0805 | R2, R12, R19–R23 |
+| 5 | 2.2 kΩ 1 %, 0805 | R13, R15–R18 |
+| 2 | 5.1 kΩ 1 %, 0805 | R1, R6 |
+| 1 | 24 kΩ 1 %, 0805 | R8 |
+| 1 | 39 kΩ 1 %, 0805 | R9 |
+| 1 | 100 kΩ 1 %, 0805 | R14 |
+| 1 | 120 kΩ 1 %, 0805 | R7 |
+| 1 | 220 kΩ 1 %, 0805 | R11 |
+| 1 | 470 kΩ 1 %, 0805 | R10 |
+| 1 | 1 MΩ 1 %, 0805 | R5 |
+| 1 | 4-layer PCB, 1.6 mm, 66 × 100 mm | Order with the [fabrication options](#pcb-fabrication-options) below |
+| 1 | SMT stencil | Optional, but hard to do without for the WSON parts |
+| 4 | **GY-VL53L0XV2** ToF module (`HW-842`) | Wall sensors on J4–J7 |
+| 1 | Adafruit **BNO085** breakout, #4754 | IMU on J10 |
+| 2 | Pololu **Micro Metal Gearmotor HP 6V with 12 CPR encoder** (#5153–#5165) | J8, J9. Gear ratio not chosen yet; use the same for both |
+| 2 | Pololu **JST SH encoder cable**, female–female (#4765–#4769, 10–63 cm) | Motors to J8, J9 |
+| 1 | OVONIC **2S 450 mAh 100C LiPo, XT30** | BT1. The Amazon listing (B0D2KT723L) is a 4-pack |
+| 5 | JST **SHR-06V-S-B** housing | Four ToF cables and the optional debug lead |
+| 1 | JST **SHR-09V-S-B** housing | IMU cable |
+| ~80 | JST **SSH-003T-P0.2-H** crimp contact | 39 are used; hand crimping wastes some |
+| — | 28–32 AWG wire | ToF, IMU and debug cables |
+
+Not listed here:
+
+- **Mechanical parts.** Wheels, motor brackets, drivetrain and sensor brackets
+  are not designed yet.
+- **Tools.** A 2S balance charger (XT30, JST-XH), a JST SH crimp tool, solder
+  paste with hot air or reflow, and a 3.3 V USB-UART adapter for J11.
+
+Both are in BOM.md, sections E and F.
 
 ### Active parts
 
