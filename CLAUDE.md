@@ -49,6 +49,15 @@ Diff the net list against the previous export after every structural edit. Close
 KiCad before editing `.kicad_sch` on disk — `~Pixy-M2.kicad_sch.lck` tells you the
 GUI has it open, and whichever side saves last wins.
 
+**Sheet re-laid out 2026-09-24 (layout only).** Thirteen dashed, titled frames in
+three rows: MCU, reset/boot, indicators/test points, debug, battery sense, ToF;
+USB-C → battery input → 3V3 buck → UVLO; motor A, motor B, IMU. The USB block was
+redrawn so the CC resistors no longer cross D±, and the UVLO divider now meets
+U3.2 through its existing `REG_EN` label instead of a wire. Netlist diff against
+the previous sheet: 0 differences (66 nets, 78 parts); ERC 0/0; PCB schematic
+parity 0. Tooling and method: `tools/schematic/README.md`. Keep new parts inside
+their block's frame.
+
 **Netlist last re-extracted: 2026-09-19, after the issue-14 ToF sensor connectors.**
 The tables below are current as of that extraction. The schematic sheet was also
 changed from A4 to **A3** to make room for the sensor block.
