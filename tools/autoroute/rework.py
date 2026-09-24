@@ -866,7 +866,7 @@ def main():
     # variant lives in the project library, so the placed copy matches it
     p.set_fpid('U1', 'Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang')
     print('silkscreen assembly marks:', assembly_marks(p), 'items')
-    print('battery bay between the axles:', battery_bay(p), 'items edited')
+    print('battery bay between the axles:', battery_bay(p), 'items')
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'

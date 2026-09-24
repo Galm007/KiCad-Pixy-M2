@@ -148,7 +148,8 @@ and still gives about 63 % of the motor's 6 V stall torque. IPROPI now reads
   The listing gives 61.5 × 15.77 × 13.48 mm and the maker 62 × 17 × 14 mm, so
   the bay is drawn at the larger size, 1.5 mm from each motor body. The front
   strip also fits, but it puts the robot's CG about 6 mm ahead of the front
-  axle. See CLAUDE.md, "Battery between the axles".
+  axle. The underside silkscreen shows the outline, the lead end and the
+  lead's route. See CLAUDE.md, "Battery between the axles".
 - **Fixing.** Hook-and-loop tape on the pack's top face. The drive lanes beside
   it leave no path for a strap.
 - **Lead.** The XT30 and balance leads leave the +X end and run forward on the

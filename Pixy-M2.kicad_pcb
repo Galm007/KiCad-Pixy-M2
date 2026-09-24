@@ -17781,6 +17781,46 @@
 		(uuid "a19da8c7-bf97-4091-8b3c-38a013214ff2")
 	)
 	(gr_line
+		(start 100.5 117.5)
+		(end 162.5 117.5)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "30fa4877-ac52-4ba0-802d-24a011503e21")
+	)
+	(gr_line
+		(start 100.5 134.5)
+		(end 100.5 117.5)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "efb92332-e236-4b47-93ee-39151fe97e23")
+	)
+	(gr_line
+		(start 100.8 89.5)
+		(end 101.4928 89.1)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "58017f5e-8cc7-438d-83ad-afd2513fb6b0")
+	)
+	(gr_line
+		(start 100.8 89.5)
+		(end 101.4928 89.9)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "705298cb-41fb-4b0a-b5c3-0a6fb6671598")
+	)
+	(gr_line
 		(start 100.8 112.5)
 		(end 101.4928 112.1)
 		(stroke
@@ -17799,6 +17839,16 @@
 		)
 		(layer "B.SilkS")
 		(uuid "b8f2ee2f-2cc3-4c76-8a9d-eeb49646817c")
+	)
+	(gr_line
+		(start 102.8 89.5)
+		(end 100.8 89.5)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "2e12e2d9-c110-41b5-a665-7e36aaf4e661")
 	)
 	(gr_line
 		(start 106 112.5)
@@ -17861,6 +17911,16 @@
 		(uuid "a9721b52-0e68-417a-8dd7-89f1f280f427")
 	)
 	(gr_line
+		(start 156 126)
+		(end 162.2 126)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "2bf49ae5-ad71-47fd-bcae-bb4a34affefd")
+	)
+	(gr_line
 		(start 157 136)
 		(end 157 148)
 		(stroke
@@ -17879,6 +17939,76 @@
 		)
 		(layer "B.SilkS")
 		(uuid "ad33dd5f-4225-4708-816f-030241213b0d")
+	)
+	(gr_line
+		(start 162.2 126)
+		(end 161.5072 125.6)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "e30f7bb5-e967-4b4e-8e8a-673eae03dd72")
+	)
+	(gr_line
+		(start 162.2 126)
+		(end 161.5072 126.4)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "a3650a10-ee04-4e65-a642-60867b826b2a")
+	)
+	(gr_line
+		(start 162.5 117.5)
+		(end 162.5 134.5)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "b819c550-9660-4e89-8e2f-7ab50507bc72")
+	)
+	(gr_line
+		(start 162.5 126)
+		(end 164.5 124)
+		(stroke
+			(width 0.15)
+			(type dash)
+		)
+		(layer "B.SilkS")
+		(uuid "5a2f327a-d665-4a46-a37a-faead681c1b4")
+	)
+	(gr_line
+		(start 162.5 134.5)
+		(end 100.5 134.5)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "B.SilkS")
+		(uuid "1f756f54-700a-4b72-8c48-fb78f77be5c2")
+	)
+	(gr_line
+		(start 164.5 89.5)
+		(end 100.8 89.5)
+		(stroke
+			(width 0.15)
+			(type dash)
+		)
+		(layer "B.SilkS")
+		(uuid "67de89d8-07e8-459d-9cf0-97794442ad0c")
+	)
+	(gr_line
+		(start 164.5 124)
+		(end 164.5 89.5)
+		(stroke
+			(width 0.15)
+			(type dash)
+		)
+		(layer "B.SilkS")
+		(uuid "ead91f8e-c96c-49e1-886a-5d0ad5f9b5c2")
 	)
 	(gr_line
 		(start 165.2 144.5)
@@ -19389,7 +19519,7 @@
 		)
 	)
 	(gr_text "Pololu HP 6V N20"
-		(at 116 118 0)
+		(at 112 102 0)
 		(layer "B.SilkS")
 		(uuid "ef057167-08ec-4e79-9cf7-0bf9724b438e")
 		(effects
@@ -19424,6 +19554,18 @@
 			(justify mirror)
 		)
 	)
+	(gr_text "ENC CONN SIDE"
+		(at 128 102 0)
+		(layer "B.SilkS")
+		(uuid "53c676fe-a335-40a2-9a87-d7526bc6f8c1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
 	(gr_text "ENC"
 		(at 128 110 0)
 		(layer "B.SilkS")
@@ -19436,10 +19578,58 @@
 			(justify mirror)
 		)
 	)
+	(gr_text "BATTERY  2S LiPo 450 mAh"
+		(at 131.5 121 0)
+		(layer "B.SilkS")
+		(uuid "70fec421-3e8d-4c27-af04-3baa416c8687")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
+	(gr_text "62 x 17 face on board, hook-and-loop"
+		(at 131.5 123.5 0)
+		(layer "B.SilkS")
+		(uuid "42349a8b-0c73-4b39-a33c-f898558e7e66")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
+	(gr_text "XT30 LEAD: ROUND LEFT EDGE TO BT1 (TOP)"
+		(at 132 88 0)
+		(layer "B.SilkS")
+		(uuid "8010a8b4-c589-4faa-9333-068803a2f652")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
 	(gr_text "ENC"
 		(at 138 142 0)
 		(layer "B.SilkS")
 		(uuid "efc585e6-88f0-4ecc-bb5d-9bfebf6fc967")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
+	(gr_text "ENC CONN SIDE"
+		(at 138 150 0)
+		(layer "B.SilkS")
+		(uuid "4912f350-1b29-4300-95c6-d19ba006e40e")
 		(effects
 			(font
 				(size 1 1)
@@ -19472,8 +19662,20 @@
 			(justify mirror)
 		)
 	)
+	(gr_text "XT30 + balance leads"
+		(at 151 128.5 0)
+		(layer "B.SilkS")
+		(uuid "92ea9e6d-a648-4d3e-b0e9-235c1ea28ac4")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
 	(gr_text "Pololu HP 6V N20"
-		(at 150 134 0)
+		(at 154 150 0)
 		(layer "B.SilkS")
 		(uuid "b8e69d41-da5b-42cb-b5ad-6211be34cdf2")
 		(effects
@@ -47853,23 +48055,38 @@
 	(group "MOTOR A left"
 		(uuid "182fcd10-a919-4317-a977-bcf6e6d42ebb")
 		(members "182aea95-9cac-46fa-9891-7ba377806479" "2f65c22c-14ae-4f42-a709-9b8d5caaa5b2"
-			"724801b8-62fc-4983-98b0-ae9173e109c6" "731f0e17-fc26-4354-be69-66f241ecec50"
-			"78fb0ae1-b412-4b57-b170-880f7e821dcf" "8c104fb5-1e0c-45c4-922a-1d16e56ce52a"
-			"932dff99-57df-49bd-b39b-bcbb18650a0f" "96fded54-0e83-4a2c-af15-2bd8b529ef9e"
-			"9f73eaea-9302-4c33-ad8d-0effa9570fa8" "9fbd5650-8a3e-4572-a359-2861bb6658ff"
-			"a19da8c7-bf97-4091-8b3c-38a013214ff2" "b732a7a5-04e5-43d0-b666-8b87410bfe6f"
-			"b8f2ee2f-2cc3-4c76-8a9d-eeb49646817c" "ef057167-08ec-4e79-9cf7-0bf9724b438e"
+			"53c676fe-a335-40a2-9a87-d7526bc6f8c1" "724801b8-62fc-4983-98b0-ae9173e109c6"
+			"731f0e17-fc26-4354-be69-66f241ecec50" "78fb0ae1-b412-4b57-b170-880f7e821dcf"
+			"8c104fb5-1e0c-45c4-922a-1d16e56ce52a" "932dff99-57df-49bd-b39b-bcbb18650a0f"
+			"96fded54-0e83-4a2c-af15-2bd8b529ef9e" "9f73eaea-9302-4c33-ad8d-0effa9570fa8"
+			"9fbd5650-8a3e-4572-a359-2861bb6658ff" "a19da8c7-bf97-4091-8b3c-38a013214ff2"
+			"b732a7a5-04e5-43d0-b666-8b87410bfe6f" "b8f2ee2f-2cc3-4c76-8a9d-eeb49646817c"
+			"ef057167-08ec-4e79-9cf7-0bf9724b438e"
 		)
 	)
 	(group "MOTOR B right"
 		(uuid "287a8296-ac6d-4564-bee4-1e2598468511")
 		(members "0f1f0ffd-d82d-4e67-a17a-63341daef4a0" "0fdc3546-4d59-47d1-8cc6-e377abaa7ab5"
-			"4a79a600-30c0-4714-a8a7-72aed6312c1c" "7daca688-97f0-4970-939d-d535cb80d69c"
-			"8e764ac1-cf16-446e-a34d-87ffc74df771" "a9721b52-0e68-417a-8dd7-89f1f280f427"
-			"ad33dd5f-4225-4708-816f-030241213b0d" "b8e69d41-da5b-42cb-b5ad-6211be34cdf2"
-			"bcda8ce7-7330-4a6e-ad1a-35d33d416d2b" "d6442bf3-5cec-4718-aa87-49ee13f4cb53"
-			"d6f641c7-7735-4c2b-8e4d-9783522e7b47" "efc585e6-88f0-4ecc-bb5d-9bfebf6fc967"
-			"f00c8229-d97d-464d-8c04-33f36ac6bb3d" "f21dc9e0-eb5e-45dd-a607-3d5a687f84eb"
+			"4912f350-1b29-4300-95c6-d19ba006e40e" "4a79a600-30c0-4714-a8a7-72aed6312c1c"
+			"7daca688-97f0-4970-939d-d535cb80d69c" "8e764ac1-cf16-446e-a34d-87ffc74df771"
+			"a9721b52-0e68-417a-8dd7-89f1f280f427" "ad33dd5f-4225-4708-816f-030241213b0d"
+			"b8e69d41-da5b-42cb-b5ad-6211be34cdf2" "bcda8ce7-7330-4a6e-ad1a-35d33d416d2b"
+			"d6442bf3-5cec-4718-aa87-49ee13f4cb53" "d6f641c7-7735-4c2b-8e4d-9783522e7b47"
+			"efc585e6-88f0-4ecc-bb5d-9bfebf6fc967" "f00c8229-d97d-464d-8c04-33f36ac6bb3d"
+			"f21dc9e0-eb5e-45dd-a607-3d5a687f84eb"
+		)
+	)
+	(group "Battery 2S LiPo"
+		(uuid "92f50837-06b5-4170-a04d-dd0955c29659")
+		(members "1f756f54-700a-4b72-8c48-fb78f77be5c2" "2bf49ae5-ad71-47fd-bcae-bb4a34affefd"
+			"2e12e2d9-c110-41b5-a665-7e36aaf4e661" "30fa4877-ac52-4ba0-802d-24a011503e21"
+			"42349a8b-0c73-4b39-a33c-f898558e7e66" "58017f5e-8cc7-438d-83ad-afd2513fb6b0"
+			"5a2f327a-d665-4a46-a37a-faead681c1b4" "67de89d8-07e8-459d-9cf0-97794442ad0c"
+			"705298cb-41fb-4b0a-b5c3-0a6fb6671598" "70fec421-3e8d-4c27-af04-3baa416c8687"
+			"8010a8b4-c589-4faa-9333-068803a2f652" "92ea9e6d-a648-4d3e-b0e9-235c1ea28ac4"
+			"a3650a10-ee04-4e65-a642-60867b826b2a" "b819c550-9660-4e89-8e2f-7ab50507bc72"
+			"e30f7bb5-e967-4b4e-8e8a-673eae03dd72" "ead91f8e-c96c-49e1-886a-5d0ad5f9b5c2"
+			"efb92332-e236-4b47-93ee-39151fe97e23"
 		)
 	)
 	(embedded_fonts no)

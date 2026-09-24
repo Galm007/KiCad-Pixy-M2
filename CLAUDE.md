@@ -2083,7 +2083,8 @@ prints marks for the off-board parts. `rework.py` runs it after `f1_fuse.py`.
   gearbox 9, motor 15 and encoder 8 mm (Pololu drawing 0J949). The gearbox face
   is on the board edge and the shaft is on the wheel axle, y = 110 (left,
   **motor A → J8**) and y = 142 (right, **motor B → J9**). The label
-  sits in the 4 mm side-connector allowance.
+  sits in the 4 mm side-connector allowance. *Since 2026-09-24 that allowance
+  faces outboard; see "Battery between the axles".*
 - **C20 and R15 reference fields moved** 0.6 mm west and 0.45 mm south, clear of
   the IMU outline.
 - **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit
@@ -2142,6 +2143,20 @@ this, and `rework.py` runs it after `assembly_marks.py`.
     1.57 mm from motor B's envelope.
   - `layout/verify_placement.py` cannot load a routed board, so this check
     stands in for it on these envelopes.
+- **Silkscreen (B.SilkS).** The stage also prints these marks:
+  - the pack outline, labelled `BATTERY  2S LiPo 450 mAh` and
+    `62 x 17 face on board, hook-and-loop`;
+  - an arrow at the +X end, labelled `XT30 + balance leads`;
+  - the lead route as a dashed line, ending in an arrow at the left edge
+    beside BT1's pins.
+
+  `assembly_marks.py` moves each motor's `Pololu HP 6V N20` into its now
+  outboard allowance and adds `ENC CONN SIDE` over the encoder. The old spot
+  is inside the battery outline. Standalone, `battery_bay.py` makes that move
+  on an already-marked board. DRC stays at 0 / 0 / 0, and the aperture audit
+  passes. `docs/images/pcb-3d-bottom.png` is re-rendered with
+  `kicad-cli pcb render --side bottom -w 1408 -h 2024 --background opaque
+  --quality high`.
 
 ### What this pass did not touch
 

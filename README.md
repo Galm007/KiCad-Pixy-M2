@@ -61,7 +61,11 @@ The silkscreen prints where each off-board part attaches:
   cable plugs into, and the BNO085 breakout outline centred on the robot's
   rotation centre.
 - **Bottom:** the two Pololu HP 6V gearmotors, with the gearbox face on the
-  board edge and the shaft on the wheel axle.
+  board edge and the shaft on the wheel axle. `ENC CONN SIDE` marks the face
+  their encoder boards stand proud of, which must point outboard. Between the
+  motors is the 2S battery's outline, with an arrow at the end its leads
+  leave from and a dashed line for the lead's route round the left edge to
+  BT1.
 
 ---
 

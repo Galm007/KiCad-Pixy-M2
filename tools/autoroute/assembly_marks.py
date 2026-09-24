@@ -21,7 +21,10 @@ User.1/2, which are not fabricated.  These marks go on F.SilkS and B.SilkS:
           wide, split gearbox 9 / motor 15 / encoder 8 mm per Pololu's
           dimension drawing (0J949), gearbox face on the board edge and shaft
           on the wheel axle (y = 110 left, 142 right).  The 4 mm side-connector
-          allowance of each 16 mm reservation is left for the text.
+          allowance of each 16 mm reservation carries the part name and
+          ENC CONN SIDE over the encoder.  Since 2026-09-24 that allowance
+          faces outboard, because the battery lies between the motors
+          (battery_bay.py, which also prints the battery's own marks).
 
 Runs after f1_fuse.py in rework.py.  Standalone, it adds the marks to an
 existing board once:
@@ -48,8 +51,9 @@ BNO_CHIP = (12.7, 12.2555)            # U1 in board coordinates (y up)
 BNO_HOLES = [(2.54, 2.54), (22.86, 2.54), (2.54, 20.32), (22.86, 20.32)]
 
 # motor, side, gearbox face x, direction of the body from it, axle y, text y
-MOTORS = [('MOTOR A', 'LEFT', 'J8', 100.0, 1, 110.0, 118.0),
-          ('MOTOR B', 'RIGHT', 'J9', 166.0, -1, 142.0, 134.0)]
+# (the outboard 4 mm encoder allowance: forward of A, behind B)
+MOTORS = [('MOTOR A', 'LEFT', 'J8', 100.0, 1, 110.0, 102.0),
+          ('MOTOR B', 'RIGHT', 'J9', 166.0, -1, 142.0, 150.0)]
 GEARBOX, MOTOR, ENCODER, WIDTH = 9.0, 15.0, 8.0, 12.0
 EDGE_INSET = 0.5
 
@@ -71,9 +75,9 @@ class Marks:
         self.members = []
         self.groups.append((name, self.members))
 
-    def line(self, layer, x1, y1, x2, y2):
+    def line(self, layer, x1, y1, x2, y2, dash=False):
         self._add(f'\t(gr_line\n\t\t(start {fx(x1)} {fx(y1)})\n\t\t(end {fx(x2)} {fx(y2)})\n'
-                  f'\t\t(stroke\n\t\t\t(width {W})\n\t\t\t(type solid)\n\t\t)\n'
+                  f'\t\t(stroke\n\t\t\t(width {W})\n\t\t\t(type {"dash" if dash else "solid"})\n\t\t)\n'
                   f'\t\t(layer "{layer}")\n\t\t(uuid "@UUID@")\n\t)\n')
 
     def rect(self, layer, x0, y0, x1, y1):
@@ -163,7 +167,8 @@ def motors(m):
         m.text(L, name, (g + mo) / 2, axle - 1.5)
         m.text(L, f'{side} {conn}', (g + mo) / 2, axle + 1.5)
         m.text(L, 'ENC', (mo + e) / 2, axle)
-        m.text(L, 'Pololu HP 6V N20', (face + e) / 2, ty)
+        m.text(L, 'Pololu HP 6V N20', (face + mo) / 2, ty)
+        m.text(L, 'ENC CONN SIDE', (mo + e) / 2, ty)
 
 
 def assembly_marks(p):

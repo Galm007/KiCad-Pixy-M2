@@ -111,9 +111,13 @@ What it does, in order — the order matters:
     the underside battery rule area goes to board x 0.5-66, y 57.5-74.5 (the
     62 x 17 mm pack plus its lead exit), both motor reservations turn their
     4 mm encoder allowance outboard, and User.1 / User.2 are redrawn to match,
-    with the pack's lead route to BT1.  Every edit asserts the placement-era
-    geometry it replaces.  Standalone, it converts an existing board once and
-    checks every drilled pad against the new envelopes and bands;
+    with the pack's lead route to BT1.  On B.SilkS it prints the pack
+    outline, its lead arrow and the route as a dashed line (the motor names
+    and `ENC CONN SIDE` come from `assembly_marks.py`).  Every edit asserts
+    the placement-era geometry it replaces.  Standalone, it converts an
+    existing board once, moving the motor names on a board marked before
+    2026-09-24, and checks every drilled pad against the new envelopes and
+    bands;
 18. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
    areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
    on, and the `Dwgs.User` fab note;

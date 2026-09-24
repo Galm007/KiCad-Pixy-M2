@@ -32,14 +32,21 @@ along x = 64.5 to y = 29.5, cross the front strip and wrap the left edge
 between J6 and BT1 to reach BT1 on top.  That is about 13 cm of lead, more
 than a stock pack lead.  The route is drawn on User.2.
 
+On B.SilkS it prints the pack's outline and what it is, an arrow at the
+end its leads leave from, and the lead route as a dashed line to the left
+edge.  assembly_marks.py puts the motors' part names in their (now
+outboard) encoder allowance, with ENC CONN SIDE over the encoder.
+
 Runs after assembly_marks.py in rework.py.  Standalone, it converts an
-existing board once and checks every drilled pad against the new envelopes:
+existing board once, moving the motor names on a board marked before
+2026-09-24, and checks every drilled pad against the new envelopes:
 
     /usr/bin/python3 tools/autoroute/battery_bay.py [board.kicad_pcb]
 """
 import os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pcbedit import Pcb, fx, uid
+from assembly_marks import Marks, MOTORS, GEARBOX, MOTOR, ENCODER
 
 # every coordinate below is KiCad's: board frame + (100, 60)
 PACK = (100.5, 117.5, 162.5, 134.5)             # battery body, 62 x 17
@@ -83,6 +90,10 @@ TEXTS = [('User.1', r'BATTERY (bottom)\n40 x 30 x 15', (133, 80),
 # round the left edge between J6 (courtyard to y 88.33) and BT1 (from 90.45)
 LEAD = [(162.5, 126), (164.5, 124), (164.5, 89.5), (100, 89.5)]
 LEAD_TEXT = ('BATTERY LEAD: XT30 around the left edge to BT1', (132, 88))
+
+MARKER = 'BATTERY  2S LiPo 450 mAh'     # present once the silkscreen marks are
+# the motor names' placement-era spot, inside what is now the battery envelope
+OLD_MOTOR_TEXT = {'MOTOR A': (116, 118), 'MOTOR B': (150, 134)}
 
 
 def _items(text):
@@ -191,9 +202,55 @@ def reserve(p):
     return len(edits)
 
 
+def marks(p):
+    """the battery's B.SilkS outline, lead arrow and dashed lead route"""
+    L = 'B.SilkS'
+    m = Marks()
+    m.group('Battery 2S LiPo')
+    x0, y0, x1, y1 = PACK
+    m.rect(L, *PACK)
+    m.text(L, MARKER, (x0 + x1) / 2, 121.0)
+    m.text(L, '62 x 17 face on board, hook-and-loop', (x0 + x1) / 2, 123.5)
+    (lx, ly) = LEAD[0]
+    m.arrow(L, lx - 6.5, ly, lx - 0.3, ly, head=0.8)     # leads leave this end
+    m.text(L, 'XT30 + balance leads', lx - 11.5, ly + 2.5)
+    route = LEAD[:-1] + [(LEAD[-1][0] + 0.8, LEAD[-1][1])]   # silk stays off the edge
+    for a, b in zip(route, route[1:]):
+        m.line(L, *a, *b, dash=True)
+    m.arrow(L, route[-1][0] + 2.0, route[-1][1], *route[-1], head=0.8)
+    m.text(L, 'XT30 LEAD: ROUND LEFT EDGE TO BT1 (TOP)', *LEAD_TEXT[1])
+    p.add_zone(m.sexpr())
+    return len(m.items)
+
+
+def motor_labels(p):
+    """one-off: a board marked before 2026-09-24 has each motor's name in the
+    inboard allowance.  Move it outboard and add ENC CONN SIDE to the group, as
+    assembly_marks.py now draws them."""
+    p.sync()
+    t, new = p.text, ''
+    for name, side, conn, face, d, axle, ty in MOTORS:
+        mo, e = face + d * (GEARBOX + MOTOR), face + d * (GEARBOX + MOTOR + ENCODER)
+        ox, oy = OLD_MOTOR_TEXT[name]
+        old = f'\t(gr_text "Pololu HP 6V N20"\n\t\t(at {fx(ox)} {fx(oy)} 0)\n\t\t(layer "B.SilkS")\n'
+        assert t.count(old) == 1, f'{name}: label not at its placement-era spot'
+        t = t.replace(old, f'\t(gr_text "Pololu HP 6V N20"\n\t\t(at {fx((face + mo) / 2)} {fx(ty)} 0)\n'
+                           '\t\t(layer "B.SilkS")\n')
+        m = Marks()
+        m.group('')
+        m.text('B.SilkS', 'ENC CONN SIDE', (mo + e) / 2, ty)
+        g = t.index(f'\t(group "{name} {side.lower()}"\n')
+        k = t.index('\n\t\t)\n\t)\n', g)          # end of its member list
+        t = t[:k] + f'\n\t\t\t"{m.members[0]}"' + t[k:]
+        new += m.items[0]
+    p.text = t
+    p._split()
+    p.add_zone(new)
+
+
 def battery_bay(p):
     """the whole stage, as rework.py runs it"""
-    return reserve(p)
+    return reserve(p) + marks(p)
 
 
 def check(path):
@@ -226,5 +283,12 @@ if __name__ == '__main__':
         print(f'{path}: battery bay already reserved')
     else:
         print(f'reservations and drawings: {reserve(p)} items edited')
-        p.write()
+    if '(gr_text "ENC CONN SIDE"' not in p.text:
+        motor_labels(p)
+        print('motor names moved to the outboard allowance')
+    if f'(gr_text "{MARKER}"' in p.text:
+        print(f'{path}: battery marks already present')
+    else:
+        print(f'battery silkscreen: {marks(p)} items')
+    p.write()
     sys.exit(0 if check(path) else 1)
