@@ -421,14 +421,15 @@ before/after images) are under [`layout/`](layout/).
 
 Parts for **one robot**, taken from **[`BOM.md`](BOM.md)**. BOM.md also has
 each part's status, the cable wiring, the mechanical parts and the tools. The
-shopping list has one line per part to buy. The tables after it list the same
-PCB parts by reference designator.
+shopping list below has one line per part to buy.
 
 ### Shopping list
 
 Quantities are exact, with no spares except the crimp contacts. Where BOM.md
 lets one part fill several positions, the list merges them: one 0.1 µF 50 V
 part covers all eleven 0.1 µF positions, and every resistor is bought at 1 %.
+R7–R11 and R17/R18 must stay 1 %: they set the UVLO thresholds, the
+battery-sense ratio and the motor current limit.
 
 | Qty | Part | For |
 |---:|---|---|
@@ -487,82 +488,6 @@ Not listed here:
   paste with hot air or reflow, and a 3.3 V USB-UART adapter for J11.
 
 Both are in BOM.md, sections E and F.
-
-### Active parts
-
-| Qty | Ref | Part | Package |
-|---:|---|---|---|
-| 1 | U1 | Espressif **ESP32-S3-WROOM-1-N16**. It must be N16: `-R8` variants use GPIO35–37 for PSRAM. | Module |
-| 2 | U4, U5 | TI **DRV8231ADSGR** motor driver | WSON-8 2×2 |
-| 1 | U3 | Diodes Inc **AP63203WU-7** 3.3 V buck | TSOT-23-6 |
-| 1 | U2 | ST **USBLC6-2SC6** USB ESD | SOT-23-6 |
-| 1 | Q1 | AOS **AO4407A** −30 V P-FET. The schematic symbol is `IRF7404` for its pinout; order the AO4407A. | SOIC-8 |
-| 2 | D1, D2 | onsemi **MBRA340T3G** Schottky | SMA |
-| 1 | D3 | Vishay **BAT54W-E3-08** | SOD-123 |
-| 1 | D6 | Vishay **SMBJ9.0A-E3/52** TVS | SMB |
-| 1 | D4 | Red LED, high-efficiency | 0805 |
-| 1 | D5 | Green LED | 0805 |
-
-### Power passives, protection and switches
-
-| Qty | Ref | Part | Package |
-|---:|---|---|---|
-| 1 | L1 | Bourns **SRP5030T-4R7M**, 4.7 µH, Isat 6 A | 5.0 × 5.0 mm |
-| 1 | F1 | Littelfuse **0885005.DR**, 5 A, 1500 A breaking | NANO2 885 |
-| 1 | F2 | Bourns **MF-MSMF050-2**, 500 mA PPTC | 1812 |
-| 1 | SW3 | C&K **JS102011SAQN** SPDT slide | SMD |
-| 2 | SW1, SW2 | E-Switch **TL3301NF160QG** tactile | 6 × 6 SMD |
-
-### Connectors
-
-| Qty | Ref | Part |
-|---:|---|---|
-| 1 | J1 | Amphenol **12401948E412A** USB-C |
-| 1 | BT1 | AMASS **XT30U-M** |
-| 7 | J4–J9, J11 | JST **SM06B-SRSS-TB** (SH, 6-pin) |
-| 1 | J10 | JST **SM09B-SRSS-TB** (SH, 9-pin) |
-
-### Capacitors (MLCC, X7R preferred)
-
-| Qty | Ref | Value | Package |
-|---:|---|---|---|
-| 5 | C2, C4, C5, C16, C22 | 0.1 µF 16 V | 0603 |
-| 2 | C6, C17 | 0.1 µF 25 V | 0603 |
-| 4 | C13, C14, C18, C20 | 0.1 µF 50 V | 0603 |
-| 1 | C3 | 1 µF 16 V | 0603 |
-| 2 | C1, C15 | 10 µF 16 V | 0805 |
-| 2 | C7, C11 | 22 µF 16 V | 0805 |
-| 3 | C12, C19, C21 | 22 µF 25 V | 1206 |
-| 1 | C8 | 4.7 nF **1 kV** | 1206 |
-
-### Resistors (0805)
-
-| Qty | Ref | Value |
-|---:|---|---|
-| 7 | R2, R12, R19–R23 | 10 kΩ |
-| 3 | R13, R15, R16 | 2.2 kΩ |
-| 2 | R17, R18 | 2.2 kΩ **1 %** (current limit) |
-| 2 | R1, R6 | 5.1 kΩ (USB-C CC) |
-| 1 | R5 | 1 MΩ |
-| 1 | R7 | 120 kΩ **1 %** |
-| 1 | R8 | 24 kΩ **1 %** |
-| 1 | R9 | 39 kΩ **1 %** |
-| 1 | R10 | 470 kΩ **1 %** |
-| 1 | R11 | 220 kΩ **1 %** |
-| 1 | R14 | 100 kΩ |
-
-The resistors marked 1 % set the UVLO thresholds, the battery-sense ratio and
-the motor current limit. Do not substitute 5 % parts.
-
-### Off-board parts
-
-| Qty | Item |
-|---:|---|
-| 4 | GY-VL53L0XV2 ToF module (silkscreen `HW-842`) |
-| 1 | Adafruit BNO085 9-DoF breakout (#4754) |
-| 2 | Pololu Micro Metal Gearmotor HP 6V with 12 CPR encoder (#5153–#5165 series; gear ratio not yet chosen) |
-| 2 | Pololu SH–SH encoder cable (#4765–#4769) |
-| 1 | 2S 450 mAh LiPo with XT30 (OVONIC 100C) |
 
 ### PCB fabrication options
 
