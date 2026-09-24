@@ -14904,7 +14904,7 @@
 		)
 		(uuid "1c180792-46da-462f-a87d-8ac19ebd3cc5")
 	)
-	(text "F1 provisional: verify motor / fan current before fabrication."
+	(text "F1: one-time 5A fuse, breaks 1500A - sized for the pack's short-circuit current."
 		(at 142.24 17.78 0)
 		(effects
 			(font
@@ -15203,7 +15203,7 @@
 			)
 		)
 	)
-	(text "D6: place at J2 battery pins, short GND return."
+	(text "D6: place beside the motor drivers, short GND return."
 		(at 231.14 190.5 0)
 		(effects
 			(font
@@ -19874,7 +19874,7 @@
 		)
 		(uuid "ad5613f8-9a7b-4861-a6aa-436cf75ca1ac")
 	)
-	(text "Module PS0 and PS1 must BOTH be high from before reset to select SPI — jumper on the module. PS0 then becomes WAKE."
+	(text "Jumper PS1 high on the module. PS0 is WAKE on GPIO17: firmware holds it high while pulsing RST (GPIO16) to select SPI."
 		(at 307.34 203.2 0)
 		(effects
 			(font
