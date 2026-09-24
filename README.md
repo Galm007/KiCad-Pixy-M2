@@ -38,6 +38,7 @@ Designed in **KiCad 10**. 4-layer, 66 × 100 mm, fully placed and routed.
 - [Working with the project](#working-with-the-project)
 - [Bring-up notes for firmware](#bring-up-notes-for-firmware)
 - [Status and open items](#status-and-open-items)
+- [License](#license)
 
 ---
 
@@ -638,3 +639,16 @@ rule set and the silkscreen assembly marks.
 
 See [`CLAUDE.md`](CLAUDE.md) for each item's history and the reasoning behind
 it.
+
+---
+
+## License
+
+The design files, scripts and documentation in this repository are released
+under the [MIT License](LICENSE).
+
+Third-party material keeps its own terms:
+
+- `DS_vl53l0x.pdf` is STMicroelectronics' datasheet, included for reference.
+- `Pixy-M2.pretty/ESP32-S3-WROOM-1_AntennaOverhang.kicad_mod` is derived from
+  Espressif's KiCad footprint library and remains under that library's license.
