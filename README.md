@@ -126,9 +126,10 @@ flowchart LR
 
 ## Design decisions
 
-The full reasoning, including rejected alternatives and the measurements behind
-each change, lives in [`CLAUDE.md`](CLAUDE.md). This section covers the main
-choices.
+The rules and rejected alternatives that must not regress are summarised in
+[`CLAUDE.md`](CLAUDE.md). The measurements behind each change are under
+[`layout/`](layout/), and the full history is in the git log. This section
+covers the main choices.
 
 ### One board, no daughterboard
 
@@ -511,7 +512,7 @@ Pixy-M2.kicad_dru                             custom DRC rules
 Pixy-M2.pretty/                               project footprint library (U1 with antenna overhang)
 fp-lib-table                                  registers the project library
 BOM.md                                        full bill of materials
-CLAUDE.md                                     full design notes: every decision, issue and measurement
+CLAUDE.md                                     working notes: design invariants, rules and checks
 REVIEW.md                                     layout design review
 docs/images/                                  renders used in this README
 layout/                                       placement notes, review evidence, DRC/ERC reports per fix
@@ -645,8 +646,8 @@ were closed on 2026-09-24:
       on IPROPI, and an 0805 capacitor can be stacked on R17/R18.
 - [ ] **Antenna performance** with the battery, motors and brackets fitted.
 
-See [`CLAUDE.md`](CLAUDE.md) for each item's history and the reasoning behind
-it.
+See [`CLAUDE.md`](CLAUDE.md) for the constraints behind each item, and
+[`layout/`](layout/) and the git history for the measurements.
 
 ---
 
