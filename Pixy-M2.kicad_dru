@@ -70,16 +70,20 @@
 
 # Issue 8: the "keep away" layout constraints in CLAUDE.md, as floors.  Each is
 # set just under what the board achieves (measured exactly, see
-# layout/issue8-rules/), so these guard against erosion; they do not certify
-# the constraint.  Two of them sit well below what CLAUDE.md asks for:
-#   REG_EN  (~20 kOhm, 1.2 V above a comparator threshold): 0.40 mm, U3's EN
-#           via under the package to the SW pin.  The standing fix is to put
-#           R8/C13 next to U3.2 and re-place the EN network.
-#   IPROPI  (GPIO2/GPIO10, 1.5 kOhm): 0.29 mm, a GPIO2 via beside a MOT_A_2
-#           B.Cu trunk near U4.  Validate the current reading on hardware.
+# layout/issue8-rules/ and layout/reg-en/), so these guard against erosion;
+# they do not certify the constraint.
+#   REG_EN  (~20 kOhm, 1.2 V above a comparator threshold): 0.95 mm, U3's own
+#           EN pin to its SW pin across the TSOT-23-6.  No copper can be closer
+#           than the package puts them.  Everything the layout adds stays
+#           outside U3: R8/C13 sit beside U3.2 and the EN copper leaves west
+#           (2026-09-24).  Before that, an EN via under the package sat
+#           0.40 mm from the SW pin, and this floor was 0.35 mm.
+#   IPROPI  (GPIO2/GPIO10, 1.5 kOhm): 0.53 mm since J8/J9 moved (0.29 mm when
+#           this rule was written).  Still below intent; validate the current
+#           reading on hardware.
 # REG_EN and VBAT_SENSE (150 kOhm) are 7.75 mm and >20 mm from motor copper.
 (rule "REG_EN clear of the switch node"
-	(constraint clearance (min 0.35mm))
+	(constraint clearance (min 0.9mm))
 	(condition "A.NetName == '/REG_EN' && (B.NetName == 'Net-(U3-SW)' || B.NetName == 'Net-(U3-BST)')"))
 
 (rule "Sense nodes clear of motor and switch copper"

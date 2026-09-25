@@ -610,7 +610,11 @@ kicad-cli pcb export pos     -o gerbers/Pixy-M2-pos.csv Pixy-M2.kicad_pcb
 ## Status and open items
 
 **Done:** schematic, placement, routing, the design-review rework, the DRC
-rule set and the silkscreen assembly marks.
+rule set and the silkscreen assembly marks. The last unmet layout rule, R8 and
+C13 beside U3's EN pin, was closed on 2026-09-24
+([`layout/reg-en/`](layout/reg-en/README.md)). No `REG_EN` copper is under U3
+any more. Its closest approach to the switch node is now U3's own 0.95 mm pin
+gap; it was 0.40 mm.
 
 **Open before or during first fabrication:**
 
@@ -626,9 +630,6 @@ rule set and the silkscreen assembly marks.
       thermals during hard acceleration and stalls.
 - [ ] **USB impedance.** Confirm 0.25 / 0.15 mm with the fab's calculator, or
       order impedance control.
-- [ ] **`REG_EN` clearance.** The EN via under U3 is 0.40 mm from the switch
-      pin. DRC stops it getting worse, but the intended fix, moving R8 and C13
-      next to U3.2, is not done.
 - [ ] **IPROPI traces** pass 0.53 mm from motor copper. Validate on hardware.
 - [ ] **Antenna performance** with the battery, motors and brackets fitted.
 

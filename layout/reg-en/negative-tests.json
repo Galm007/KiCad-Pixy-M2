@@ -1,0 +1,38 @@
+{
+  "old_board": {
+    "edit": "the board before this pass (EN via under U3), checked against the new 0.9 mm floor",
+    "fired": [
+      [
+        "clearance",
+        "Clearance violation (rule 'REG_EN clear of the switch node' clearance 0.9000 mm; actual 0.4000 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'REG_EN clear of the switch node' clearance 0.9000 mm; actual 0.6000 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'REG_EN clear of the switch node' clearance 0.9000 mm; actual 0.6750 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'REG_EN clear of the switch node' clearance 0.9000 mm; actual 0.7750 mm)"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "track_under_u3": {
+    "edit": "a REG_EN track run from U3.2 1.2 mm east under the package, 0.675 mm from the SW pin",
+    "fired": [
+      [
+        "clearance",
+        "Clearance violation (rule 'REG_EN clear of the switch node' clearance 0.9000 mm; actual 0.6750 mm)"
+      ],
+      [
+        "track_dangling",
+        "Track has unconnected end"
+      ]
+    ],
+    "unconnected": 0
+  }
+}

@@ -21,6 +21,12 @@
 > 0.20 mm by a rule scoped to J1's own pads and holes (0.30 mm everywhere else);
 > U1's antenna-silkscreen customization moved into a project library footprint.
 > See `layout/drc-clean/README.md`.
+> **2026-09-24: the REG_EN floor recorded under finding 8 is fixed.** R8 and C13
+> now sit beside U3.2, and the EN via under the package is gone. REG_EN's closest
+> approach to the switch node is U3's own EN-to-SW pin gap, 0.95 mm; it was
+> 0.40 mm. The DRC floor is now 0.9 mm. FB keeps its via-free top-layer sense to
+> C11. That run passes TP4 at 1.35 mm, not the 2.1 mm stated for finding 5 below.
+> See `layout/reg-en/README.md`.
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1

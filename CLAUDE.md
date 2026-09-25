@@ -1671,7 +1671,7 @@ attempt shorted SW to GND under the package.
 | U3.4 return via ↔ C17 return via | 5.88 mm | **0.95 mm** |
 | L1.2 → C11.1 through copper | *none* — plane only | **6.95 mm on F.Cu** |
 | C7.1 → C11.1 | 4.00 mm | **2.30 mm** |
-| FB / 3V3 copper to SW or BST | 0.27 mm | **2.10 mm** |
+| FB / 3V3 copper to SW or BST | 0.27 mm | **1.35 mm** *(recorded as 2.10 mm; see below)* |
 | VSYS copper to SW or BST | 0.83 mm | **2.07 mm** |
 
 Six parts moved: **C6** (140, 91) → (139.5, 93.3), **C17** (136, 96) rot 90 →
@@ -1713,7 +1713,10 @@ a via 1.2 mm from BST. It now runs as its own 0.2 mm trace round the south of th
 block to **C11.1, the far output capacitor** — about 21 mm, which is long, but it
 never comes within 2.1 mm of SW or BST where the old tap was 0.27 mm away. For a
 fixed-output part FB is the output sense into a ~1 MΩ internal divider, so it is
-noise, not DC drop, that decides where it should run.
+noise, not DC drop, that decides where it should run. *(Corrected 2026-09-24:
+the run along y = 101.8 passes TP4, the SW probe pad, at **1.35 mm**, measured
+by DRC. FB now also turns south at x = 132.2, round the outside of R8/C13, and
+is 26.3 mm long, still top-layer only with no via. See "REG_EN beside U3.2".)*
 
 **`/VSYS` is pinned to the corridor north of the buck** by a waypoint. Left to
 itself A* prefers a shorter path that threads the 8.4 V input rail straight
@@ -1729,6 +1732,9 @@ which is review issue 6's defect, so that part is an improvement — into the
 pads. With the In1 plane 0.2 mm below both, a via-to-trace gap of 1 mm is not a
 coupling problem, but the real fix is the standing layout rule to put R8 and C13
 next to U3.2, which needs the EN network re-placed and is not part of this issue.
+*(Fixed 2026-09-24: R8 and C13 sit beside U3.2 and the EN via under the package
+is gone. REG_EN's closest approach is now U3's own 0.95 mm pin gap. See
+"REG_EN beside U3.2".)*
 
 **Motor B improved as a side effect.** Moving C7/C11 changed what `MOT_B_2` had
 to route around, so the pair's fan-out was retuned (`skip_end` 3.0 → 1.5 mm): the
@@ -1913,7 +1919,7 @@ pad-to-plane stubs sized by pin pitch, so a width rule on it would test nothing.
 | Signal minimum width | every track 0.2 mm | `Motor pin escape` areas (DRV8231A pin fields) |
 | Power path width | 0.5 mm | `Power pin escape` area: U2's VBUS pin, out under the package |
 | Battery path width | 0.8 mm | none |
-| REG_EN clear of the switch node | 0.35 mm | — |
+| REG_EN clear of the switch node | 0.35 mm; **0.9 mm since 2026-09-24** | — |
 | Sense nodes clear of motor and switch copper | 5 mm for `REG_EN` to motor, and for `VBAT_SENSE` to motor, SW and BST | — |
 | IPROPI clear of motor outputs | 0.25 mm | — |
 
@@ -1936,7 +1942,10 @@ constraints in "Layout constraints".** Two sit well below them:
 - **`REG_EN`**: 0.40 mm from the SW pin, via the EN via under U3; see issue 5.
 - **IPROPI**: 0.29 mm from a `MOT_A_2` trunk near U4.
 
-They stop further erosion; they do not certify either constraint.
+They stop further erosion; they do not certify either constraint. *(2026-09-24:
+REG_EN is fixed. It is now 0.95 mm, U3's own EN-to-SW pin gap, and the floor
+is 0.9 mm; see "REG_EN beside U3.2". IPROPI has been 0.53 mm since J8/J9
+moved.)*
 
 **Copper the rules required:**
 
@@ -2158,6 +2167,84 @@ this, and `rework.py` runs it after `assembly_marks.py`.
   `kicad-cli pcb render --side bottom -w 1408 -h 2024 --background opaque
   --quality high`.
 
+### REG_EN beside U3.2 (2026-09-24)
+
+The last layout constraint the routing did not meet. `REG_EN` is a ~20 kΩ node
+sitting 1.2 V above the EN comparator threshold (issue 2). The rule was to put
+R8 and C13 next to U3.2 and run the long leg from R7/R9 into them. Issue 5's
+buck block did the reverse:
+
+- FB left U3.1 west and ran down x = 136.6, 0.5 mm from U3's west pins, which
+  fenced in U3's whole west side.
+- So EN could only leave through a via **under the package, 0.40 mm from the
+  SW pin**.
+- R8 sat 7.35 mm of copper from the pin, straddling FB. C13 sat 9.9 mm away,
+  below it.
+
+`tools/autoroute/reg_en.py` fixes it. `rework.py` runs it after
+`battery_bay.py`.
+
+- **Placement.** C13 is at (136.18, 97.0) and R8 at (134.47, 97.175), both
+  rot 270, so each REG_EN pad (pad 1) is to the north, level with EN.
+  U3.2 → C13.1 → R8.1 is one straight top-layer run along y = 96, filter
+  capacitor first. The GND pads face south, each with its own plane via.
+  C13's courtyard is 0.04 mm clear of U3's; R8's is 0.2 mm clear of C12's.
+- **FB stays via-free.** It keeps issue 5's dedicated top-layer trace to
+  C11.1, but it now leaves U3.1 along y = 95.4, between C12 and the new
+  parts, and turns south at x = 132.2 instead of 136.6. **Do not drop FB to
+  B.Cu to shorten it.** That was tried first. A via on FB bonds to the In2
+  3V3 pour beside U3, which is the plane pickup review finding 5 removed. The
+  pour connects to same-net vias whatever the trace does.
+- **The long leg takes the vias instead.** It leaves R8.1 west, drops to B.Cu
+  at (133.0, 96.35) inside FB's turn, crosses under FB and comes up beside R7
+  at (130.1, 98.2). From there it runs down x = 130.1 to R7.2 and R9.2, as
+  before. `REG_EN` is a signal-only net, so its vias tie nothing to a plane.
+  The nearer one is 5.65 mm from switching copper, C6's BST pad.
+- **VSYS.** The C12 → C17 hop moves its upper via north of FB, to
+  (135.45, 94.55). Its lower via and the C17 stub stay.
+- **Planes.** Every new via is at least 1.35 mm from any other non-plane via,
+  so each 1.1 mm antipad stays a separate hole in In1 and In2. In the
+  B.Cu-FB attempt, the FB via sat 1.0 mm from the VSYS via, and their
+  antipads merged into a 2 mm void. In1 directly under U3 is now unbroken:
+  the old EN via's antipad sat between the pin columns.
+
+| | before | after |
+|---|---:|---:|
+| `REG_EN` to SW/BST, DRC | **0.40 mm** (EN via under U3) | **0.95 mm** (U3.2 to U3.5: the package's own pin gap) |
+| `REG_EN` copper outside U3.2 to SW/BST | 0.40 mm | **1.88 mm** |
+| copper path U3.2 → C13.1 / R8.1 | 9.90 / 7.35 mm | **1.91 / 3.66 mm** |
+| `REG_EN` track, vias | 17.7 mm, 2 (one under U3) | 14.3 mm, 2 (both ≥ 5.65 mm from SW/BST) |
+| FB path U3.1 → C11.1 | 18.1 mm, top only, 0 vias | 26.3 mm, top only, 0 vias |
+| FB to SW/BST | 1.35 mm | 1.35 mm (unchanged: TP4, see below) |
+| VSYS C12.1 → C17.1 | 5.91 mm | 6.65 mm |
+| vias on the board | 253 | 253 |
+
+- **Rule.** "REG_EN clear of the switch node" goes from 0.35 to **0.9 mm**,
+  just under the 0.95 mm U3's own pins set. The floor now sits at the
+  physical limit, where it used to sit below the intent: any REG_EN copper
+  put back under U3 fails it. The placement half of the rule, R8/C13 beside
+  U3.2, is still for review; DRC cannot check it. The floor fires on the old
+  board (0.40 mm) and on a copy with a REG_EN track run under U3 toward SW
+  (0.675 mm).
+- **Correction to issue 5.** FB was never "2.1 mm clear of SW or BST". Its
+  run to C11 along y = 101.8 passes TP4, the SW probe pad, at **1.35 mm**.
+  DRC measures that on both boards, and this pass does not touch that run.
+- **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit
+  passes with 253 vias. A track/via diff against the previous board touches
+  only `/REG_EN`, `/ESP_3V3` (FB), `/VSYS` and the two GND stitches. Every
+  other guarded clearance is unchanged. A full `rework.py` replay reproduces
+  the board.
+- **Renders.** `docs/images/pcb-3d-top.png` is re-rendered with
+  `kicad-cli pcb render --side top -w 1408 -h 2024 --background opaque
+  --quality high`. `docs/images/pcb-copper-top.png` is
+  `kicad-cli pcb export svg --mode-single --page-size-mode 2
+  --exclude-drawing-sheet --layers F.Cu,Edge.Cuts`, then
+  `rsvg-convert -w 1000 -b white`; that pair reproduces the previous image to
+  the pixel. `pcb-3d-iso.png` is **not** re-rendered: its camera settings are
+  not recorded, and it still shows R8/C13 at their old positions.
+
+Measurements and validation: `layout/reg-en/README.md`.
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
@@ -2215,12 +2302,18 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   clear of the inductor body and TP3 is 4.4 mm away.**
 - Route the **FB trace** back to the output caps away from SW and L1. **Done
   2026-09-22: a dedicated 0.2 mm trace from U3.1 round the south of the block to
-  C11.1, never closer than 2.1 mm to SW or BST. It was a plane via 1.2 mm from BST.**
+  C11.1. It was a plane via 1.2 mm from BST. Since 2026-09-24 it turns south
+  round the outside of R8/C13 and is still top-layer only, with no via. Its
+  closest approach is TP4, the SW probe pad, at 1.35 mm; issue 5 recorded
+  2.1 mm, which missed TP4. Keep it via-free: a via on FB bonds to the In2 3V3
+  pour.**
 - Keep the **`REG_EN` node away from SW and L1**. It is a ~20kΩ-impedance node sitting
   1.2V above a comparator threshold, so it is easy to couple into. Put R8 and C13
   physically next to U3.2 and run the long leg from R7/R9 into them, not the reverse.
-  **Not met: the EN via under U3 is 0.40 mm from the SW pin (issue 8). DRC guards
-  0.35 mm so it cannot get worse; the fix above is still outstanding.**
+  **Done 2026-09-24: C13 and R8 stand in a row beside U3.2, and EN → C13.1 → R8.1
+  is one top-layer run. The long leg crosses under FB on B.Cu, 5.65 mm from
+  switching copper. Nothing of REG_EN's is under U3 any more. Its closest
+  approach, 0.95 mm, is U3's own EN-to-SW pin gap, and DRC guards 0.9 mm.**
 - **`VBAT_SENSE` is worse — 150kΩ.** Same rule, more strictly: C14 goes hard against
   U1.39 and R10/R11 sit behind it, so the high-impedance run is as short as possible.
   Keep the whole node away from SW, L1 and any motor current on `VBAT`, and do not

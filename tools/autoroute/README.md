@@ -118,10 +118,18 @@ What it does, in order — the order matters:
     existing board once, moving the motor names on a board marked before
     2026-09-24, and checks every drilled pad against the new envelopes and
     bands;
-18. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+18. moves the UVLO enable network beside U3.2 (`reg_en.py`, 2026-09-24).
+    C13 and R8 stand vertical in a row just west of U3, so EN -> C13.1 ->
+    R8.1 is one straight top-layer run.  The FB sense trace keeps its
+    via-free top-layer route to C11.1, but it now turns south round the
+    outside of the new parts.  REG_EN's long leg to R7/R9 crosses under it on
+    B.Cu.  The VSYS hop from C12 to C17 moves its upper via north of FB.
+    Everything is hand-placed, and every old item is asserted before it is
+    replaced.  Standalone, it converts an existing board once;
+19. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
    areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
    on, and the `Dwgs.User` fab note;
-19. serializes a temporary candidate and runs `via_openings.py` before replacing
+20. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including
@@ -154,4 +162,5 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `f1_fuse.py` | the F1 swap (step 14).  Reuses `pololu_conn.py`'s rip / prune / reconnect helpers; its pruning zone is the pads' *extent* plus 2 mm, since F1's pads are 7.3 mm tall and a zone built from pad centres missed a track under the pad's own edge |
 | `assembly_marks.py` | silkscreen marks for the off-board parts (step 16). Every dimension is a constant at the top: the ToF reservations, Adafruit's BNO085 board geometry (from `Adafruit_BNO08x.brd`) and Pololu's gearbox / motor / encoder lengths (drawing 0J949). Each part's marks are one KiCad group, so they move together in the GUI |
 | `battery_bay.py` | the battery bay (step 17). Its constants are KiCad coordinates, old and new side by side, so a changed board fails an assertion instead of being half-edited. `check()` repeats `layout/verify_placement.py`'s drilled-pad test against the new envelopes on a routed board, which that script cannot load |
+| `reg_en.py` | the enable network beside U3.2 (step 18). FB could not drop to B.Cu to make room: a via on it bonds to the In2 3V3 pour beside U3, which is the plane pickup review finding 5 removed. So FB stays on top and REG_EN's long leg, a signal-only net, takes the two vias. The new vias sit at least 1.35 mm from any other non-plane via, so their antipads never merge into one void in In1 or In2 |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. The connector end of each pair is looked up by net, so it measures boards from before and after the J8/J9 re-pin alike. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |
