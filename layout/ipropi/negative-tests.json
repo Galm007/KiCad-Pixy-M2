@@ -1,0 +1,62 @@
+{
+  "old_board": {
+    "edit": "the board before this pass (R17/R18 in their old places), checked against the new 0.75 mm floor",
+    "fired": [
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.6000 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.6500 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.6543 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.7000 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.7093 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.7166 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.7176 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.7258 mm)"
+      ]
+    ],
+    "unconnected": 0
+  },
+  "descent_restored": {
+    "edit": "a GPIO10 track put back down the old descent beside MOT_A_2, from the escape via to (114.6, 115.5)",
+    "fired": [
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.5000 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.7298 mm)"
+      ],
+      [
+        "clearance",
+        "Clearance violation (rule 'IPROPI clear of motor outputs' clearance 0.7500 mm; actual 0.7349 mm)"
+      ],
+      [
+        "track_dangling",
+        "Track has unconnected end"
+      ]
+    ],
+    "unconnected": 0
+  }
+}

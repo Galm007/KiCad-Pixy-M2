@@ -126,10 +126,18 @@ What it does, in order — the order matters:
     B.Cu.  The VSYS hop from C12 to C17 moves its upper via north of FB.
     Everything is hand-placed, and every old item is asserted before it is
     replaced.  Standalone, it converts an existing board once;
-19. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+19. clears the IPROPI sense runs of motor and drive copper (`ipropi.py`,
+    2026-09-24).  R17 moves west of U4's IN1/IN2 escapes.  GPIO2 then never
+    crosses them: it runs down between C19 and the escapes, through R17 and
+    on down x = 105, 1.7 mm from MOT_A_1.  R18 moves east of U5's GPIO41/42
+    pair.  GPIO10 crosses the pair once, under U5's own pins, rises to R18
+    and drops to its old diagonal to U1 just past the VBAT island.  The
+    channel beside MOT_A_2 is left empty.  Standalone, it converts an
+    existing board once;
+20. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
    areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
    on, and the `Dwgs.User` fab note;
-20. serializes a temporary candidate and runs `via_openings.py` before replacing
+21. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including
@@ -163,4 +171,5 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `assembly_marks.py` | silkscreen marks for the off-board parts (step 16). Every dimension is a constant at the top: the ToF reservations, Adafruit's BNO085 board geometry (from `Adafruit_BNO08x.brd`) and Pololu's gearbox / motor / encoder lengths (drawing 0J949). Each part's marks are one KiCad group, so they move together in the GUI |
 | `battery_bay.py` | the battery bay (step 17). Its constants are KiCad coordinates, old and new side by side, so a changed board fails an assertion instead of being half-edited. `check()` repeats `layout/verify_placement.py`'s drilled-pad test against the new envelopes on a routed board, which that script cannot load |
 | `reg_en.py` | the enable network beside U3.2 (step 18). FB could not drop to B.Cu to make room: a via on it bonds to the In2 3V3 pour beside U3, which is the plane pickup review finding 5 removed. So FB stays on top and REG_EN's long leg, a signal-only net, takes the two vias. The new vias sit at least 1.35 mm from any other non-plane via, so their antipads never merge into one void in In1 or In2 |
+| `ipropi.py` | the IPROPI sense runs (step 19). A* with the aggressors fattened was tried first and routed GPIO10 across J8 and through the encoder field, so both runs are hand-placed. For motor A, the pin order at U4 matches the order at U1's west column, so only R17's old position forced a crossing. For motor B, GPIO10 lands east of GPIO41/42 and must cross them. It does so once, under U5's pins, where the pair is still on F.Cu |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. The connector end of each pair is looked up by net, so it measures boards from before and after the J8/J9 re-pin alike. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |

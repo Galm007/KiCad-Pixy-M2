@@ -20,7 +20,7 @@ Designed in **KiCad 10**. 4-layer, 66 × 100 mm, fully placed and routed.
 | **Motor drive** | 2 × TI DRV8231A H-bridge, 1.00 A hardware current limit, per-motor current sense into the ADC |
 | **Sensors** | 4 × VL53L0X ToF (I²C), BNO085 9-DoF IMU (SPI), 2 × 12 CPR quadrature encoders |
 | **Protection** | 1500 A-breaking battery fuse, USB PPTC, 600 W TVS on the motor rail, USB ESD array, hardware UVLO |
-| **PCB** | 66 × 100 mm, 4 layers, 1.6 mm, 78 footprints, 253 vias, ~2.4 m of track |
+| **PCB** | 66 × 100 mm, 4 layers, 1.6 mm, 78 footprints, 254 vias, ~2.4 m of track |
 | **Status** | Schematic complete, ERC 0/0. Layout routed, DRC 0 violations / 0 unconnected / 0 parity. **Not yet fabricated.** |
 
 ---
@@ -596,6 +596,9 @@ kicad-cli pcb export pos     -o gerbers/Pixy-M2-pos.csv Pixy-M2.kicad_pcb
   71 % gives a 6 V equivalent on a full pack.
 - **Use IPROPI for stall detection** (GPIO2 / GPIO10, 3.3 V/A). The ADC clips
   at ~0.94 A, just under the 1.00 A limit, so a stall reads as full scale.
+  IPROPI follows only the low-side FET current and switches off in coast
+  (IN1 = IN2 = 0). Read it while driving or braking, and average over whole
+  PWM periods.
 - **Battery sense:** use `ADC_ATTEN_DB_12`. Scale by 690/220 and calibrate once
   against a meter reading at TP1. Allow ~50 ms after a step change (15 ms RC),
   and average over whole PWM periods.
@@ -610,11 +613,17 @@ kicad-cli pcb export pos     -o gerbers/Pixy-M2-pos.csv Pixy-M2.kicad_pcb
 ## Status and open items
 
 **Done:** schematic, placement, routing, the design-review rework, the DRC
-rule set and the silkscreen assembly marks. The last unmet layout rule, R8 and
-C13 beside U3's EN pin, was closed on 2026-09-24
-([`layout/reg-en/`](layout/reg-en/README.md)). No `REG_EN` copper is under U3
-any more. Its closest approach to the switch node is now U3's own 0.95 mm pin
-gap; it was 0.40 mm.
+rule set and the silkscreen assembly marks. The last two unmet layout rules
+were closed on 2026-09-24:
+
+- **R8 and C13 now sit beside U3's EN pin**
+  ([`layout/reg-en/`](layout/reg-en/README.md)). No `REG_EN` copper is under
+  U3 any more. Its closest approach to the switch node is U3's own 0.95 mm pin
+  gap; it was 0.40 mm.
+- **The IPROPI sense runs keep clear of motor copper**
+  ([`layout/ipropi/`](layout/ipropi/README.md)). R17 and R18 moved to the far
+  side of their driver's IN1/IN2 lines. GPIO2 and GPIO10 now come no closer
+  than 1.30 mm and 0.80 mm to motor copper; they were 0.70 mm and 0.53 mm.
 
 **Open before or during first fabrication:**
 
@@ -630,7 +639,10 @@ gap; it was 0.40 mm.
       thermals during hard acceleration and stalls.
 - [ ] **USB impedance.** Confirm 0.25 / 0.15 mm with the fab's calculator, or
       order impedance control.
-- [ ] **IPROPI traces** pass 0.53 mm from motor copper. Validate on hardware.
+- [ ] **IPROPI readings on hardware.** The layout is done: the sense runs
+      clear motor copper by 0.80 mm or more. Check the ADC reading and the
+      1.00 A limit under PWM. If the limit trips early, TI's remedy is 10 nF
+      on IPROPI, and an 0805 capacitor can be stacked on R17/R18.
 - [ ] **Antenna performance** with the battery, motors and brackets fitted.
 
 See [`CLAUDE.md`](CLAUDE.md) for each item's history and the reasoning behind

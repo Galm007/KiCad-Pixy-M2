@@ -27,6 +27,13 @@
 > 0.40 mm. The DRC floor is now 0.9 mm. FB keeps its via-free top-layer sense to
 > C11. That run passes TP4 at 1.35 mm, not the 2.1 mm stated for finding 5 below.
 > See `layout/reg-en/README.md`.
+> **2026-09-24: the current-sense observation below is addressed in layout.**
+> R17 moved west of U4's IN1/IN2 lines and R18 east of U5's, so neither IPROPI
+> run doubles back across its drive lines. GPIO2/GPIO10 now come no closer than
+> 1.30 / 0.80 mm to motor copper; they were 0.70 / 0.53 mm. Track within 0.6 mm
+> of a drive line falls from 6.8 / 13.7 mm to 3.7 / 5.6 mm. The DRC floor is
+> 0.75 mm. Validating the readings on hardware remains. See
+> `layout/ipropi/README.md`.
 > The fix is a single reproducible pass, `tools/autoroute/rework.py`, run against a
 > snapshot of the routed board; DRC after it is byte-for-byte the same verdict as
 > before (0 unconnected, 0 schematic-parity issues, only the four pre-existing J1

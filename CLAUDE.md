@@ -1449,6 +1449,7 @@ pads and makes OUT1 unroutable on both drivers.
   optimised length and via count only. Walk these five nets in the GUI.
   **The rework below moved `REG_EN` and the SW node clear (0.26 → 8.51 mm and
   0.28 → 6.62 mm) and paired `MOT_B_1/2`; the IPROPI runs are still open.**
+  *(Closed 2026-09-24: see "IPROPI runs clear of motor copper".)*
 - ~~**Thermal vias are 2 per driver EP**~~ — **this was never true.** U4's exposed pad
   had no via in it at all and U5 had one; both reached GND through a narrow neck to an
   offset via. Fixed by the rework below, which also corrects the "0.45/0.25 would fit
@@ -1921,7 +1922,7 @@ pad-to-plane stubs sized by pin pitch, so a width rule on it would test nothing.
 | Battery path width | 0.8 mm | none |
 | REG_EN clear of the switch node | 0.35 mm; **0.9 mm since 2026-09-24** | — |
 | Sense nodes clear of motor and switch copper | 5 mm for `REG_EN` to motor, and for `VBAT_SENSE` to motor, SW and BST | — |
-| IPROPI clear of motor outputs | 0.25 mm | — |
+| IPROPI clear of motor outputs | 0.25 mm; **0.75 mm since 2026-09-24** | — |
 
 **Three KiCad behaviours fix how these rules must be written.** Each was
 verified, and each will bite whoever edits them next:
@@ -1944,8 +1945,9 @@ constraints in "Layout constraints".** Two sit well below them:
 
 They stop further erosion; they do not certify either constraint. *(2026-09-24:
 REG_EN is fixed. It is now 0.95 mm, U3's own EN-to-SW pin gap, and the floor
-is 0.9 mm; see "REG_EN beside U3.2". IPROPI has been 0.53 mm since J8/J9
-moved.)*
+is 0.9 mm; see "REG_EN beside U3.2". IPROPI is fixed too: 0.53 mm since J8/J9
+moved, and now 0.80 mm with a 0.75 mm floor; see "IPROPI runs clear of motor
+copper".)*
 
 **Copper the rules required:**
 
@@ -2245,6 +2247,77 @@ buck block did the reverse:
 
 Measurements and validation: `layout/reg-en/README.md`.
 
+### IPROPI runs clear of motor copper (2026-09-24)
+
+The next README item after REG_EN. `GPIO2`/`GPIO10` carry IPROPI (1500 µA/A
+into 2.2 kΩ) to the ADC. They came within **0.70 mm** (GPIO2, MOT_A_1 at J8)
+and **0.53 mm** (GPIO10, MOT_A_2) of motor copper, and ran long stretches
+beside their own driver's IN1/IN2. The cause was where the sense resistors
+sat, not the router:
+
+- **R17 sat east of U4's drive lines.** GPIO2 hopped over them on B.Cu, over
+  the In2 VBAT island, and GPIO39 threaded between R17's pads. But the three
+  nets leave U4 west in the order they reach U1's west column: IPROPI
+  outermost, then IN2, then IN1. So nothing but R17 needed a crossing.
+- **R18 sat west of U5's drive lines.** GPIO41/42 run stacked, one on F.Cu
+  and one on B.Cu, at x ≈ 116 for 15 mm. GPIO10 reached R18 down the channel
+  beside U4's MOT_A_2 loop, 0.53 mm away. It then crossed the pair and ran
+  8 mm beside GPIO42 on B.Cu, 0.25 mm away, over the island. GPIO10 lands on
+  U1's bottom row, east of the pair, so it genuinely has to cross once.
+
+`tools/autoroute/ipropi.py` fixes both. `rework.py` runs it after `reg_en.py`.
+
+- **Motor A.** R17 moves to (104.5, 120.3), rot 90, west of the escapes,
+  with its GND via between GPIO6 and the VBAT feed on B.Cu. GPIO2 runs down
+  between C19 and the escapes, steps onto R17's east side, and continues down
+  x = 105 to its old run. It passes 1.7 mm from MOT_A_1 and is centred
+  between SW3's pads. It has no via and no copper over the island.
+- **Motor B.** GPIO10 keeps its escape via and its crossing under U5's own
+  pins, where the pair is still two F.Cu escapes. From there it leaves east
+  at once. It rises to R18, now at (118.5, 118.6), rot 180, east of the pair
+  with its GND pad toward it. It then drops on F.Cu to rejoin its old B.Cu
+  diagonal at (119.4, 123.3), just past the island. The channel beside
+  MOT_A_2 is empty.
+- **A\* was tried first**, with motor and drive copper fattened in the
+  obstacle map. GPIO2 could not leave U4's pin field, and GPIO10 swung across
+  J8 and through the encoder pull-ups. Both runs are hand-placed.
+
+| | before | after |
+|---|---:|---:|
+| GPIO2 to motor copper, DRC | 0.70 mm | **1.30 mm** (U4's own pin 1 to pin 8) |
+| GPIO10 to motor copper, DRC | 0.53 mm | **0.80 mm** (its escape via; nothing else within 1 mm) |
+| GPIO2 / GPIO10 track within 1 mm of motor copper | 4.5 / 4.4 mm | **0 / 0** |
+| GPIO2 track within 0.6 / 2 mm of GPIO39/40 | 6.8 / 23.5 mm | **3.7 / 15.6 mm** |
+| GPIO10 track within 0.6 / 2 mm of GPIO41/42 | 13.7 / 17.7 mm | **5.6 / 8.0 mm** |
+| B.Cu over the VBAT island, GPIO2 / GPIO10 | 1.8 / 10.9 mm | **0 / 7.4 mm** |
+| path U4.1 → U1.38 / U5.1 → U1.18 | 52.1 / 38.2 mm | 52.5 / 38.7 mm |
+| vias on the board | 253 | 254 |
+
+- **0.80 mm is the escape via's limit.** One of U5's heat-spreading GND vias
+  and GPIO42's via box it in. What stays close to a drive line is at the pins,
+  where the 0.5 mm pitch sets it. GPIO2 also runs 0.65 mm from GPIO40 for
+  about 4 mm in the 1.25 mm channel beside C19.
+- **Rule.** "IPROPI clear of motor outputs" goes from 0.25 to **0.75 mm**.
+  It fires on the old board and on a copy with GPIO10's old descent restored.
+- **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit
+  passes with 254 vias. A track/via diff touches only `/GPIO2`, `/GPIO10` and
+  the R17/R18 GND stubs. Every other guarded clearance is unchanged. The new
+  vias' antipads stay separate in In1 and In2. A full `rework.py` replay
+  reproduces the board. `docs/images/pcb-3d-top.png` and `pcb-copper-top.png`
+  are re-rendered with the recipes under "REG_EN beside U3.2";
+  `pcb-3d-iso.png` still is not.
+- **Still for hardware.** The layout part is done; the reading is not proven.
+  - The DRV8231A blanks its ITRIP comparator for 1.4 µs after each output
+    edge, with a 0.7 µs deglitch (SLVSFZ8A §7.4.2.2).
+  - If transients still trip the 1.00 A limit early, TI's remedy is 10 nF on
+    IPROPI near the device. An 0805 capacitor stacks on R17/R18, which run
+    IPROPI to GND.
+  - IPROPI follows only the low-side FET current, and it switches off in
+    coast. Firmware should read it while driving or braking, averaged over
+    whole PWM periods.
+
+Measurements and validation: `layout/ipropi/README.md`.
+
 ### What this pass did not touch
 
 - **Review issue 4** was still open after this pass and is closed by the next one.
@@ -2257,7 +2330,9 @@ Measurements and validation: `layout/reg-en/README.md`.
   essentially unchanged from 0.26 mm (confirmed exactly by issue 8, which guards
   0.25 mm). The review's own note applies: their 1.5 kΩ
   source impedance is not `VBAT_SENSE`'s 150 kΩ, so validate this on hardware rather
-  than assuming it is a fault.
+  than assuming it is a fault. *(Fixed in layout 2026-09-24: 0.80 mm, and nothing
+  else within 1 mm; see "IPROPI runs clear of motor copper". The hardware check
+  remains.)*
 
 ## Layout constraints (written before layout; the routing above does not satisfy all of them)
 
@@ -2368,7 +2443,11 @@ Read "Board stackup" first — several rules below assume the L2 plane exists.
   order".*
 - **`GPIO2` and `GPIO10` carry IPROPI analog current**, not logic. Keep them short,
   away from the motor outputs and the SW node. They no longer run anywhere else —
-  J2/J3 are gone, so there is no header stub on them to keep short.
+  J2/J3 are gone, so there is no header stub on them to keep short. **Done
+  2026-09-24: R17 sits west of U4's IN1/IN2 escapes and R18 east of U5's, so
+  neither run doubles back across its drive lines. Both runs are 1 mm or more
+  from motor copper, except GPIO10's escape via (0.80 mm) and U4/U5's own
+  pin 1 to pin 8 (1.30 mm). DRC guards 0.75 mm. Keep R17/R18 on those sides.**
 - **Place J8/J9 facing their motors** with the cable exit pointing at the motor, and
   keep them out of the antenna keep-out. Silkscreen pin 1 and which motor each one
   is. Since 2026-09-23 the pinout is Pololu's own and the cable is Pololu's
