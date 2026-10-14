@@ -143,19 +143,20 @@ three-line shim aliases it to `__next__`.
     python3 layout/devkit/measure.py BEFORE.kicad_pcb AFTER.kicad_pcb [--json OUT]
 
 Clearances come from DRC descent (`layout/issue8-rules/clearmin.py`) and loop
-areas from `tools/autoroute/loop.py`.
+areas from `tools/autoroute/loop.py`. The branch column is the board after
+stage 21 straightened the copper (`layout/octilinear/`).
 
 | | main | branch |
 |---|---:|---:|
 | Footprints | 78 | 57 |
 | Vias (GND / 3V3 / VBAT / signal) | 254 (89 / 28 / 24 / 113) | 192 (72 / 27 / 24 / 69) |
-| Track, F.Cu + B.Cu | 2396 mm | 1963 mm |
+| Track, F.Cu + B.Cu | 2396 mm | 1968 mm |
 | REG_EN to SW/BST | 0.95 mm | 0.95 mm (U3's own pin gap) |
 | REG_EN to motor copper | 7.75 mm | 8.0 mm |
 | VBAT_SENSE to SW/BST and motor copper | > 20 mm | > 20 mm |
 | IPROPI to motor copper | 0.80 mm | 0.80 mm (GPIO10's escape via, unchanged) |
-| Motor A loop | 23.9 mm² | 26.4 mm² |
-| Motor B loop | 9.8 mm² | 27.8 mm² |
+| Motor A loop | 23.9 mm² | 25.9 mm² |
+| Motor B loop | 9.8 mm² | 24.3 mm² |
 | IMU chip from the rotation centre | 0 | 8.6 mm left, 7.5 mm behind (11.4 mm) |
 
 ![motor pairs](motor-pairs.png)
@@ -168,19 +169,19 @@ each loop by winding number:
 | Motor B | lobes | signed (`loop.py`) | enclosed |
 |---|---|---:|---:|
 | main | 25.9 and 16.1 mm², opposite sign | 9.8 mm² | 42.1 mm² |
-| branch | 42.1 and 14.5 mm², opposite sign | 27.8 mm² | 56.6 mm² |
+| branch | 38.2 and 14.0 mm², opposite sign | 24.3 mm² | 52.2 mm² |
 
 - **The pair is as long as before**, about 50 mm from U5 to J9. J9 kept its
   corner of the board.
 - **Main's 9.8 mm² came mostly from two lobes that almost balanced.** On the
-  branch the lobes are unequal, and the pair encloses 35 % more copper area.
-- **27.8 mm² is close to motor A's loop.** Both are small next to the motor
+  branch the lobes are unequal, and the pair encloses 24 % more copper area.
+- **24.3 mm² is close to motor A's loop.** Both are small next to the motor
   cables themselves. Tightening it would mean re-pairing the trunk by hand
   along the whole run.
 
 Motor A's pair never crosses, so its signed and enclosed areas are the same.
 
-**Motor A's loop** grew by 2.5 mm² when J8 moved 3.4 mm west and its stubs
+**Motor A's loop** grew by 2.0 mm² when J8 moved 3.4 mm west and its stubs
 started fanning in under the housing.
 
 ## Not checked by DRC

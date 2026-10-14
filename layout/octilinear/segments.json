@@ -1,0 +1,49 @@
+{
+ "before": {
+  "segments": 1678,
+  "short_under_0.3mm": 1060,
+  "short_by_net": {
+   "/GPIO41": 108,
+   "/VBAT": 103,
+   "/GPIO2": 79,
+   "/GPIO40": 64,
+   "Net-(Q1-G)": 61,
+   "/ESP_3V3": 60,
+   "/GPIO9": 58,
+   "/GPIO8": 57
+  },
+  "off_45": 76,
+  "off_45_by_net": {
+   "/VBAT": 25,
+   "GND": 25,
+   "/ESP_3V3": 19,
+   "Net-(U3-SW)": 3,
+   "Net-(U3-BST)": 2,
+   "/MOT_A_2": 1,
+   "/VSYS": 1
+  }
+ },
+ "after": {
+  "segments": 699,
+  "short_under_0.3mm": 172,
+  "short_by_net": {
+   "/ESP_3V3": 28,
+   "GND": 25,
+   "/VBAT": 24,
+   "/GPIO39": 12,
+   "/MOT_A_2": 11,
+   "/GPIO41": 9,
+   "/GPIO40": 8,
+   "/GPIO42": 7
+  },
+  "off_45": 15,
+  "off_45_by_net": {
+   "GND": 5,
+   "Net-(U3-SW)": 3,
+   "/VBAT": 2,
+   "/ESP_3V3": 2,
+   "Net-(U3-BST)": 2,
+   "/VSYS": 1
+  }
+ }
+}

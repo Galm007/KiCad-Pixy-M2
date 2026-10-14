@@ -164,9 +164,9 @@
    "total": 192
   },
   "track_mm": {
-   "B.Cu": 862.6,
-   "F.Cu": 1100.3,
-   "total": 1963.0
+   "B.Cu": 861.3,
+   "F.Cu": 1106.2,
+   "total": 1967.5
   },
   "clearance_mm": {
    "REG_EN-SW": 0.95,
@@ -176,23 +176,23 @@
    "IPROPI-motor": 0.7985
   },
   "loop_mm2": {
-   "motor A": 26.4,
-   "motor B": 27.8
+   "motor A": 25.9,
+   "motor B": 24.3
   },
   "loop_lobes_mm2": {
    "motor A": {
     "lobes": [
-     26.4,
+     26.0,
      0.0
     ],
-    "enclosed": 26.4
+    "enclosed": 26.0
    },
    "motor B": {
     "lobes": [
-     42.1,
-     14.5
+     38.2,
+     14.0
     ],
-    "enclosed": 56.6
+    "enclosed": 52.2
    }
   },
   "placement": {

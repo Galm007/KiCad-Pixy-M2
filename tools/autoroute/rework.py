@@ -97,6 +97,7 @@ from battery_bay import battery_bay
 from reg_en import reg_en
 from ipropi import ipropi
 from devkit import devkit
+from octilinear import octilinear
 FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
@@ -877,6 +878,8 @@ def main():
     print('U1 -> ESP32-S3-DevKitC-1-N8R8 on SMD sockets (devkit-daughterboard)')
     if not devkit(p, Router, pair_waypoints):
         raise RuntimeError('devkit routing failed')
+    print('straight 0/45/90 degree runs in place of the router staircases')
+    octilinear(p, Router)
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'

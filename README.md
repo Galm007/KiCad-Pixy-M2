@@ -401,10 +401,15 @@ share the left-hand region. The devkit, ADC nodes and I²C sit away from it.
 
 ### Layout highlights
 
+- **Every trace is straight 0/45/90° runs with 45° turns.** The grid router's
+  staircases, which rendered as curves, are rebuilt as clear straight legs by
+  the last copper stage ([`layout/octilinear/`](layout/octilinear/README.md)).
+  Only hand-placed copper keeps its own geometry: the buck block, the driver
+  pin escapes and their bypass loops, ten short stubs in all off 45°.
 - **Motor outputs** are 0.8 mm trunks. The only narrower copper is inside
   each driver's own pin field, and a custom DRC rule enforces that. Each pair
-  runs together to its connector: the loop areas are **26.4 mm²** (A) and
-  **27.8 mm²** (B).
+  runs together to its connector: the loop areas are **25.9 mm²** (A) and
+  **24.3 mm²** (B).
 - **Driver thermal pads** each have two filled-and-capped in-pad vias
   (IPC-4761 type VII) plus four more nearby. Only two fit a 0.9 × 1.6 mm pad
   under the hole-to-hole rule.
@@ -634,6 +639,8 @@ were closed on 2026-09-24:
   ([`layout/ipropi/`](layout/ipropi/README.md)). R17 and R18 moved to the far
   side of their driver's IN1/IN2 lines. GPIO2 and GPIO10 now come no closer
   than 1.30 mm and 0.80 mm to motor copper; they were 0.70 mm and 0.53 mm.
+  On this branch GPIO2's limit is 1.21 mm: J8's move brought the MOT_A_1
+  diagonal to GPIO2's via.
 
 **Open before or during first fabrication:**
 

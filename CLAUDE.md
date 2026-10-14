@@ -28,7 +28,9 @@ items and checks. Other sources:
 - **PCB placed and fully routed.** 66 × 100 mm, 4 layers, 192 vias. DRC gives 0
   violations, 0 unconnected and 0 parity issues. The aperture audit passes.
   `tools/autoroute/devkit.py` (rework stage 20) made the change; evidence in
-  `layout/devkit/README.md`.
+  `layout/devkit/README.md`. Stage 21 (`octilinear.py`) then straightens the
+  router's staircases into 0/45/90° runs; evidence in
+  `layout/octilinear/README.md`.
 - **Open:**
   - **Mechanical design.** There are no mounting holes, drivetrain or brackets
     yet.
@@ -391,8 +393,8 @@ tracks are only pad-to-plane stubs.
 - **New layout work is a new stage script.**
   - Assert the old geometry it replaces, and let it also convert an existing
     board standalone.
-  - Hook it into `rework.py` in order, and document it in
-    `tools/autoroute/README.md`.
+  - Hook it into `rework.py` in order, before stage 21 (`octilinear.py`) if
+    it lays copper, and document it in `tools/autoroute/README.md`.
   - Put the evidence in `layout/<topic>/README.md`.
   - Confirm that a full replay reproduces the board.
 - **Expected messages, not failures:**
@@ -424,6 +426,19 @@ tracks are only pad-to-plane stubs.
   - Lay tracks before stitching vias. A stitching via dropped first once shorted
     SW to GND.
   - Stitch fine-pitch parts after their signals.
+  - A* turns for free on its 0.05 mm grid, so any angle other than 0/45/90
+    comes out as a staircase of 0.05–0.3 mm steps that renders as a curve.
+- **Traces are straight 0/45/90° runs with 45° turns.** The user rejected the
+  router's curvy staircases on sight. Stage 21 (`octilinear.py`) straightens
+  every chain it may touch. It must stay the last copper stage: a stage added
+  after it brings the staircases back. Before reporting layout work done, look
+  at the copper, not only the DRC counts.
+  - It joins pieces that meet only by overlapping (`_heal`) before cutting
+    chains. Without that, most motor and signal runs had loose ends and stayed
+    frozen.
+  - It never moves the buck block (SW, BST, REG_EN, chains on U3, L1, C6, R8,
+    C13) or the piece on each U4/U5 pin. Necks below the class minimum move
+    only inside their `Motor pin escape` area.
 - **In tight spots, hand-placed copper beats A\*.** The buck, REG_EN and
   IPROPI near the drivers are all hand-placed, because A* failed or wandered on
   each. Stage 20 re-routes the IPROPI runs only beyond the motor corner.
@@ -467,12 +482,14 @@ tracks are only pad-to-plane stubs.
 - **IPROPI.**
   - R17 sits at (104.5, 120.3), west of U4's IN escapes. R18 sits at
     (118.5, 118.6), east of U5's pair. **Keep them on those sides.**
-  - GPIO2 stays ≥ 1.30 mm and GPIO10 ≥ 0.80 mm from motor copper; GPIO10's
-    limit is its escape via.
+  - GPIO2 stays ≥ 1.20 mm and GPIO10 ≥ 0.80 mm from motor copper. GPIO2's
+    limit is its via by J8, against the MOT_A_1 diagonal (1.30 mm on main,
+    before stage 20 moved J8). GPIO10's limit is its escape via.
+    `octilinear.py` holds new legs to 0.85 mm (raster) from IPROPI copper.
 - **Motor copper.**
   - 0.8 mm trunks. The only narrower copper is in the `Motor pin escape` areas.
   - M1/M2 route as pairs. `tools/autoroute/loop.py` measures the loop areas:
-    A 26.4 mm², B 27.8 mm² (main: 23.9 / 9.8). `loop.py`'s area is signed,
+    A 25.9 mm², B 24.3 mm² (main: 23.9 / 9.8). `loop.py`'s area is signed,
     and B's pair crosses itself, so opposite lobes cancel. On main they nearly
     balanced; `layout/devkit/measure.py` reports the lobes.
   - **Do not move U5 toward J9.** It would be off the VBAT island (x ≤ 127),
