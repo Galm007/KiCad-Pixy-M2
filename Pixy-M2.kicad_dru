@@ -31,38 +31,16 @@
 	(constraint physical_hole_clearance (min -1mm))
 	(condition "A.Type == 'Via' && A.NetName == 'GND' && A.Hole == 0.25mm && A.Diameter == 0.45mm && (A.Position_Y == 113.6mm || A.Position_Y == 114.4mm) && B.Type == 'Pad' && (B.Pad_Number == '9' || B.Pad_Number == '') && ((A.Position_X == 109mm && B.Reference == 'U4') || (A.Position_X == 117mm && B.Reference == 'U5'))"))
 
-# Issue 7: USB D+/D- are a 90 ohm pair, 0.25 mm / 0.15 mm on F.Cu over the In1
-# ground plane (field-solved against this stackup; confirm with the fab's
-# calculator before ordering).  The USB netclass carries the geometry; these
-# rules make DRC fail if a later edit narrows a line, spreads the pair, or
-# moves either line off the ground-referenced top layer.  The pair has to split
-# to reach U2's 1.9 mm and U1's 1.27 mm pin pitch; that is ~3.4 mm uncoupled
-# as routed, so 4 mm catches a pair that separates anywhere else.
-(rule "USB line width"
-	(constraint track_width (min 0.24mm) (opt 0.25mm) (max 0.26mm))
-	(condition "A.NetClass == 'USB'"))
-
-(rule "USB lines stay on F.Cu"
-	(layer "B.Cu")
-	(constraint disallow track via)
-	(condition "A.NetClass == 'USB'"))
-
-(rule "USB pair coupling"
-	(constraint diff_pair_gap (min 0.14mm) (opt 0.15mm) (max 0.16mm))
-	(constraint diff_pair_uncoupled (max 4mm))
-	(condition "A.inDiffPair('/USB_D*')"))
-
-# Issue 8: supply paths.  Power (USB input -> F2 -> VBUS -> D1 -> VSYS) carries
-# the whole board on USB, F2 holding 0.5 A and tripping at 1 A; Battery (BT1 ->
-# F1 -> Q1) carries up to ~3.4 A with both motors at their current limit (issue
+# Issue 8: supply paths.  Power (D2 -> VSYS -> the buck input) and Battery
+# (BT1 -> F1 -> Q1, up to ~3.4 A with both motors at their current limit, issue
 # 17).  The netclasses route them at 0.6 / 1.0 mm; these are the floors.  The
-# only exception is U2's VBUS pin, which leaves under the package between the
-# pin rows at 0.3 mm, fenced by the 'Power pin escape' rule area.  /VBAT is not
-# in either class: its current runs in the In2 island, and its tracks are pad
-# stubs to plane vias whose width the pin pitch sets, not the current.
+# USB input (F2 -> VBUS -> D1) left with the move to a plug-in DevKitC-1, and
+# with it U2's 'Power pin escape' exception.  /VBAT is not in either class: its
+# current runs in the In2 island, and its tracks are pad stubs to plane vias
+# whose width the pin pitch sets, not the current.
 (rule "Power path width"
 	(constraint track_width (min 0.5mm))
-	(condition "A.NetClass == 'Power' && !A.enclosedByArea('Power pin escape')"))
+	(condition "A.NetClass == 'Power'"))
 
 (rule "Battery path width"
 	(constraint track_width (min 0.8mm))
@@ -96,13 +74,9 @@
 	(constraint clearance (min 0.75mm))
 	(condition "(A.NetName == '/GPIO2' || A.NetName == '/GPIO10') && B.NetClass == 'Motor'"))
 
-# J1 is the stock KiCad footprint for Amphenol 12401948E412A (merged against
-# Amphenol's drawing c12401948).  Its four GND pads (A1/B12, A12/B1) end 0.25 mm
-# from the connector's own 0.6 mm locating holes.  That is the manufacturer's land
-# pattern, not a placement problem, and JLCPCB's stated NPTH-to-copper minimum is
-# 0.20 mm.  The board-setup hole clearance is absolute (a custom rule cannot relax
-# it), so it is set to that 0.20 mm fab floor and this rule restores the project's
-# 0.30 mm for every pair except J1's own pads against J1's own holes.
+# The board-setup hole clearance stays at JLCPCB's 0.20 mm NPTH-to-copper floor
+# (it was lowered for J1's own locating holes, and board-setup minimums cannot be
+# raised back per pair).  J1 left with the move to a plug-in DevKitC-1, so this
+# rule now restores the project's 0.30 mm everywhere.
 (rule "Hole clearance"
-	(constraint hole_clearance (min 0.3mm))
-	(condition "!(A.Reference == 'J1' && B.Reference == 'J1')"))
+	(constraint hole_clearance (min 0.3mm)))

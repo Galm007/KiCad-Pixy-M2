@@ -96,6 +96,7 @@ from assembly_marks import assembly_marks
 from battery_bay import battery_bay
 from reg_en import reg_en
 from ipropi import ipropi
+from devkit import devkit
 FAB_NOTE_AT = (100.0, 164.0)
 
 # board-level silkscreen labels that follow a moved pad
@@ -873,6 +874,9 @@ def main():
     print('battery bay between the axles:', battery_bay(p), 'items')
     print('REG_EN network beside U3.2:', reg_en(p), 'old REG_EN items replaced')
     print('IPROPI runs clear of motor and drive copper:', ipropi(p), 'old items replaced')
+    print('U1 -> ESP32-S3-DevKitC-1-N8R8 on SMD sockets (devkit-daughterboard)')
+    if not devkit(p, Router, pair_waypoints):
+        raise RuntimeError('devkit routing failed')
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'
@@ -880,8 +884,7 @@ def main():
                            pts=rect(*GND_POUR)))
     for a in ESCAPE_AREAS:
         p.add_zone(RULE_AREA.format(uuid=uuid.uuid4(), pts=rect(*a)))
-    for z in issue8_rule_areas():
-        p.add_zone(z)
+    # issue8's only rule area fenced U2's VBUS pin; U2 left with the devkit stage
     # Keep the current PCB intact if replay or the drill/paste audit fails.
     import pathlib, shutil, subprocess, tempfile
     out = pathlib.Path(OUT)

@@ -134,10 +134,30 @@ What it does, in order — the order matters:
     and drops to its old diagonal to U1 just past the VBAT island.  The
     channel beside MOT_A_2 is left empty.  Standalone, it converts an
     existing board once;
-20. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
-   areas and the `Power pin escape` rule area that `Pixy-M2.kicad_dru` conditions
-   on, and the `Dwgs.User` fab note;
-21. serializes a temporary candidate and runs `via_openings.py` before replacing
+20. puts U1 on an ESP32-S3-DevKitC-1-N8R8 plug-in daughterboard (`devkit.py`,
+    branch `devkit-daughterboard`, 2026-10-13).  It deletes the 21 footprints
+    the schematic dropped (USB-C input, D1/D3/R9, reset/boot, J11, TP5-TP8),
+    closes the rear edge J1's footprint notch left open, and swaps U1 for
+    `Pixy-M2:ESP32-S3-DevKitC-1_SMD_Sockets` along the right edge, antenna
+    over the rear edge.  It moves the IMU reservation, its marks and the
+    antenna exclusion, and 19 parts: J8/SW3 clear of the IMU's new column, J9
+    to the front of the right edge, J10/C22 behind the IMU, the LEDs to the
+    rear-left corner, the sense chain against GPIO1.  It then rips every net
+    that ran to the old module or a moved part, keeping the motor-corner copper
+    of the driver inputs and IPROPI runs, and re-routes: both motor pairs (J8's
+    stubs fan in under its own housing; M1 to J9 follows layer-pinned
+    waypoints), the plane pins that need their spot first, every signal in a
+    fixed order, then the plane taps and one GND via in each piece of the B.Cu
+    pour that has none (`stitch_islands`), so island removal keeps the piece.  A* sees the custom clearance floors (IPROPI 0.75 mm, REG_EN and
+    VBAT_SENSE 5 mm), keeps signal vias 1.35 mm apart, and puts no 3V3 via over
+    the In2 VBAT island.  `prune_strict()` removes dead ends the way KiCad's
+    `track_dangling` check sees them, and `drop_via_only_gnd()` the F.Cu GND
+    stubs of removed or moved pads that are left joining only vias.  Standalone, it converts an existing board
+    once.  Evidence in `layout/devkit/README.md`;
+21. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+   areas that `Pixy-M2.kicad_dru` conditions on, and the `Dwgs.User` fab note
+   (issue 8's `Power pin escape` area fenced U2, which is gone);
+22. serializes a temporary candidate and runs `via_openings.py` before replacing
     the output PCB. Any missing expected via or aperture violation stops the run.
 
 The final aperture check measures drill edges against mask and paste, including
@@ -171,5 +191,7 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `assembly_marks.py` | silkscreen marks for the off-board parts (step 16). Every dimension is a constant at the top: the ToF reservations, Adafruit's BNO085 board geometry (from `Adafruit_BNO08x.brd`) and Pololu's gearbox / motor / encoder lengths (drawing 0J949). Each part's marks are one KiCad group, so they move together in the GUI |
 | `battery_bay.py` | the battery bay (step 17). Its constants are KiCad coordinates, old and new side by side, so a changed board fails an assertion instead of being half-edited. `check()` repeats `layout/verify_placement.py`'s drilled-pad test against the new envelopes on a routed board, which that script cannot load |
 | `reg_en.py` | the enable network beside U3.2 (step 18). FB could not drop to B.Cu to make room: a via on it bonds to the In2 3V3 pour beside U3, which is the plane pickup review finding 5 removed. So FB stays on top and REG_EN's long leg, a signal-only net, takes the two vias. The new vias sit at least 1.35 mm from any other non-plane via, so their antipads never merge into one void in In1 or In2 |
+| `devkit.py` | the DevKitC-1 daughterboard (step 20). Its constants are KiCad coordinates and every old position is asserted, so a changed board fails instead of being half-edited. All text-level edits (footprints, fields, texts, zones) come before any track edit, because each one re-splits the file. `make_router()` wraps `rework.Router` with three things the plain router does not know: the custom clearance floors as extra distance in `G.dist`, a 1.35 mm keep-off between non-plane vias, and no 3V3 vias over the VBAT island. `prune_strict()` replaces `pololu_conn.dangling()` for the nets it re-routes: a track end counts as connected only if it meets another track end exactly, lies in a pad, via or pour, or T-joins a track that is not within ten segments of its own chain. The staircase steps of one route all overlap their neighbours, so the looser test kept dead tails that KiCad flags, and it pruned stubs that carried another route's T-joint |
+| `devkit_footprint.py` | writes `Pixy-M2.pretty/ESP32-S3-DevKitC-1_SMD_Sockets.kicad_mod`: two copies of KiCad's Harwin M20-786 SMD socket land pattern 22.86 mm apart, numbered as Espressif's symbol, the devkit outline on F.Fab and a USB-end arrow on F.SilkS. Courtyard = the socket bodies only, since the devkit stands ~10 mm up |
 | `ipropi.py` | the IPROPI sense runs (step 19). A* with the aggressors fattened was tried first and routed GPIO10 across J8 and through the encoder field, so both runs are hand-placed. For motor A, the pin order at U4 matches the order at U1's west column, so only R17's old position forced a crossing. For motor B, GPIO10 lands east of GPIO41/42 and must cross them. It does so once, under U5's pins, where the pair is still on F.Cu |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. The connector end of each pair is looked up by net, so it measures boards from before and after the J8/J9 re-pin alike. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |
