@@ -43,3 +43,27 @@ Every item it touches is asserted first, so it only runs on the pre-devkit sheet
 `netdiff.py` against the old netlist shows exactly the intended changes: the
 removed parts and nets, U1's pin numbering, `/GPIO38` → `/GPIO18`, and `/VBUS`
 gone from `VSYS` and `REG_EN`.
+
+## power_integrity.py — motor cutoff and isolated supplies
+
+    python3 power_integrity.py BEFORE.kicad_sch OUT.kicad_sch
+
+One-shot conversion of the 2026-10-13 devkit sheet. Adds U6/U7 for a motor
+cutoff independent of USB and firmware, uses U6's reference with 1 kΩ R17/R18
+(decoupled by C25 at U6 and C28 at the drivers), and adds U8/Q2/Q3 for
+USB-priority isolation of the buck, with C30 holding ESP_3V3 through the
+handover. TP10/TP11 bring out MOTOR_OK and MOTOR_VREF. U1.21 becomes voltage
+sensing only. Existing connector pins and named rails remain. U4 and U5 move
+7.62 mm right with their pin labels, so the longer DRV_x_INn and MOTOR_VREF
+names stay inside their frames. The two new custom symbols live in
+`Pixy-M2.kicad_sym`; pin maps, values, part numbers and sheet positions come
+from `tools/power_integrity_data.py`, also consumed by the PCB stage. New
+symbols take a uuid5 of their reference, so the PCB stage can link footprints
+without reading the sheet.
+
+Export netlists before and after. Run `netdiff.py` to see the full intentional
+change, then `python3 tools/power_integrity_check.py before.net after.net`
+from the project root to assert every pin's expected connection and every
+original part's fields. This also calculates DC tolerance envelopes; it does
+not certify motor transients or USB LDO thermals. Evidence in
+`layout/power-integrity/README.md`.

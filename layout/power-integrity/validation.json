@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-16",
+  "kicad_version": "10.0.6",
+  "erc_violations": 0,
+  "drc": {
+    "violations": 0,
+    "unconnected": 0,
+    "schematic_parity": 0
+  },
+  "aperture_audit": {
+    "violations": 0,
+    "via_count": 233,
+    "unintended_overlapping_vias": 0
+  },
+  "netlist": {
+    "nets": 72,
+    "parts": 79,
+    "pins_checked": 278,
+    "unexpected_changes": 0
+  },
+  "parts_with_fields_checked": 24,
+  "regression_tests_passed": 9,
+  "new_rule_negative_tests": {
+    "SPI clear of motor and switch copper": "15 violations on the 2026-10-14 board; GPIO14 test track fires at 0.75 mm",
+    "Encoders clear of the switch node": "3 violations on the 2026-10-14 board; GPIO21 test track fires at 1.51 mm",
+    "I2C clear of the switch node": "2 violations on the 2026-10-15 board (SCL against C6.1 at 0.45 mm)"
+  },
+  "replay": {
+    "base": "tools/autoroute/base-routed.kicad_pcb",
+    "method": "A full rework.py replay from the base board, compared with stages 21-22 replayed from an earlier run's pre-power checkpoint",
+    "copper_geometry_matches_exactly": true,
+    "comparison_excludes": [
+      "UUIDs",
+      "zone fills"
+    ]
+  },
+  "silkscreen": {
+    "designators_hidden": [
+      "R28",
+      "R29"
+    ],
+    "reason": "no clear 1 mm position in the front cluster; F.Fab names them"
+  },
+  "visually_inspected": [
+    "complete schematic and each new block",
+    "F.Cu/B.Cu routing",
+    "front and rear clusters",
+    "3D top, bottom and isometric"
+  ],
+  "hardware_measurements_performed": false
+}

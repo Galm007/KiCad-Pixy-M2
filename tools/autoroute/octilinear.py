@@ -61,7 +61,13 @@ NEW_MARGIN = 0.02            # extra clearance for a leg off the old centreline
 # new legs keep these floors (raster distance; the 0.05 mm raster reads up to
 # ~0.03 mm generous): GPIO10's escape via held 0.80 mm to motor copper before
 # this stage, and CLAUDE.md records that as the floor
-FLOORS = [({'/GPIO2', '/GPIO10'}, devkit.MOTOR_NETS, 0.85)]
+FLOORS = [({'/GPIO2', '/GPIO10'}, devkit.MOTOR_NETS, 0.85),
+          # Pixy-M2.kicad_dru's 5 mm and I2C floors (power_integrity.NEW_RULES)
+          ({'/MOTOR_UVLO'}, devkit.MOTOR_NETS | devkit._SW, 5.05),
+          ({'/GPIO11', '/GPIO12', '/GPIO13', '/GPIO14', '/GPIO15', '/GPIO16', '/GPIO17'},
+           devkit.MOTOR_NETS | devkit._SW, 5.05),
+          ({'/GPIO18', '/GPIO21', '/GPIO47', '/GPIO48'}, devkit._SW, 5.05),
+          ({'/GPIO8', '/GPIO9'}, devkit._SW, 3.05)]
 # a motor output's new legs stay within this distance (mm, centreline to the
 # partner's copper on either layer) of its partner, so a pair straightens as a
 # pair rather than opening up its loop
@@ -111,6 +117,8 @@ def ways(a, b):
 
 def _turns(path, din, dout):
     dirs = [d for d in (_dir(path[k], path[k + 1]) for k in range(len(path) - 1)) if d]
+    if not dirs:
+        return 0.0, din
     t = [_turn(din, dirs[0])] + [_turn(dirs[k], dirs[k + 1]) for k in range(len(dirs) - 1)]
     if dout is not None:
         t.append(_turn(dirs[-1], dout))
@@ -424,7 +432,9 @@ def _escape_mask(w):
     return m
 
 
-def octilinear(p, Router, rounds=4):
+def octilinear(p, Router, rounds=4, finish=False):
+    """finish: also prune the tails healing exposes and close any signal gap
+    KiCad's own connectivity report finds (the last copper stage does this)"""
     r = devkit.make_router(Router, p)
     g = r.g
     nets = sorted({Pcb.net(b) for b in p.blocks if Pcb.kind(b) == 'segment'} - {None} - FROZEN_NETS)
@@ -437,8 +447,16 @@ def octilinear(p, Router, rounds=4):
         changed += _round_pass(p, g, nets)
         if changed == n0:
             break
-    after = sum(1 for b in p.blocks if Pcb.kind(b) == 'segment')
+    if finish:
+        # healing a short overlapping route can expose its last tiny tail
+        pruned = devkit.prune_strict(p, g, set(nets))
+        print(f'  {pruned} tails pruned after straightening')
     vias = devkit.stitch_islands(devkit.make_router(Router, p))
+    if finish:
+        from physical_cleanup import finish as physical
+        print('  physical connectivity:', physical(p, Router, _round_pass))
+        vias += devkit.stitch_islands(devkit.make_router(Router, p))
+    after = sum(1 for b in p.blocks if Pcb.kind(b) == 'segment')
     print(f'  {changed} chains straightened in {_round + 1} rounds: {before} -> {after} segments; '
           f'{vias} GND vias for B.Cu pour pieces left without one')
     return changed

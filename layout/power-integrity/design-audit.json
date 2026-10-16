@@ -1,0 +1,37 @@
+{
+  "electrical": {
+    "nets": 72,
+    "parts": 79,
+    "pins_checked": 278,
+    "unexpected_changes": 0
+  },
+  "DC_corners": {
+    "motor_enable_nominal_V": 6.745993730407524,
+    "motor_cutoff_nominal_V": 6.345993730407524,
+    "motor_enable_DC_envelope_V": [
+      6.392000056354484,
+      7.076091348874666
+    ],
+    "motor_cutoff_DC_envelope_V": [
+      6.011077876710511,
+      6.735594464324193
+    ],
+    "driver_VM_DC_floor_with_5mV_copper_budget_V": 6.006077876710511,
+    "current_limit_nominal_A": 0.828,
+    "current_estimate_with_1A_gain_bound_A": 0.9215168620639747,
+    "trip_comparator_margin_at_1A_V": 0.10844799999999993,
+    "ipropi_nominal_V_per_A": 1.5,
+    "usb_disable_margin_V": 0.1309242690121367,
+    "battery_enable_margin_V": 0.028019800923168553,
+    "vref_capacitance_max_nF": 7.590000000000001,
+    "usb_handover_holdup_uF": 48.0,
+    "usb_handover_sag_at_500mA_40us_V": 0.4166666666666667,
+    "qualifications": [
+      "DRV gain bound is specified at 1 A, not a guaranteed limit at every current/PWM edge.",
+      "Below VM 6.5 V the DRV8231A current mirror still regulates; TI does not specify its accuracy there.",
+      "Comparator delay, input filtering, motor ripple and source handover require oscilloscope tests.",
+      "U8 turn-on has no datasheet maximum: scope ESP_3V3 at USB unplug under load.",
+      "USB LDO thermal capability and complete rail dropout require bench qualification."
+    ]
+  }
+}

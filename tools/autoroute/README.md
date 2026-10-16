@@ -156,7 +156,23 @@ What it does, in order — the order matters:
     stubs of removed or moved pads that are left joining only vias.
     Standalone, it converts an existing board once.  Evidence in
     `layout/devkit/README.md`;
-21. straightens the copper into 0/45/90 degree runs (`octilinear.py`,
+21. adds the independent motor inhibit and reference, and USB-priority buck
+    isolation (`power_integrity.py`, 2026-10-14; re-placed 2026-10-15). The
+    parts go in three clusters that keep the existing corridors free: the
+    USB-priority switch in front of the devkit's USB end, fed straight from
+    L1.2; U6/U7 and the divider at the rear of the socket rows; C28 and TP11
+    beside the motor corner. TP2/TP3 move between J5 and J7. Every
+    re-routable net a cluster displaces is ripped whole and routed again (a
+    patched route once ran SPI along motor B's trunk and GPIO21 past the
+    switch node), with 5 mm router floors for SPI and the encoders. SCL and
+    SDA are always re-routed, 3 mm clear of SW/BST: C12's GND via moves east
+    of its pad (2026-10-16), which opens SCL's lane under C15 (it had run past
+    C6's BST pad at 0.45 mm). U7's fine-pitch pins escape to staggered vias,
+    and U8's GND pin is tapped by hand, before any routing. `silk_refs.py` places the designators first.
+    It preserves the motor outputs, the driver escapes and the via-free buck
+    feedback path (asserted), and makes R17/R18 1 kΩ. Standalone it converts
+    the pre-revision devkit board once. See `layout/power-integrity/README.md`;
+22. straightens the copper into 0/45/90 degree runs (`octilinear.py`,
     2026-10-13).  The A* router turns for free on its 0.05 mm grid, so any
     other angle came out as a staircase of 0.05-0.3 mm steps that renders as a
     curve.  The stage first joins pieces that only overlap (`_heal`), then
@@ -167,8 +183,13 @@ What it does, in order — the order matters:
     motor output within 1.5 mm of its partner so a pair straightens together.  It leaves the hand-placed buck block (SW, BST, REG_EN, and
     chains touching U3, L1, C6, R8, C13) and the piece on each U4/U5 pin as
     they are, keeps necks inside their `Motor pin escape` area, and repeats
-    until a round changes nothing.  Evidence in `layout/octilinear/README.md`;
-22. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
+    until a round changes nothing. Called as `octilinear(p, Router,
+    finish=True)`, it then runs `physical_cleanup.py`: KiCad's own
+    connectivity report on a temporary copy, joining any remaining signal
+    islands and removing reported dangling tails, on low-current signal nets
+    only (anything else stops the replay for review). Evidence in
+    `layout/octilinear/README.md`;
+23. adds the F.Cu `GND pour motor region` zone, the two `Motor pin escape` rule
     areas that `Pixy-M2.kicad_dru` conditions on, and the `Dwgs.User` fab note
     (issue 8's `Power pin escape` area fenced U2, which is gone);
 23. serializes a temporary candidate and runs `via_openings.py` before replacing
@@ -207,6 +228,30 @@ lower end of each exposed pad. Nothing is emitted when that search fails.
 | `reg_en.py` | the enable network beside U3.2 (step 18). FB could not drop to B.Cu to make room: a via on it bonds to the In2 3V3 pour beside U3, which is the plane pickup review finding 5 removed. So FB stays on top and REG_EN's long leg, a signal-only net, takes the two vias. The new vias sit at least 1.35 mm from any other non-plane via, so their antipads never merge into one void in In1 or In2 |
 | `devkit.py` | the DevKitC-1 daughterboard (step 20). Its constants are KiCad coordinates and every old position is asserted, so a changed board fails instead of being half-edited. All text-level edits (footprints, fields, texts, zones) come before any track edit, because each one re-splits the file. `make_router()` wraps `rework.Router` with three things the plain router does not know: the custom clearance floors as extra distance in `G.dist`, a 1.35 mm keep-off between non-plane vias, and no 3V3 vias over the VBAT island. `prune_strict()` replaces `pololu_conn.dangling()` for the nets it re-routes: a track end counts as connected only if it meets another track end exactly, lies in a pad, via or pour, or T-joins a track that is not within ten segments of its own chain. The staircase steps of one route all overlap their neighbours, so the looser test kept dead tails that KiCad flags, and it pruned stubs that carried another route's T-joint |
 | `devkit_footprint.py` | writes `Pixy-M2.pretty/ESP32-S3-DevKitC-1_SMD_Sockets.kicad_mod`: two copies of KiCad's Harwin M20-786 SMD socket land pattern 22.86 mm apart, numbered as Espressif's symbol, the devkit outline on F.Fab and a USB-end arrow on F.SilkS. Courtyard = the socket bodies only, since the devkit stands ~10 mm up |
-| `octilinear.py` | the straightening pass (step 21). `_heal()` joins every loose end that lies inside another piece of its net to that piece exactly, by splitting the host and adding a link no wider than either, because the router's pieces often meet only by overlapping. `chains()` then cuts each net and layer into chains between real nodes, and `simplify()` jumps from each vertex to the farthest chain point one leg, or a 45 degree leg plus an orthogonal one, reaches in the clear. A cell on the chain's own old centreline always counts as clear, since that copper passed DRC. The old segment stays wherever nothing else fits, so the result is never worse than the input |
+| `power_integrity.py` | independent motor cutoff, 1.242 V current reference and USB-priority supply isolation (step 21); shared component/pin data and placements in `../power_integrity_data.py`. `CLUSTERS` are the boxes whose re-routable copper is ripped whole; `NEW_RULES` are the router floors (5 mm, and 3 mm for I²C) that `Pixy-M2.kicad_dru` also enforces |
+| `silk_refs.py` | places reference designators and test-pad labels for step 21 before any copper: each text tries positions around its part, most-constrained part first, and keeps the first clear of pads, silkscreen and the board edge. Its text boxes use KiCad's measured stroke-font extents (0.86–0.94 mm a character at 1 mm). A designator with no clear position within ~2 mm of its part stays on F.Fab only |
+| `physical_cleanup.py` | the final connectivity pass `octilinear(finish=True)` runs: KiCad DRC on a temporary copy, then repairs and tail removal on signal nets only |
+| `octilinear.py` | the straightening pass (step 22). `_heal()` joins every loose end that lies inside another piece of its net to that piece exactly, by splitting the host and adding a link no wider than either, because the router's pieces often meet only by overlapping. `chains()` then cuts each net and layer into chains between real nodes, and `simplify()` jumps from each vertex to the farthest chain point one leg, or a 45 degree leg plus an orthogonal one, reaches in the clear. A cell on the chain's own old centreline always counts as clear, since that copper passed DRC. The old segment stays wherever nothing else fits, so the result is never worse than the input |
 | `ipropi.py` | the IPROPI sense runs (step 19). A* with the aggressors fattened was tried first and routed GPIO10 across J8 and through the encoder field, so both runs are hand-placed. For motor A, the pin order at U4 matches the order at U1's west column, so only R17's old position forced a crossing. For motor B, GPIO10 lands east of GPIO41/42 and must cross them. It does so once, under U5's pins, where the pair is still on F.Cu |
 | `loop.py` | enclosed loop area of each motor output pair, the metric review issue 4 turns on. Run it on two boards to compare. The connector end of each pair is looked up by net, so it measures boards from before and after the J8/J9 re-pin alike. Chains track endpoints by BFS over a node graph — a greedy nearest-endpoint walk takes shortcuts through via branches and silently reports the straight-line quadrilateral between the four pads no matter how the board is routed, which is a convincing-looking wrong answer |
+
+### Power-stage debugging
+
+`PIXY_PRE_POWER_CHECKPOINT=/tmp/pre-power.kicad_pcb` optionally saves the
+complete base-to-devkit replay immediately before the power-integrity stage.
+`PIXY_POWER_CHECKPOINT=/tmp/power.kicad_pcb` saves its routed result before
+assertions. These are temporary diagnostic outputs; normal replay creates
+neither. They allow the final two stages to be re-run against the exact
+base-derived copper while fixing a routing issue.
+
+`python3 tools/autoroute/test_power_integrity.py` checks the via cleanup
+regression: a one-layer via can bridge offset trace ends, so its hole may be
+removed only after explicit copper preserves those connections. Two-layer and
+plane vias must remain. Run from the project root.
+
+With a pre-power checkpoint, the last two stages replay in a few minutes:
+
+    python3 tools/autoroute/power_integrity.py /tmp/pre-power.kicad_pcb /tmp/power.kicad_pcb
+    python3 tools/autoroute/power_integrity.py /tmp/pre-power.kicad_pcb /tmp/p.kicad_pcb --placement-only
+
+The second form stops after placement and designators, for silkscreen work.

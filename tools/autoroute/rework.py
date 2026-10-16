@@ -97,6 +97,7 @@ from battery_bay import battery_bay
 from reg_en import reg_en
 from ipropi import ipropi
 from devkit import devkit
+from power_integrity import power_integrity
 from octilinear import octilinear
 FAB_NOTE_AT = (100.0, 164.0)
 
@@ -878,8 +879,13 @@ def main():
     print('U1 -> ESP32-S3-DevKitC-1-N8R8 on SMD sockets (devkit-daughterboard)')
     if not devkit(p, Router, pair_waypoints):
         raise RuntimeError('devkit routing failed')
+    print('independent motor cutoff, reference margin and USB-priority isolation')
+    if checkpoint := os.environ.get('PIXY_PRE_POWER_CHECKPOINT'):
+        p.write(checkpoint)
+    if not power_integrity(p, Router):
+        raise RuntimeError('power integrity routing failed')
     print('straight 0/45/90 degree runs in place of the router staircases')
-    octilinear(p, Router)
+    octilinear(p, Router, finish=True)
 
     def rect(x0, y0, x1, y1):
         return f'(xy {x0} {y0}) (xy {x1} {y0}) (xy {x1} {y1}) (xy {x0} {y1})'

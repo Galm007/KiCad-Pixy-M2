@@ -18,10 +18,10 @@ Designed in **KiCad 10**. 4-layer, 66 × 100 mm, fully placed and routed.
 | **MCU** | ESP32-S3-DevKitC-1-**N8R8** (v1.1; 8 MB flash, 8 MB octal PSRAM) on two 1×22 SMD female headers. USB-UART and native-USB ports, BOOT/RESET on the devkit |
 | **Power in** | 2S LiPo (7.4 V nominal, 8.4 V full) via XT30. The devkit's USB powers the 3.3 V rail on the bench |
 | **Logic rail** | 3.3 V, AP63203 2 A synchronous buck |
-| **Motor drive** | 2 × TI DRV8231A H-bridge, 1.00 A hardware current limit, per-motor current sense into the ADC |
+| **Motor drive** | 2 × TI DRV8231A H-bridge, 0.828 A nominal hardware current limit, per-motor current sense into the ADC |
 | **Sensors** | 4 × VL53L0X ToF (I²C), BNO085 9-DoF IMU (SPI), 2 × 12 CPR quadrature encoders |
 | **Protection** | 1500 A-breaking battery fuse, 600 W TVS on the motor rail, hardware UVLO (the devkit carries its own USB protection) |
-| **PCB** | 66 × 100 mm, 4 layers, 1.6 mm, 57 footprints, 192 vias, ~2.0 m of track |
+| **PCB** | 66 × 100 mm, 4 layers, 1.6 mm, 79 footprints, 233 vias, 2.20 m of track |
 | **Status** | Schematic complete, ERC 0/0. Layout routed, DRC 0 violations / 0 unconnected / 0 parity. **Not yet fabricated.** |
 
 ---
@@ -92,8 +92,9 @@ flowchart LR
     Q1 -- VBAT --> D6["D6 TVS<br/>SMBJ9.0A"]
     Q1 -- VBAT --> D2["D2<br/>Schottky"]
     D2 -- VSYS --> BUCK["U3 AP63203<br/>3.3 V buck"]
-    BUCK -- ESP_3V3 --> MCU["U1 DevKitC-1<br/>3V3 pins"]
-    BUCK -- ESP_3V3 --> PERIPH["ToF ×4, IMU,<br/>encoders"]
+    BUCK -- BUCK_3V3 --> ISO["U8 / Q2<br/>USB-priority isolation"]
+    ISO -- ESP_3V3 --> MCU["U1 DevKitC-1<br/>3V3 pins"]
+    ISO -- ESP_3V3 --> PERIPH["ToF ×4, IMU,<br/>encoders"]
     USB["devkit USB ports"] --> LDO["devkit LDO"]
     LDO -- 3V3 --> MCU
     DRV --> MOT["J8 / J9<br/>N20 motors + encoders"]
@@ -104,7 +105,7 @@ flowchart LR
 ### Power path
 
 ```
- BT1+ ── F1 ── VBAT_FUSED ── Q1 (S→D) ── VBAT ──┬── D2 ── VSYS ── U3 buck ── ESP_3V3 ── devkit 3V3 pins
+ BT1+ ── F1 ── VBAT_FUSED ── Q1 (S→D) ── VBAT ──┬── D2 ── VSYS ── U3 buck ── BUCK_3V3 ── U8/Q2 ── ESP_3V3 ── devkit 3V3 pins
                    │            │                ├── U4/U5 motor drivers
                   R14           G                ├── R7/R8 UVLO divider
                    └────────────┤                ├── R10/R11 battery sense
@@ -114,14 +115,22 @@ flowchart LR
 - **`VBAT`** is the switched, fused motor rail. Motor current does **not** pass
   through D2. D2 feeds only the buck input.
 - **`VSYS`** is the pack through D2, **~8.1 V** on a full pack.
-- **`ESP_3V3`** feeds the devkit through its 3V3 pins (a supply option
-  Espressif's user guide lists), the four ToF sensors, the IMU, the encoders,
-  the LEDs and the drivers' `VREF` pins. The devkit's 5V pin is unused.
-- **USB on the devkit runs the logic** with SW3 off: the devkit's own 800 mA
-  LDO then drives the 3.3 V rail, and the motors stay unpowered. With USB and
-  the pack both on, the LDO and the buck share the rail. Neither can sink
-  current, so that is harmless, but Espressif calls the supply options mutually
-  exclusive. There is no on-board charger; charge the pack separately.
+- **`BUCK_3V3`** is the buck's regulated output, including L1, C7/C11 and
+  its unchanged feedback path. U8 and Q2 feed the separate **`ESP_3V3`** rail.
+- **`ESP_3V3`** feeds the devkit's 3V3 pins, sensors, encoders and LEDs.
+  U6 supplies the drivers' separate **`MOTOR_VREF`**, nominally 1.242 V.
+- **USB has priority.** U1's 5V pin is used only for voltage sensing through
+  R28/R29. With USB present, U8 disables and Q2 opens, isolating the buck from
+  the devkit LDO. Their opposing body diodes block either direction while off.
+  USB therefore supplies the complete logic load; the 800 mA LDO rating alone
+  does not establish a safe continuous load. Begin USB bring-up with RF off and
+  measure rail voltage and LDO temperature at the intended load.
+- **USB removal with the pack on is bridged by C30.** U8 needs ~40 µs to turn
+  on once the devkit's LDO drops out; C30 (100 µF X5R) with C1/C15 holds
+  ESP_3V3 meanwhile: ≈0.2 V sag at 0.25 A, ≈0.42 V at 0.5 A (conservative,
+  without the devkit's own capacitance). Scope it before relying on it.
+  USB-only operation leaves the motors inhibited through U6/U7. No on-board
+  charging; charge the pack separately.
 
 ---
 
@@ -184,27 +193,31 @@ The DRV8231A also:
 - needs no nSLEEP or nFAULT pin, which saves GPIOs;
 - has **integrated current regulation and an `IPROPI` sense output**.
 
-### Current limit: 1.00 A, set by the connector
+### Current limit: 0.828 A nominal, with connector margin
 
 ```
-ITRIP = VREF / (AIPROPI × RIPROPI) = 3.3 V / (1500 µA/A × 2.2 kΩ) = 1.00 A
+ITRIP = VREF / (AIPROPI × RIPROPI) = 1.242 V / (1500 µA/A × 1 kΩ) = 0.828 A
 ```
 
-J8/J9 use JST SH connectors so Pololu's own encoder cable plugs in 1:1. SH
-contacts and that cable are rated **1 A**, so R17/R18 hold the limit there.
-The limit still gives ~63 % of the motor's 6 V stall torque. It also bounds the
-driver's dissipation: an unregulated stall at 8.4 V would draw ~1.9 A and put
-the 2 × 2 mm WSON into thermal shutdown. `IPROPI` reads 3.3 V/A on an ADC1 pin
-for each motor, so firmware can detect a stall and cut drive long before the
-fuse matters.
+U6's reference replaces the 3.3 V rail at the two driver VREF pins. R17/R18
+are **1 kΩ 1 %, ≤100 ppm/°C**. The JST SH contacts and Pololu cable are rated
+1 A; the previous 1.00 A nominal setting left no tolerance margin. With the
+reference, temperature and resistor corners included, the trip comparator has
+about 108 mV margin at 1 A using TI's minimum specified mirror gain. That gain
+bound is specified at 1 A and VM ≥6.5 V, so it is not a guarantee on every PWM
+peak. Check current ripple and stall heating on hardware.
+
+IPROPI now reads **1.5 V/A** on GPIO2/GPIO10 (ADC1), about 1.242 V at the nominal
+limit. Firmware must update its scaling and stop sustained stalls. Details and
+calculation assumptions are in [the power integrity audit](layout/power-integrity/README.md).
 
 ### Battery fuse: one-time, 1500 A breaking
 
 The chosen pack is a 2S 450 mAh 100C LiPo. Its estimated dead-short current is
 **200–400 A**. The original 3 A PPTC could only break 40 A, so it was replaced
 with a **Littelfuse 0885005.DR**: 5 A fast-acting, 1500 A breaking at
-125 VDC. Normal worst-case load is ~2.4 A: both motors at the limit plus the
-buck. Slow overload protection is now the job of the driver current limit and
+125 VDC. Normal load is below the old ~2.4 A allowance after lowering both motor
+limits. Measure acceleration peaks before changing any fuse or current-limit value. Slow overload protection is now the job of the driver current limit and
 firmware stall detection. F1 only opens on a real fault.
 
 ### Hardware undervoltage lockout
@@ -217,10 +230,27 @@ divider (R7/R8) on `VBAT` sets it to:
 | Turn on | 6.90 V | 3.45 V |
 | Turn off | 5.94 V | 2.97 V |
 
-USB no longer reaches `EN` (the old `VBUS` → D3 → R9 path left with the
-on-board USB), so the UVLO holds with the devkit's USB plugged in. Firmware
-still does the accurate low-voltage cutoff; the hardware UVLO is the backstop
-for when firmware is not running.
+This controls the **buck only**. It cannot stop a USB-powered MCU from driving
+motors. The added U6 comparator independently monitors VBAT through R24/R25,
+with R26 hysteresis. U7 disconnects all four driver inputs below its threshold;
+the drivers' internal pulldowns then command coast regardless of firmware.
+U6's power-on reset and R27 keep the switches disabled during logic startup.
+
+| Motor inhibit | Pack voltage | Per cell |
+|---|---:|---:|
+| Enable on rising battery | 6.75 V | 3.37 V |
+| Coast on falling battery | 6.35 V | 3.17 V |
+
+R24/R25/R26 (100 k / 23.2 k / 825 k) are **0.1 %, ≤25 ppm/°C** thin film. Over
+−40 to +125 °C the DC envelopes are 6.01–6.74 V (coast) and 6.39–7.08 V
+(enable), so a pack resting at 3.6 V/cell always enables the motors. The
+inhibit is a hardware **backstop under firmware's own cutoff** (about 6.8 V
+under load, latched so a rebounding pack cannot restart a stalled motor).
+Below VM 6.5 V the DRV8231A still regulates current; TI just does not
+specify its ±6 % mirror accuracy there. (The 2026-10-14 version cut off at
+6.92 V and enabled at 7.39 V to stay inside that condition, which cost the
+bottom third of the pack.) Filter delay and fast dips need scope checks.
+USB does not reach REG_EN.
 
 ### Battery sense without a gate FET
 
@@ -275,7 +305,8 @@ GY-VL53L0XV2 module's own header order, so the cable is a straight 1:1 loom.
 
 On the devkit. Its native-USB port (USB-Serial-JTAG) gives flashing, console
 and debugging; its USB-UART port gives esptool auto-reset. Each port reaches
-the devkit's 5 V rail through a 1N5819, and the board does not use that rail.
+the devkit's 5 V rail through a 1N5819. This board senses that rail at U1.21
+for USB priority; it does not draw supply power from it.
 
 ### Strapping pins
 
@@ -372,8 +403,9 @@ Its USB-UART port is the way back in if firmware ever disables the native USB.
 | BT1 | XT30U-M | 2S LiPo input |
 | SW3 | C&K JS102011SAQN slide | Battery ON/OFF (gate control only) |
 | D4 / D5 | Red / green LED | Power (always on) / status (GPIO3), rear-left corner |
-| TP1–TP4 | Test pads | VBAT, 3V3, GND, SW node (TP4 is under the devkit's USB end) |
+| TP1–TP4 | Test pads | VBAT, 3V3, GND, SW node (TP4 is under the devkit's USB end; TP2/TP3 sit between J5 and J7) |
 | TP9 | Test pad | Probe GND |
+| TP10, TP11 | Test pads | MOTOR_OK (rear left), MOTOR_VREF (beside the motor corner). BUCK_3V3 is probed at L1 or C26, in front of the devkit |
 
 ---
 
@@ -450,9 +482,8 @@ shopping list below has one line per part to buy.
 
 Quantities are exact, with no spares except the crimp contacts. Where BOM.md
 lets one part fill several positions, the list merges them: one 0.1 µF 50 V
-part covers all nine 0.1 µF positions, and every resistor is bought at 1 %.
-R7, R8, R10, R11 and R17/R18 must stay 1 %: they set the UVLO thresholds, the
-battery-sense ratio and the motor current limit.
+part covers all twelve 0.1 µF positions. R24–R26 must be 0.1 % and ≤25 ppm/°C; other
+resistors may be 1 %. R17/R18 and R28/R29 must also be ≤100 ppm/°C.
 
 | Qty | Part | For |
 |---:|---|---|
@@ -460,6 +491,11 @@ battery-sense ratio and the motor current limit.
 | 2 | 1×22 2.54 mm vertical **SMD** female header, Harwin M20-786 land pattern | U1's sockets. Part number open: see BOM.md |
 | 2 | TI **DRV8231ADSGR** | U4, U5 |
 | 1 | Diodes Inc **AP63203WU-7** | U3. Fixed 3.3 V, not the AP63200 |
+| 1 | TI **TLV3012BIDBVR** | U6; B version required |
+| 1 | TI **SN74LV4066APWR** | U7 |
+| 1 | TI **LM66100DCKR** | U8 |
+| 1 | AOS **AO3401A** | Q2 |
+| 1 | onsemi **MMBT3904LT1G** | Q3 |
 | 1 | AOS **AO4407A** | Q1. Not the IRF7404 the symbol names |
 | 1 | onsemi **MBRA340T3G** | D2 |
 | 1 | Vishay **SMBJ9.0A-E3/52** | D6 |
@@ -471,14 +507,23 @@ battery-sense ratio and the motor current limit.
 | 1 | AMASS **XT30U-M** | BT1 |
 | 6 | JST **SM06B-SRSS-TB(LF)(SN)** | J4–J9 |
 | 1 | JST **SM09B-SRSS-TB(LF)(SN)** | J10 |
-| 9 | 0.1 µF 50 V X7R, 0603 | C2, C6, C13, C14, C16–C18, C20, C22 |
+| 12 | 0.1 µF 50 V X7R, 0603 | C2, C6, C13, C14, C16–C18, C20, C22–C24, C27 |
+| 1 | 2.2 nF 16 V X7R, 0603 | C25 |
+| 1 | 4.7 nF 16 V X7R, 0603 | C28 |
+| 1 | 1 µF 16 V X7R, 0603 | C26 |
+| 1 | Murata **GRM31CR60J107ME39L**, 100 µF 6.3 V X5R, 1206 | C30 |
 | 2 | 10 µF 16 V X5R/X7R, 0805 | C1, C15 |
 | 2 | 22 µF 16 V X5R/X7R, 0805 | C7, C11 |
 | 3 | 22 µF 25 V X5R/X7R, 1206 | C12, C19, C21 |
-| 6 | 10 kΩ 1 %, 0805 | R12, R19–R23 |
-| 5 | 2.2 kΩ 1 %, 0805 | R13, R15–R18 |
+| 7 | 10 kΩ 1 %, 0805 | R12, R19–R23, R28 |
+| 3 | 2.2 kΩ 1 %, 0805 | R13, R15, R16 |
+| 2 | 1 kΩ 1 %, ≤100 ppm/°C, 0805 | R17/R18, RC0805FR-071KL |
+| 1 | 82 kΩ 1 %, 0805 | R29 |
+| 1 | Yageo **RT0805BRD07100KL**, 100 kΩ 0.1 % 25 ppm, 0805 | R24 |
+| 1 | Yageo **RT0805BRD0723K2L**, 23.2 kΩ 0.1 % 25 ppm, 0805 | R25 |
+| 1 | Yageo **RT0805BRD07825KL**, 825 kΩ 0.1 % 25 ppm, 0805 | R26 |
 | 1 | 24 kΩ 1 %, 0805 | R8 |
-| 1 | 100 kΩ 1 %, 0805 | R14 |
+| 4 | 100 kΩ 1 %, 0805 | R14, R27, R30, R31 |
 | 1 | 120 kΩ 1 %, 0805 | R7 |
 | 1 | 220 kΩ 1 %, 0805 | R11 |
 | 1 | 470 kΩ 1 %, 0805 | R10 |
@@ -603,16 +648,18 @@ kicad-cli pcb export pos     -o gerbers/Pixy-M2-pos.csv Pixy-M2.kicad_pcb
   them off until firmware drives the pins.
 - **Cap motor PWM at ~71 % duty.** The N20s are 6 V motors on an 8.4 V pack;
   71 % gives a 6 V equivalent on a full pack.
-- **Use IPROPI for stall detection** (GPIO2 / GPIO10, 3.3 V/A). The ADC clips
-  at ~0.94 A, just under the 1.00 A limit, so a stall reads as full scale.
+- **Use IPROPI for stall detection** (GPIO2 / GPIO10, **1.5 V/A**). The
+  nominal 0.828 A current limit reads about 1.242 V, within the ADC range.
   IPROPI follows only the low-side FET current and switches off in coast
   (IN1 = IN2 = 0). Read it while driving or braking, and average over whole
   PWM periods.
 - **Battery sense:** use `ADC_ATTEN_DB_12`. Scale by 690/220 and calibrate once
   against a meter reading at TP1. Allow ~50 ms after a step change (15 ms RC),
   and average over whole PWM periods.
-- **The hardware UVLO now holds with USB connected** (USB no longer reaches
-  `REG_EN`). Firmware should still cut off a low pack accurately.
+- **U6/U7 stop the motors even with USB connected**, at 6.35 V. The buck UVLO
+  alone does not protect a USB-powered system. Firmware should cut off first,
+  at about 6.8 V under load, and latch the stop until the pack is charged or
+  the robot is deliberately restarted.
 - **The devkit's own LEDs:** its red power LED is always on (~0.3 mA, which now
   dominates deep sleep), and its RGB LED is on GPIO38. Leave GPIO38 unused, or
   drive the LED.
@@ -642,7 +689,20 @@ were closed on 2026-09-24:
   On this branch GPIO2's limit is 1.21 mm: J8's move brought the MOT_A_1
   diagonal to GPIO2's via.
 
+The 2026-10-14 revision added the independent motor inhibit, reference margin
+and USB-priority isolation; the 2026-10-15 review placed it clear of the SPI and
+encoder corridors, lowered the cutoff, added C28/C30 and TP10/TP11; see
+[validation and limits](layout/power-integrity/README.md).
+
 **Open before or during first fabrication:**
+
+- [ ] **Supply switching and USB thermals.** Scope ESP_3V3 at USB
+      insertion/removal at the intended logic load (C30's ride-through), check
+      reverse current, and measure the devkit LDO temperature. Keep RF off for
+      initial USB bench bring-up.
+- [ ] **Independent motor inhibit.** Sweep VBAT with USB attached while
+      firmware commands motion; check both outputs coast and do not restart
+      unexpectedly on battery rebound.
 
 - [ ] **Mechanical design.** The drivetrain, wheel mounts and sensor brackets
       are not designed. The PCB has **no mounting holes** yet. The battery
@@ -660,7 +720,7 @@ were closed on 2026-09-24:
       add a strap or bracket once the mechanics are designed.
 - [ ] **IPROPI readings on hardware.** The layout is done: the sense runs
       clear motor copper by 0.80 mm or more. Check the ADC reading and the
-      1.00 A limit under PWM. If the limit trips early, TI's remedy is 10 nF
+      0.828 A nominal limit under PWM. If the limit trips early, TI's remedy is 10 nF
       on IPROPI, and an 0805 capacitor can be stacked on R17/R18.
 - [ ] **Antenna performance** with the battery, motors and brackets fitted.
 

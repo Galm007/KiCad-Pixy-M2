@@ -9,7 +9,8 @@
 	(constraint track_width (min 0.2mm))
 	(condition "A.Type == 'Track' && !A.enclosedByArea('Motor pin escape')"))
 
-# Motor outputs carry the DRV8231A's 1.47 A regulated limit (issue 15/17), so the
+# Motor outputs retain their original high-current trunk geometry; the current
+# revision regulates at 0.828 A nominal, below the 1 A contact rating, so the
 # trunks are 0.8 mm.  Only the escapes inside each driver's 0.5 mm pin field may
 # neck below that, and those are fenced by the "Motor pin escape" rule areas —
 # without this rule the global 0.15 mm minimum lets a long 0.15 mm run pass DRC,
@@ -56,7 +57,7 @@
 #           outside U3: R8/C13 sit beside U3.2 and the EN copper leaves west
 #           (2026-09-24).  Before that, an EN via under the package sat
 #           0.40 mm from the SW pin, and this floor was 0.35 mm.
-#   IPROPI  (GPIO2/GPIO10, 2.2 kOhm): 0.80 mm, GPIO10's pin-escape via beside
+#   IPROPI  (GPIO2/GPIO10, 1 kOhm): 0.80 mm, GPIO10's pin-escape via beside
 #           U4's MOT_A_2 loop; GPIO2's nearest is U4's own pin 1 to pin 8,
 #           1.30 mm.  Every other stretch of both runs is 1.0 mm or more from
 #           motor copper.  R17/R18 moved and the near-driver runs were re-laid
@@ -73,6 +74,34 @@
 (rule "IPROPI clear of motor outputs"
 	(constraint clearance (min 0.75mm))
 	(condition "(A.NetName == '/GPIO2' || A.NetName == '/GPIO10') && B.NetClass == 'Motor'"))
+
+# Independent motor cutoff: keep its high-impedance comparator node away
+# from the same switching copper as VBAT_SENSE. Negative-tested in the audit.
+(rule "Motor UVLO clear of switching copper"
+	(constraint clearance (min 5mm))
+	(condition "A.NetName == '/MOTOR_UVLO' && (B.NetClass == 'Motor' || B.NetName == 'Net-(U3-SW)' || B.NetName == 'Net-(U3-BST)')"))
+
+# The IMU's SPI bus (GPIO11-17) was given its own corridor, J10 behind the IMU,
+# so it never runs beside motor or switch-node copper; the closest it comes is
+# 10.0 mm (GPIO14 to MOT_B_2).  The 2026-10-14 power stage re-routed it along
+# motor B's trunk at 0.75 mm without DRC noticing.  Negative-tested 2026-10-15.
+(rule "SPI clear of motor and switch copper"
+	(constraint clearance (min 5mm))
+	(condition "(A.NetName == '/GPIO11' || A.NetName == '/GPIO12' || A.NetName == '/GPIO13' || A.NetName == '/GPIO14' || A.NetName == '/GPIO15' || A.NetName == '/GPIO16' || A.NetName == '/GPIO17') && (B.NetClass == 'Motor' || B.NetName == 'Net-(U3-SW)' || B.NetName == 'Net-(U3-BST)')"))
+
+# Encoder outputs are 10 k open-drain lines into the pulse counters: keep them
+# off the buck's 1.1 MHz switch node (closest: GPIO21, 9.7 mm; it was moved to
+# 1.6 mm once).  They share J8/J9 with the motor wires, so no motor floor.
+(rule "Encoders clear of the switch node"
+	(constraint clearance (min 5mm))
+	(condition "(A.NetName == '/GPIO18' || A.NetName == '/GPIO21' || A.NetName == '/GPIO47' || A.NetName == '/GPIO48') && (B.NetName == 'Net-(U3-SW)' || B.NetName == 'Net-(U3-BST)')"))
+
+# I2C (2.2 k pull-ups) passes the buck on its way between J6 and J5.  SCL ran
+# under C12 and past C6's BST pad at 0.45 mm until C12's GND via moved east of
+# its pad (2026-10-16); the closest is now SCL to BST, 4.4 mm.  Negative-tested.
+(rule "I2C clear of the switch node"
+	(constraint clearance (min 3mm))
+	(condition "(A.NetName == '/GPIO8' || A.NetName == '/GPIO9') && (B.NetName == 'Net-(U3-SW)' || B.NetName == 'Net-(U3-BST)')"))
 
 # The board-setup hole clearance stays at JLCPCB's 0.20 mm NPTH-to-copper floor
 # (it was lowered for J1's own locating holes, and board-setup minimums cannot be

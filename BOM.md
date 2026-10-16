@@ -1,15 +1,15 @@
 # Pixy-M2 bill of materials — one robot
 
-**Branch `devkit-daughterboard` (2026-10-13).** U1 is an
+**Branch `devkit-daughterboard` (2026-10-15).** U1 is an
 **ESP32-S3-DevKitC-1-N8R8** that plugs into two 1×22 SMD female headers. The
 parts the devkit carries itself are gone from the PCB: the USB-C input (J1, U2,
 F2, R1, R5, R6, C8), the USB supply path (D1, D3, R9), reset/boot (R2, C3–C5,
 SW1, SW2), the J11 programming header and TP5–TP8. The schematic and board
-have the same 57 references.
+have the same 79 references.
 
 Quantities are for **one robot**, with no spares. Imperial package codes are used
-(0603, 0805, 1206). **53 parts are fitted to the PCB**: 51 references plus
-the two sockets that make up U1's footprint. TP1–TP4 and TP9 are bare 1.5 mm
+(0603, 0805, 1206). **73 parts are fitted to the PCB**: 71 references plus
+the two sockets that make up U1's footprint. TP1–TP4 and TP9–TP11 are bare 1.5 mm
 copper pads, so nothing is bought for them. The devkit itself is listed under
 C, off-board modules.
 
@@ -17,7 +17,7 @@ Status key: **Fixed** means the part is named in the schematic or design notes.
 **Spec** means any part meeting the spec will do. **Open** means the design has
 not chosen one yet.
 
-## A. PCB assembly — 53 parts
+## A. PCB assembly — 73 parts
 
 ### Semiconductors
 
@@ -25,6 +25,11 @@ not chosen one yet.
 |---:|---|---|---|---|
 | 1 | U3 | Diodes Inc **AP63203WU-7** | TSOT-23-6 | Fixed. The fixed 3.3 V variant; do not substitute the adjustable AP63200. |
 | 2 | U4, U5 | TI **DRV8231ADSGR** | WSON-8 2×2 | Fixed |
+| 1 | U6 | TI **TLV3012BIDBVR** | SOT-23-6 | Fixed. The B version supplies POR and the 1.242 V current reference. |
+| 1 | U7 | TI **SN74LV4066APWR** | TSSOP-14 | Fixed. All four motor inputs are disconnected on undervoltage. |
+| 1 | U8 | TI **LM66100DCKR** | SC70-6 | Fixed. USB-priority isolation, used with Q2. |
+| 1 | Q2 | AOS **AO3401A** | SOT-23 | Fixed. Opposes U8’s body diode; source at BUCK_PASS. |
+| 1 | Q3 | onsemi **MMBT3904LT1G** | SOT-23 | Fixed. Q2 gate driver from U8 ST. |
 | 1 | Q1 | AOS **AO4407A** | SOIC-8 | Fixed. The symbol is `IRF7404`; do not order that. |
 | 1 | D2 | onsemi **MBRA340T3G** | SMA | Fixed |
 | 1 | D6 | Vishay **SMBJ9.0A-E3/52** | SMB | Fixed |
@@ -55,31 +60,44 @@ The voltage ratings are the minimums from issue 8. Do not go lower.
 
 | Qty | Ref | Value | Package |
 |---:|---|---|---|
-| 3 | C2, C16, C22 | 0.1 µF 16 V | 0603 |
+| 6 | C2, C16, C22–C24, C27 | 0.1 µF 16 V | 0603 |
 | 2 | C6, C17 | 0.1 µF 25 V | 0603 |
 | 4 | C13, C14, C18, C20 | 0.1 µF 50 V | 0603 |
+| 1 | C25 | 2.2 nF 16 V | 0603 |
+| 1 | C28 | 4.7 nF 16 V | 0603 |
+| 1 | C26 | 1 µF 16 V | 0603 |
 | 2 | C1, C15 | 10 µF 16 V | 0805 |
 | 2 | C7, C11 | 22 µF 16 V | 0805 |
 | 3 | C12, C19, C21 | 22 µF 25 V | **1206** |
+| 1 | C30 | 100 µF 6.3 V X5R, Murata **GRM31CR60J107ME39L** | **1206** |
 
-One 0.1 µF 50 V 0603 part can fill all 9 of the 0.1 µF positions. Buying one
-reel instead of three is a valid choice.
+One 0.1 µF 50 V 0603 part can fill all 12 of the 0.1 µF positions. Buying one
+type instead of three is a valid choice. C25 + C28 load the TLV3012B
+reference: keep their sum ≤ 10 nF. C30 is the USB-unplug hold-up; its
+capacitance at 3.3 V bias matters, so keep the named part or one with the
+same DC-bias curve.
 
-### Resistors (0805 thick film)
+### Resistors (0805)
 
-The design requires **1 %** on the six parts marked 1 %. Buying 1 % for every
-position costs nothing extra.
+R24–R26 are **thin film, 0.1 % and ≤25 ppm/°C**, named by part number: a
+thick-film substitute moves the motor cutoff. The others are thick film and
+may all be 1 %; R17/R18 and R28/R29 must also be ≤100 ppm/°C (R17/R18: Yageo
+RC0805FR-071KL).
 
 | Qty | Ref | Value |
 |---:|---|---|
-| 6 | R12, R19–R23 | 10 kΩ |
+| 7 | R12, R19–R23, R28 | 10 kΩ |
 | 3 | R13, R15, R16 | 2.2 kΩ |
-| 2 | R17, R18 | 2.2 kΩ **1 %** (motor current limit, 1.0 A) |
+| 2 | R17, R18 | **1 kΩ 1 %**, RC0805FR-071KL (0.828 A nominal) |
 | 1 | R7 | 120 kΩ **1 %** |
 | 1 | R8 | 24 kΩ **1 %** |
 | 1 | R10 | 470 kΩ **1 %** |
 | 1 | R11 | 220 kΩ **1 %** |
-| 1 | R14 | 100 kΩ |
+| 4 | R14, R27, R30, R31 | 100 kΩ 1 % |
+| 1 | R29 | 82 kΩ 1 % |
+| 1 | R24 | 100 kΩ **0.1 %, 25 ppm/°C**, Yageo RT0805BRD07100KL |
+| 1 | R25 | 23.2 kΩ **0.1 %, 25 ppm/°C**, Yageo RT0805BRD0723K2L |
+| 1 | R26 | 825 kΩ **0.1 %, 25 ppm/°C**, Yageo RT0805BRD07825KL |
 
 ## B. The bare PCB
 
@@ -127,10 +145,13 @@ J8/J9 now use the Pololu encoder board's own connector and pin order (checked on
 | Pololu cable wire | green | white | yellow | blue | black | red | — |
 
 Pololu's cable is straight 1:1, so it plugs in either way round with no
-re-pinning. Pololu rates these contacts and cables at **1 A**, so **R17/R18 are
-now 2.2 kΩ**. That puts the DRV8231A's current limit at 1.00 A, down from 1.47 A,
-and still gives about 63 % of the motor's 6 V stall torque. IPROPI now reads
-3.3 V/A, so the ADC clips at about 0.94 A, just below the limit.
+re-pinning. Pololu rates these contacts and cables at **1 A**. U6 now supplies the driver
+reference at 1.242 V, and **R17/R18 are 1 kΩ**, giving **0.828 A nominal**.
+This leaves tolerance margin below the connector rating. IPROPI reads **1.5 V/A**.
+The independent U6/U7 cutoff coasts both motors at 6.35 V (enable 6.75 V)
+even while USB powers the MCU. See [the tolerance and validation notes](layout/power-integrity/README.md).
+Current ripple, PWM blanking, sustained stall heating and cable temperature still
+require measurement; the nominal limit is not a guarantee on every current peak.
 
 ### Battery
 
