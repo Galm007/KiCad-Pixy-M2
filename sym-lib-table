@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "Pixy-M2") (type "KiCad") (uri "${KIPRJMOD}/Pixy-M2.kicad_sym") (options "") (descr "Project power integrity symbols"))
+)

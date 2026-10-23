@@ -2,2438 +2,634 @@
 
 Context for a Claude Code session working on this KiCad project via the KiCad MCP server.
 
-## What this board is
+Single-board micromouse controller, KiCad 10. **Branch `devkit-daughterboard`:**
+U1 is an ESP32-S3-DevKitC-1-N8R8 that plugs into two 1×22 SMD female headers.
+The board also carries two DRV8231A motor drivers, a 2S LiPo power path (fuse,
+P-FET switch, TVS, UVLO) and an AP63203 3.3 V buck. USB, BOOT/RESET and the
+USB-UART bridge are on the devkit. JST-SH connectors lead to off-board parts:
+four VL53L0X ToF sensors, a BNO085 IMU and two Pololu N20 gearmotors with
+encoders.
 
-Controller PCB for a micromouse robot — a **single-board design**. An
-**ESP32-S3-WROOM-1** module is soldered directly to it. The board carries the MCU,
-USB-C programming/power port, a buck converter, four JST-SH connectors (J4–J7) for
-**off-board VL53L0X time-of-flight wall sensors**, and — once the parts are chosen —
-the **motor drivers, encoders and IMU on the board itself**.
+**Where things live.** This file holds the working rules: invariants, "do not"
+items and checks. Other sources:
 
-**There is no daughterboard.** Decided 2026-09-20, before layout started. It replaces
-the earlier two-board architecture in which motors, motor drivers and the IMU mated
-through two 22-pin headers (J2, J3). **Those headers were deleted on 2026-09-20**
-once the motor, IMU and debug blocks that replaced them were built.
+- `README.md`: design rationale, pin and connector tables, firmware bring-up notes.
+- `BOM.md`: parts.
+- `tools/autoroute/README.md`: the layout pipeline.
+- `tools/schematic/README.md`: the sheet re-layout tooling.
+- `layout/*/README.md`: per-fix measurements and evidence.
+- The git history of this file: the full issue-by-issue narrative (pruned 2026-09-24).
 
-Power comes from a **2S LiPo (7.4V nominal, 8.4V full charge)** via an XT30 connector,
-F1 battery fuse and Q1/SW3 load switch, then is diode-OR'd with fused USB 5V
-and down-converted to 3.3V by an AP63203WU buck. `VBAT` is the switched, fused
-motor/high-current supply; `VBUS` is downstream of the USB polyfuse F2.
-The 2S pack is charged separately; no onboard battery charger is required.
+## Status (2026-10-15, branch `devkit-daughterboard`)
 
-- Schematic: `Pixy-M2.kicad_sch` — single flat sheet, no hierarchy
-- KiCad 10.0
-- **PCB layout is placed and fully routed (2026-09-21).** 4 layers — see "Board stackup"
-  and "Routing" below. Every net is connected; DRC reports no routing errors.
+- **Schematic complete.** `Pixy-M2.kicad_sch`, a single flat A3 sheet with 13
+  dashed, titled block frames. Keep new parts inside their block's frame.
+  72 nets, 79 parts. ERC 0/0. `tools/schematic/power_integrity.py` adds the
+  independent motor cutoff, the driver reference and USB isolation.
+- **PCB placed and fully routed.** 66 × 100 mm, 4 layers, 233 vias. DRC gives 0
+  violations, 0 unconnected and 0 parity issues. The aperture audit passes.
+  `tools/autoroute/devkit.py` (rework stage 20) made the devkit change; evidence
+  in `layout/devkit/README.md`. Stage 21 (`power_integrity.py`) adds the motor
+  inhibit, reference and supply isolation; evidence in
+  `layout/power-integrity/README.md`. Stage 22 (`octilinear.py`) straightens
+  the router's staircases into 0/45/90° runs; evidence in
+  `layout/octilinear/README.md`.
+- **Open:**
+  - **Mechanical design.** There are no mounting holes, drivetrain or brackets
+    yet.
+  - **Motor gear ratio.** 12 CPR before gearing is low, so check the ratio gives
+    enough encoder edges for the control loop.
+  - **Hardware measurements.** F1 and U4/U5 temperatures under hard acceleration
+    and stall. IPROPI readings and the 0.828 A nominal limit under PWM.
+    The independent cutoff (trip, release, filter delay), ESP_3V3 at USB
+    unplug under load (C30's ride-through), and the devkit LDO's temperature.
+  - **Socket part number.** The land pattern is Harwin M20-786 (KiCad's
+    `PinSocket_1x22_P2.54mm_Vertical_SMD_Pin1Left`); no 22-way M20-786 part
+    number was confirmed. Two 11-way strips per row fit the same pads.
+  - **Antenna performance** with the devkit, mechanics and battery fitted.
+  - **IMU off the rotation centre.** Its chip is 8.6 mm left of and 7.5 mm
+    behind it: the only 25 mm column left beside the devkit. Fine for the gyro;
+    the accelerometer sees centripetal acceleration in turns.
+  - **Silkscreen gaps.** No text yet for "pin 1 = VCC" at J4–J7.
+  - **The 3D view has no DevKitC model.** The footprint stands Espressif's
+    WROOM-1 model at the module's real height (11.6 mm) with no devkit PCB,
+    headers or USB ports under it, so it floats above the sockets in renders.
+- **A clean ERC is the floor, not evidence.** ERC does not check footprints,
+  ratings, saturation current or whether a pin goes anywhere useful.
 
-## Current status
+## Checks and workflow
 
-The **controller section** of the schematic is complete — MCU, USB, power path,
-protection and ToF connectors. **ERC reports 0 errors and 0 warnings** as of
-2026-09-20, when issue 12 put no-connect flags on GPIO45/GPIO46 and cleared the last
-two `isolated_pin_label` warnings.
-
-**A clean ERC is worth almost nothing here, and is now easier to misread than it was
-when it showed 2 warnings.** Most issues below survive it: ERC does not check
-footprint assignment, component ratings, saturation current, or whether a labelled
-header pin actually goes anywhere. Treat 0/0 as the floor, not as evidence.
-
-Extract the netlist mechanically rather than reading the schematic image:
-
-```
+```sh
 kicad-cli sch export netlist --format kicadsexpr -o /tmp/after.net Pixy-M2.kicad_sch
+python3 tools/schematic/netdiff.py /tmp/before.net /tmp/after.net   # exit 1 on any electrical change
 kicad-cli sch erc -o /tmp/erc.rpt Pixy-M2.kicad_sch
+kicad-cli pcb drc --schematic-parity --refill-zones --save-board --format json -o /tmp/drc.json Pixy-M2.kicad_pcb
+/usr/bin/python3 tools/autoroute/via_openings.py Pixy-M2.kicad_pcb --output /tmp/apertures.json
+kicad-cli sch export svg --exclude-drawing-sheet --black-and-white -o /tmp/svg Pixy-M2.kicad_sch
+rsvg-convert -z 8 -b white /tmp/svg/Pixy-M2.svg -o /tmp/sheet.png   # ~30 px/mm
 ```
 
-Diff the net list against the previous export after every structural edit. Close
-KiCad before editing `.kicad_sch` on disk — `~Pixy-M2.kicad_sch.lck` tells you the
-GUI has it open, and whichever side saves last wins.
+- **Close KiCad before editing files on disk.** A `~Pixy-M2.*.lck` file means the
+  GUI has the project open, and whichever side saves last wins.
+- **After any structural schematic edit, diff the netlist.** Then render the sheet
+  and look at it. A netlist diff cannot see overlapping text, or a wire crossing
+  a point where two other wires meet end to end. KiCad treats that point as a
+  junction, so the crossing silently shorts two nets.
+- **Change a component's Value, Footprint, Datasheet and MPN together.**
+  Half-updated parts are how the wrong part gets ordered.
+- **DRC needs `--refill-zones`.** Without it, every plane-connected pad reports
+  as unconnected. `--save-board` writes the fills back. Read `unconnected_items`
+  as well as `violations`.
+- **Ask before deleting connector pins or renaming nets.** First make sure every
+  net has somewhere else to go. Keep `VBAT` and `VSYS` as explicit labels.
+- Symbol fields inherit the symbol's rotation. On a 90°-rotated symbol:
+  - give the field its own 90° angle so it renders horizontally;
+  - write `justify right` to get left-justified text. `justify left` renders
+    right-justified, so the text grows into the symbol.
+- **Renders** (`docs/images/`):
+  - `pcb-3d-top.png`, `pcb-3d-bottom.png`:
+    `kicad-cli pcb render --side top|bottom -w 1408 -h 2024 --background opaque --quality high`.
+  - `pcb-3d-iso.png`:
+    `kicad-cli pcb render --perspective --rotate '-50,0,-30' --zoom 0.95 --pan '0,1,0' -w 1320 -h 1088 --background opaque --quality high`.
+  - `pcb-copper-top.png`:
+    `kicad-cli pcb export svg --mode-single --page-size-mode 2 --exclude-drawing-sheet --layers F.Cu,Edge.Cuts`,
+    then `rsvg-convert -w 1000 -b white`.
+  - `schematic.png`: `kicad-cli sch export svg --exclude-drawing-sheet` (colour),
+    then `rsvg-convert -w 3200`.
 
-**Sheet re-laid out 2026-09-24 (layout only).** Thirteen dashed, titled frames in
-three rows: MCU, reset/boot, indicators/test points, debug, battery sense, ToF;
-USB-C → battery input → 3V3 buck → UVLO; motor A, motor B, IMU. The USB block was
-redrawn so the CC resistors no longer cross D±, and the UVLO divider now meets
-U3.2 through its existing `REG_EN` label instead of a wire. Netlist diff against
-the previous sheet: 0 differences (66 nets, 78 parts); ERC 0/0; PCB schematic
-parity 0. Tooling and method: `tools/schematic/README.md`. Keep new parts inside
-their block's frame.
+### Library edits that "Update from library" silently reverts
 
-**Netlist last re-extracted: 2026-09-19, after the issue-14 ToF sensor connectors.**
-The tables below are current as of that extraction. The schematic sheet was also
-changed from A4 to **A3** to make room for the sensor block.
+- **U4/U5, `Driver_Motor:DRV8231ADSG`.** The cached symbol has OUT2 (pin 8)
+  retyped from `power_in` to `output`, fixing a stock-library bug. Never run
+  "Update Symbols from Library" on them. If two `power_pin_not_driven` errors
+  appear on the motor nets, re-apply the fix. Do not add PWR_FLAGs.
+  `#FLG04` on `VBAT` is legitimate: ERC cannot see a source through BT1 → F1 → Q1.
+- **U1** is the symbol `PCM_Espressif:ESP32-S3-DevKitC` on the footprint
+  `Pixy-M2:ESP32-S3-DevKitC-1_SMD_Sockets` (project library `Pixy-M2.pretty`,
+  registered in `fp-lib-table`). `tools/autoroute/devkit_footprint.py` writes
+  the footprint: regenerate it rather than editing it by hand.
+  - Never update U1's footprint back to `PCM_Espressif:ESP32-S3-DevKitC`: that is
+    a through-hole footprint, and its tails would stand into the underside
+    battery bay and motor B.
+  - The cached *symbol* names `PCM_Espressif:ESP32-S3-DevKitC` as its default
+    footprint, deliberately. Editing the cache raises `lib_symbol_mismatch`.
+  - `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang` is unused on this branch.
+- **Q1** borrows `Transistor_FET:IRF7404` for its SO-8 pin map. The fitted part is
+  **AO4407A**. Never order IRF7404.
+- `USB_C_Receptacle_Amazon.kicad_mod` in the repo root is unused. There is no
+  USB connector on this branch's board.
 
-**As of the 2026-09-20 single-board decision the schematic is no longer complete as
-a whole.** The motor drivers, encoders and IMU that used to live off-board do not
-exist in it yet, and J2/J3 still stand in for them. See issue 15. Expect the sheet
-to need more room again — possibly A2, or a move to hierarchical sheets, once the
-power stage stops being the only high-part-count block.
+## Verified correct — do not re-flag
 
-**That is now stale too.** As of 2026-09-20 the motor drive, the IMU connector and
-the debug header are all built, and J2/J3 are gone. The sheet is still A3: the motor
-and IMU blocks went into the empty band below y≈195, and the debug block reuses the
-space J2/J3 vacated. What remains open is the **board outline** (issue 15) and
-measuring the issue-17 current budget on real hardware.
+Each was checked against the extracted netlist. A review that "finds" one of these is wrong.
 
-## Verified correct — do not re-flag these
+- **Buck.** AP63203WU is the fixed-3.3 V variant. FB (U3.1) senses `BUCK_3V3`
+  directly, with no divider. C6 (BST cap) sits across U3.6/U3.5. EN (U3.2) is on
+  `REG_EN`, not tied to IN; `VSYS` is C12, C17, D2.K and U3.3.
+- **Input capacitance.** One C12 (22 µF 25 V 1206) meets the datasheet's 10 µF
+  *effective* input. It keeps ~11–13 µF at 8.4 V bias. The datasheet's 2 × 22 µF
+  is the *output*, which C7 ‖ C11 match. C17 (0.1 µF) is the HF bypass.
+- **No USB on the main board.** The devkit's own ports (USB-UART and native
+  USB, each behind a 1N5819 to its 5 V rail) replace J1, U2, F2 and the CC and
+  shield parts. Do not re-add a USB-C connector wired to GPIO19/20: the
+  devkit's native-USB port is already on them.
+- **Devkit pins.** All 44 are accounted for. 12 carry no-connect flags:
+  CHIP_PU (U1.3), GPIO0 (U1.31), GPIO19/20 (U1.25/26),
+  GPIO43/44 (U1.43/42), GPIO35–38 (U1.32–35) and GPIO45/46 (U1.30/14).
+  - The devkit uses them itself: its BOOT and RESET buttons, its USB ports,
+    its USB-UART bridge, the N8R8's octal PSRAM (GPIO35–37) and the v1.1
+    board's RGB LED (GPIO38).
+  - GPIO45/46 are strapping pins. GPIO45 high at reset sets the flash rail to
+    1.8 V, and the board will not boot. GPIO46 high with GPIO0 low is an
+    invalid combination. External pulldowns were rejected: the internal ~45 k
+    suffices.
+  - In layout the no-connect pads are floating pads. Give them no trace, test
+    point or pour island.
+- **18 no-connect flags, all deliberate:** the 12 on U1, J4.5–J7.5 (the ToF
+  interrupt pins), SW3.1 and U8.4. U1.21 senses DEVKIT_5V only.
+- **D2 feeds only `VSYS`.** Motor current on `VBAT` never passes through it. D2
+  dissipates ~140 mW worst case, so an ideal-diode controller is unnecessary. Do
+  not re-propose it unless a real load moves onto `VSYS`.
+- **The DRV8231A thermal pad (pin 9) is on GND.** It sits at the same symbol
+  coordinate as pin 7, and the netlist confirms it.
+- **Boot and reset** are the devkit's own BOOT and RESET buttons and CHIP_PU RC.
+- **No JTAG or UART header.** The devkit's native-USB port (USB-Serial-JTAG)
+  and its USB-UART port provide flashing, console and debug.
 
-These were checked against the actual netlist and are right. If a review pass
-"finds" one of these, the review is wrong:
-
-- **Buck topology.** C6 (0.1µF) is across U3.6 (BST) and U3.5 (SW). SW also drives
-  L1.1. FB (U3.1) senses the 3.3V output directly — AP63203WU is the fixed-3.3V
-  variant, so no feedback divider is needed or wanted.
-- **Input capacitance exists.** C12 (10µF) is on `VSYS` at U3.3 (IN).
-- **USB-C CC termination.** R1 and R6 are 5.1kΩ resistors (`Device:R_US`), one on
-  CC1 (J1.A5), one on CC2 (J1.B5), each independently to GND. Correct Rd.
-- **ESD protection.** U2 (USBLC6-2SC6) is correctly in-line: pins 1/6 on D−,
-  pins 3/4 on D+, pin 5 on VBUS, pin 2 on GND.
-- **Shield.** J1.SH via R5 (1M) ‖ C8 (4.7nF) to GND.
-- **All four VBUS and all four GND pins of J1 are tied together.**
-- **All 41 module pins are accounted for.** 39 land on a real net; `GPIO45` (U1.26)
-  and `GPIO46` (U1.16) carry **explicit no-connect flags** and are deliberately
-  unconnected — issue 12. Do not "fix" them by attaching anything: both are
-  strapping pins and driving either one high at reset is harmful. (`GPIO3` was a
-  third dangling pin until the issue-13 status LED took it.)
-- **I2C is GPIO8 (SDA) / GPIO9 (SCL)**, pulled up by R15/R16 and shared by the four
-  ToF connectors. Each connector also has its own XSHUT line — `GPIO4`–`GPIO7`, one
-  per sensor. This is deliberate, not redundant: see issue 14.
-- **U3's EN is independently driven** (issue 2). `VSYS` carries U3.3 (IN) only; EN is
-  on `REG_EN`. If a review reports EN tied to IN, it is reading a stale netlist.
-- **Boot/reset.** SW1 pulls CHIP_PU low (R2 10k pull-up, C3 1µF, C4 0.1µF debounce);
-  SW2 pulls GPIO0 low (C5 0.1µF).
-
-## Net map (extracted, authoritative)
-
-| Net | Members |
-|---|---|
-| `ESP_3V3` | C1.1, C2.1, C7.1, C11.1, C15.1, C16.1, C22.1, J4.1, J5.1, J6.1, J7.1, J10.1, J11.1, L1.2, R2.1, R12.1, R15.1, R16.1, R19–R23.1, TP2.1, U1.2, U3.1(FB), U4.4, U5.4 |
-| `VSYS` | C12.1, D1.1(K), D2.1(K), U3.3(IN) |
-| `REG_EN` | C13.1, R7.2, R8.1, R9.2, U3.2(EN) |
-| `VBAT_RAW` | BT1.1(+), F1.1 |
-| `VBAT_FUSED` | F1.2, Q1.1/2/3(S), R14.1 |
-| `VBAT` | Q1.5/6/7/8(D), D2.2(A), D6.1(K), C18–C21.1, R7.1, R10.1, TP1.1, U4.5, U5.5, #FLG04 |
-| `Net-(Q1-G)` | Q1.4(G), R14.2, SW3.2(common) |
-| USB connector (`Net-(F2-Pad1)`) | J1.A4/A9/B4/B9, F2.1 |
-| `VBUS` | F2.2, D1.2(A), D3.2(A), U2.5 |
-| `CHIP_PU` | C3.1, C4.2, J11.6, R2.2, SW1.1, U1.3(EN) |
-| `GPIO0` | C5.2, SW2.1, U1.27 |
-| `VBAT_SENSE` | C14.1, R10.2, R11.1, U1.39 (GPIO1/ADC1_CH0) |
-| `Net-(D3-K)` | D3.1(K), R9.1 |
-| SW node (`Net-(U3-SW)`) | C6.2, L1.1, TP4.1, U3.5 |
-| BST (unnamed) | C6.1, U3.6 |
-| `GPIO3` | R13.1, U1.15 |
-| `Net-(D4-A)` | D4.2(A), R12.2 |
-| `Net-(D5-A)` | D5.2(A), R13.2 |
-
-`GND` additionally carries D4.1(K), D5.1(K), TP3.1, D6.2(A), SW3.3(ON), C15.2,
-C16.2 and, for each of J4–J7, both pin 2 and the `MP` mounting pegs.
-SW3.1 (OFF) is intentionally marked no-connect, as are **J4.5–J7.5** (the modules'
-interrupt pin — issue 14) and **U1.26 / U1.16** (GPIO45 / GPIO46 — issue 12).
-Seven no-connect flags in total; all seven are deliberate.
-
-The four ToF connector nets (issue 14):
-
-| Net | Members |
-|---|---|
-| `GPIO9` (SCL, conn. pin 3) | U1.17, J4.3, J5.3, J6.3, J7.3, R16.2 |
-| `GPIO8` (SDA, conn. pin 4) | U1.12, J4.4, J5.4, J6.4, J7.4, R15.2 |
-| `GPIO4` (XSHUT 1, conn. pin 6) | U1.4, J4.6 |
-| `GPIO5` (XSHUT 2, conn. pin 6) | U1.5, J5.6 |
-| `GPIO6` (XSHUT 3, conn. pin 6) | U1.6, J6.6 |
-| `GPIO7` (XSHUT 4, conn. pin 6) | U1.7, J7.6 |
-
-`VCC_USB_5V` has been **renamed `VSYS`**. It is the diode-OR output and sits at up to
-**~8.1V** on a full pack, so the old "5V" name was actively misleading. `VBAT` and
-`VBUS` are now explicit labels too, not auto-generated net names — do not let them
-revert to `Net-(D1-A)` style names.
-
-**J2 and J3 are gone (2026-09-20).** The two 22-pin headers existed to mate a
-daughterboard; with the motor drive, IMU and debug blocks built there was nothing
-left for them to carry, and they were the heaviest and tallest parts on the board
-after the module. Deleting them is a mass and CG win, which is what a micromouse
-trades on. **Every GPIO they carried now terminates on a real part** — that was the
-precondition, and it is why the deletion produced no stranded nets.
-
-`GPIO0`, `GPIO3`, `GPIO45` and `GPIO46` are the pins that were never on a header:
-`GPIO0` is SW2 and now also J11.5, `GPIO3` drives the issue-13 status LED, and
-GPIO45/46 are explicitly no-connect (issue 12).
-
-**`GPIO4`–`GPIO9` are claimed by the ToF sensors (issue 14)** and now go only to
-J4–J7 and the bus pull-ups. `GPIO8`/`GPIO9` remain a shared I2C bus with room for
-more devices on it.
-
-## Motor drive nets (extracted, authoritative)
-
-Added 2026-09-20. Two identical channels, U4/J8 and U5/J9. **J8/J9 pins changed
-on 2026-09-23** to the Pololu encoder order (see "Connectors J8/J9").
-
-| Net | Members |
-|---|---|
-| `MOT_A_1` | U4.6 (OUT1), J8.6 (M1) |
-| `MOT_A_2` | U4.8 (OUT2), J8.5 (M2) |
-| `MOT_B_1` | U5.6 (OUT1), J9.6 (M1) |
-| `MOT_B_2` | U5.8 (OUT2), J9.5 (M2) |
-| `GPIO39` / `GPIO40` | U4.3 (IN1) / U4.2 (IN2) — motor A |
-| `GPIO41` / `GPIO42` | U5.3 (IN1) / U5.2 (IN2) — motor B |
-| `GPIO47` / `GPIO48` | J8.3 (A) + R19.2 / J8.2 (B) + R20.2 — encoder A |
-| `GPIO21` / `GPIO38` | J9.3 (A) + R21.2 / J9.2 (B) + R22.2 — encoder B |
-| `GPIO2` (ADC1_CH1) | U4.1 (IPROPI), R17.1 — motor A current sense |
-| `GPIO10` (ADC1_CH9) | U5.1 (IPROPI), R18.1 — motor B current sense |
-
-`VBAT` additionally gained U4.5, U5.5 (VM) and C18/C19/C20/C21.1.
-`ESP_3V3` gained U4.4, U5.4 (VREF), J8.4, J9.4 and R19–R22.1.
-`GND` gained U4.7, U5.7, **U4.9 and U5.9 (the thermal pads)**, C18–C21.2,
-R17.2, R18.2, J8.1, J9.1 and the J8/J9 `MP` mounting pads.
-
-**The drivers' thermal pads are netted.** The KiCad symbol puts pin 9 at the same
-coordinate as pin 7, so grounding GND connects the pad automatically — confirmed in
-the netlist, not assumed.
-
-## IMU nets (extracted, authoritative)
-
-Added 2026-09-20. The **BNO08x is an off-board module**, like the ToF sensors —
-this PCB carries the connector, one pull-up and local decoupling.
-
-| J10 pin | Function | Net |
-|---:|---|---|
-| 1 | VIN | `ESP_3V3` |
-| 2 | GND | `GND` |
-| 3 | SCK | `GPIO12` (native FSPICLK) |
-| 4 | MOSI | `GPIO11` (native FSPID) |
-| 5 | MISO | `GPIO13` (native FSPIQ) |
-| 6 | CS | `GPIO14` |
-| 7 | INT | `GPIO15` |
-| 8 | RST | `GPIO16` (+ R23 10k pull-up to `ESP_3V3`) |
-| 9 | WAKE / PS0 | `GPIO17` |
-| MP | mounting pegs | `GND` |
-
-C22 (0.1µF 16V) decouples `ESP_3V3` at the connector.
-
-**GPIO budget: 23 were free after the ToF sensors; all 23 are now allocated.**
-
-| Function | Pins | Which |
-|---|---:|---|
-| Two motor driver channels (IN1/IN2 each) | 4 | GPIO39–42 |
-| Two quadrature encoders | 4 | GPIO47, 48, 21, 38 |
-| Two IPROPI current-sense inputs | 2 | GPIO2, GPIO10 (both ADC1) |
-| BNO08x on SPI | 7 | GPIO11–17 |
-| Debug console on J11 | 2 | GPIO43, 44 (UART0) |
-| Spare, on test pads TP5–TP8 | 4 | GPIO18, 35, 36, 37 |
-| **Total** | **23** | |
-
-**Nothing is uncommitted, but the last four are spares, not users.** TP5–TP8 are
-probe pads, so those GPIOs are available for a future peripheral at the cost of a
-bodge wire rather than a respin. `GPIO35/36/37` among them are free only on the
-fitted `-N16` module — an `-R8` part consumes them for PSRAM (issue 11).
-
-The DRV8231A needs no nSLEEP or nFAULT pin — it sleeps when IN1 = IN2 = 0 and reports
-faults by folding back current rather than on a dedicated line — which is why the
-budget absorbed a 7-pin IMU and still left four spares.
-
-## Open issues
-
-Ordered by severity. **Resolved since this list was written: 1 (L1 part), 2 (UVLO),
-3 (U1 footprint), 4 (dead header pins), 5 (battery sense), 6 (dissolved by the
-single-board decision), 7 (switch/fuses/TVS added; battery fuse sizing remains
-provisional), 8 (capacitor ratings), 9 (OR-ing diodes), 10 (USB series resistors),
-11 (module variant), 12 (strapping pins), 13 (conveniences), 14 (ToF wall sensors).**
-
-**The schematic is complete as of 2026-09-20.** Every block the single-board decision
-called for is built: motor drive, IMU connector, debug header and spare pads, and
-J2/J3 are deleted. ERC is 0 errors, 0 warnings, and **no net has fewer than two pins
-except the seven deliberate no-connects**.
-
-**Still open: 15 and 17, and neither is a schematic change.**
-
-- **Issue 15 is down to the board outline**, which is a mechanical problem, not an
-  electrical one — the chassis, the antenna keep-out, four outward-facing ToF
-  connectors, J8–J11 and the USB-C port all have to coexist. That is what now gates
-  layout.
-- **Issue 17 is a measurement task.** The current budget is bounded by the motor
-  drivers' current limit (1.00A since 2026-09-23); what is left is confirming it on assembled hardware, and it
-  gates *routing* the power path rather than fabrication.
-
-Issue 16 is resolved. The suction fan was dropped from the design.
-
-### 1. L1 — RESOLVED (2026-09-19)
-
-L1 began as `Inductor_SMD:L_0805_2012Metric`, which was the worst problem in the
-design. A 4.7µH 0805 part saturates somewhere around 300–700mA with DCR often
->300mΩ; the AP63203 is a 2A converter at ~1.4MHz, so the core would have saturated
-under load, current would have run into the IC's cycle-by-cycle limit, and the part
-would have overheated. The footprint was then corrected to the Bourns land pattern
-while the Value was left naming a Sunlord part — the half-updated state this issue
-tracked, which was worse than either end state.
-
-**Both fields now name the same part, and the MPN and datasheet were written with
-them:**
-
-| Field | Value |
-|---|---|
-| Value | `4.7uH SRP5030T-4R7M` |
-| Footprint | `Inductor_SMD:L_Bourns_SRP5030T` |
-| MPN | `SRP5030T-4R7M` |
-| Datasheet | `https://www.bourns.com/docs/product-datasheets/srp5030t.pdf` |
-
-Bourns **SRP5030T-4R7M**, verified against that datasheet rather than from memory:
-4.7µH ±20%, DCR 53mΩ max, **Irms 4.6A, Isat 6A**, shielded, 5.0×5.0×3.0mm body.
-LCSC C2045677, also stocked at DigiKey/Mouser. (The "4.6A rated current" quoted
-in earlier revisions of this file is Irms — the 20%-inductance-drop saturation
-figure is 6A.)
-
-**The Sunlord SWPA4030S4R7MT was rejected, not lost.** It works electrically
-(~1.6A Isat, ~92mΩ DCR against a ~700mA peak) and `Inductor_SMD:L_Sunlord_SWPA4030S`
-exists in the stock library, so reversing this decision is a one-field edit. It was
-not taken because the 5×5 part has far more margin and because the layout notes
-below are already written around it; the ~1mm-per-side of board area was judged not
-worth it. The two land patterns are **not** interchangeable — Bourns is 2.0×1.8mm
-pads on a 4.5mm pitch, Sunlord 1.1×3.7mm pads on a 3.0mm pitch — so if the smaller
-part is ever chosen, both fields have to move together again.
-
-Operating margin for reference: ripple is roughly 300mA p-p at 8.4V in, steady load
-300–500mA, so peak inductor current stays under ~700mA. DCR loss is ~15mW —
-negligible next to the ~400mW burned in D2 (issue 9).
-
-*Correction to an earlier spec in this file's history: a "DCR ≤ 60mΩ" target at
-4.7µH in a 4×4mm package is not physically achievable. The 5030T meets it because
-it is a larger part.*
-
-**Verified:** netlist diff before/after shows only L1's own field text changing —
-no net, pin or footprint assignment anywhere else moved. ERC is unchanged at 0
-errors and the same two GPIO45/GPIO46 warnings. The sheet was rendered and the new
-Value string sits clear of TP4, C6 and the SW wire.
-
-### 2. Undervoltage lockout — RESOLVED (2026-09-19)
-
-U3.2 (EN) and U3.3 (IN) were the same net, so the regulator could never turn itself
-off. EN is now driven by a programmed UVLO network and `VSYS` contains `U3.3(IN)`
-only.
+## Power path
 
 ```
-   VBAT ──[R7 120k]──┬──────────────── U3.2 (EN)       net: REG_EN
-                     │
-   VBUS ──|<|──[R9 39k]                                D3 = BAT54W
-           D3        │
-                     ├──[R8 24k]── GND
-                     └──[C13 100nF]── GND
+ BT1+ ─ F1 ─ VBAT_FUSED ─ Q1 (S→D) ─ VBAT ─┬─ D2 ─ VSYS ─ U3 buck ─ BUCK_3V3 ─ U8/Q2 ─ ESP_3V3 ─ U1 3V3 pins
+               R14 ─ G ─ SW3 (gate only)    ├─ U4/U5 VM, C18–C21                   │
+                                            ├─ R7/R8 UVLO, R10/R11 sense, TP1      │
+                                            └─ D6 TVS → GND       devkit USB ─ 1N5819 ─ SGM2212 LDO (USB priority)
 ```
 
-**Why this is not the divider the old note prescribed.** A 220k/47k divider on `VSYS`
-would have bricked USB-only operation: USB gives VSYS ≈ 5.0 − 0.35 (D1) = 4.65V, so
-EN would sit at 4.65 × 47/267 = **0.82V**, below the 1.15V minimum threshold. The
-board could never be programmed or bench-tested without a charged pack. Sensing
-`VBAT` directly also avoids smearing the threshold by D2's load-dependent Vf.
+- **The devkit's 3V3 pins are an input here**, which Espressif's user guide lists
+  as a supported supply ("3V3 and G pins"). Its 5V pin is used only for USB-priority voltage sensing.
+- **USB has priority**, sensed from U1.21 through R28/R29 into U8 CE. U8
+  (LM66100) and Q2 (AO3401A, source BUCK_PASS/drain ESP_3V3) have opposing
+  body diodes. Q3 follows U8 ST, so a disabled U8 also opens Q2. Never remove
+  Q2: the LM66100 alone still conducts through its forward body diode.
+- **BUCK_3V3 is separate from ESP_3V3.** U3.1, L1.2 and C7/C11 stay together
+  upstream of U8. Do not connect them to the In2 ESP_3V3 pour. The feedback
+  trace keeps its original geometry and no vias.
+- **USB with the pack off** powers logic from the devkit LDO, with the buck
+  isolated. U6/U7 inhibit both motors regardless of USB or firmware. USB LDO
+  thermals and rail dropout require hardware qualification. Begin USB bench
+  work with RF off.
+- **USB unplug with the pack on** leaves ESP_3V3 unfed for U8's turn-on
+  (~40 µs typical, no datasheet maximum). C30 (100 µF X5R 1206, ~45 µF at
+  3.3 V) with C1/C15 carries it: about 0.42 V sag at 0.5 A, 0.2 V at 0.25 A,
+  not counting the devkit's own capacitance. Scope ESP_3V3 at unplug under load.
 
-**The AP63203 has a purpose-built UVLO input**, so this is not a crude divider. Per
-the datasheet (DS41326 Rev 3-2, Fig. 22, Eq. 1/2): a 1.5µA pull-up sits on EN always,
-and a **further 4µA switches in once the part is enabled**, giving real, designed
-hysteresis. Thresholds are VEN_H 1.15/1.18/1.23V rising, VEN_L 1.05/1.10/1.15V
-falling.
+- **F1: Littelfuse `0885005.DR`** (`Device:Fuse`, `Fuse:Fuse_Littelfuse-NANO2-885`).
+  5 A fast-acting, breaks 1500 A at 125 VDC, one-time.
+  - Why: the pack (OVONIC 2S 450 mAh 100C) could short at an estimated 200–400 A.
+    The old PPTC (40 A) and NANO2 451/453 (300–400 A) were rejected for that.
+  - The old ~2.4 A normal-load allowance is conservative after lowering ITRIP.
+    Measure PWM peaks; do not increase F1 to compensate for nuisance blowing.
+  - **If F1 nuisance-blows, do not fit a bigger fuse.** Lower ITRIP or tighten
+    the firmware duty cap first.
+- **Q1: AO4407A.**
+  - Pins: source 1–3 on `VBAT_FUSED`, drain 5–8 on `VBAT`, gate 4.
+  - R14 (100 k, G–S) defaults it OFF. SW3 switches only the gate. Give all seven
+    S/D pads adequate copper.
+  - Both dividers and D6 sit downstream of it, so OFF leaves only Q1's leakage on
+    the pack. That is low, not zero.
+  - Its body diode means it is **not** reverse-polarity protection.
+  - SW3 OFF leaves `VBAT` at only Q1's leakage. USB no longer back-feeds the buck output. U6/U7 and the drivers'
+    pulldowns keep the motors disabled.
+- **D6: SMBJ9.0A** (Vishay, SMB). It clamps `VBAT` at up to **15.4 V**. Every
+  part on `VBAT` or `VSYS` must survive that:
+  - DRV8231A: 35 V.
+  - C19/C21: 25 V.
+  - D2 (onsemi **MBRA340T3G**, SMA): 40 V. Beware "SS34": Vishay's SS34 is
+    SMC, not SMA.
+  - DRV8833 (11.8 V) and TB6612FNG (15 V) are rejected for this reason.
+- **UVLO.** R7 120 k (from `VBAT`) and R8 24 k to GND, plus C13, on U3's EN
+  comparator. It has built-in switched hysteresis.
+  - Thresholds: on at 6.90 V, off at 5.94 V (3.45 / 2.97 V/cell).
+  - **R7/R8 must be 1 %**, and the Value field says so.
+  - EN is rated to 35 V abs max, so no clamp.
+  - **USB does not reach EN.** This UVLO disables only the buck. U6/U7
+    provide the independent motor cutoff even when USB powers the ESP32.
+  - **Never feed the devkit's 5V pin back into VSYS or REG_EN.** With USB
+    absent, the 3V3 rail back-feeds the devkit's LDO through its body diode to
+    ~2.9 V on that pin. Through an R9-style path that would hold EN above its
+    threshold down to a ~3 V pack.
+- **Motor cutoff (U6/U7).** U6 (TLV3012B) compares VBAT through R24/R25, with
+  R26 hysteresis from its output, against its 1.242 V reference; below the
+  threshold U7 opens GPIO39–42 from the drivers and their pulldowns coast both
+  motors.
+  - Nominal: coast at **6.35 V**, enable at **6.75 V** (3.17 / 3.37 V/cell).
+    R24/R25/R26 = 100 k / 23.2 k / 825 k, **0.1 %, ≤25 ppm/°C** (Yageo
+    RT0805BRD07100KL / 0723K2L / 07825KL). C27 filters the node (~1.8 ms).
+  - DC envelopes over −40…125 °C: coast 6.01–6.74 V, enable 6.39–7.08 V
+    (`tools/power_integrity_check.py`). A pack resting at 3.6 V/cell always
+    enables.
+  - It is a **backstop under firmware's cutoff**: firmware stops at about
+    6.8 V under load and latches the stop, so pack rebound cannot restart a
+    stalled motor.
+  - Below VM 6.5 V the DRV8231A's current mirror still regulates; TI only
+    specifies its ±6 % at VM ≥ 6.5 V. The 2026-10-14 thresholds (6.92 / 7.39 V)
+    kept VM inside that condition at the cost of the bottom third of the pack
+    and were lowered on 2026-10-15.
+- **Battery sense.** `VBAT` → R10 470 k / R11 220 k (1 %) → GPIO1 (ADC1_CH0).
+  - **C14 (100 nF) is required.** The source is 150 kΩ, too high for the SAR
+    ADC's sample-and-hold. Its 15 ms RC means allowing ~50 ms to settle.
+  - Keep it on ADC1: ADC2 is unusable while Wi-Fi runs.
+  - No gate FET. A low-side gate floats the node into the GPIO clamp, and a
+    high-side gate needs 4 parts to save 12 µA.
+- **L1: Bourns SRP5030T-4R7M** (Isat 6 A, 53 mΩ, `Inductor_SMD:L_Bourns_SRP5030T`).
+  The Sunlord SWPA4030S is the rejected smaller option. Its land pattern differs,
+  so switching means changing both fields together.
+- **Capacitor ratings.** Every capacitor states its rating in its Value field.
+  - C6 (BST) sees ≤ 6 V.
+- **LEDs.**
+  - **D4 (power) is a high-efficiency red LED on 10 k**, about 150 µA. Do not
+    substitute blue, white or pure green: they would not light. The devkit's
+    own red power LED (5.1 k on 3V3, ~0.3 mA) now dominates deep-sleep current.
+  - **D5 (status) is green**, on GPIO3 → R13 2.2 k → anode. It is active-high,
+    which keeps the strapping pin low at reset.
+- **U1 is a DevKitC-1-N8R8 (v1.1).** Its octal PSRAM takes GPIO35–37, and its
+  RGB LED takes GPIO38 (through 0 Ω R17 on the devkit). A v1.0 devkit puts the
+  LED on GPIO48 instead (encoder A OUT B): remove that LED's feed resistor or
+  use v1.1. An `R8V`/`R16V` variant runs GPIO47/48 at 1.8 V and must not be
+  fitted.
 
-| Condition | EN | Result |
-|---|---|---|
-| Pack rising, no USB | 1.18V at **VBAT = 6.90V** | turns on at 3.45 V/cell |
-| Pack falling, no USB | 1.10V at **VBAT = 5.94V** | turns off at 2.97 V/cell |
-| USB 4.75V, no pack fitted | 1.74V | runs (+41% over the 1.23V max threshold) |
-| USB 4.75V, pack dead at 0V | 1.55V | runs (+26%) |
-| Pack 8.4V + USB 5.25V | 2.69V | vs **35V** EN abs max — 13× margin |
+## Motor drive
 
-Worst-case spread including the threshold tolerance: VON 6.72–7.20V, VOFF
-5.64–6.24V (2.82–3.12 V/cell). Hysteresis ≈ 0.96V, which is wide enough that motor
-sag on `VBAT` will not chatter the regulator.
+- **U4/U5: DRV8231A (DSG, WSON-8).**
+  - Chosen for its 35 V abs max over the TVS clamp and its 4.5 V minimum VM,
+    which covers the whole pack range.
+  - **Internal 100 k pulldowns on IN1/IN2** keep both motors off while the GPIOs
+    float at reset. Add no external pulldowns.
+  - No nSLEEP or nFAULT pins are needed.
+  - Alternatives:
+    - DRV8874: better R_DS(on), but no stock KiCad symbol.
+    - The DDA (HSOP-8) package of the same die: RθJA 42.8 °C/W against 66.5.
+      This is the move if thermals are tight.
+- **Current limit.** U6 TLV3012B supplies `MOTOR_VREF` = 1.242 V, and R17/R18
+  are **1 kΩ 1 %, ≤100 ppm/°C** (RC0805FR-071KL).
+  - ITRIP = 1.242 / (1500 µA/A × 1 kΩ) = **0.828 A nominal**. IPROPI reads
+    **1.5 V/A** on GPIO2/GPIO10 (ADC1), about 1.242 V at nominal trip.
+  - The 1 A contact/cable rating requires margin. The audit checks reference,
+    resistor and temperature corners against TI's specified gain at 1 A and
+    VM ≥6.5 V. It does not guarantee every PWM peak; measure ripple and stalls.
+  - U7 SN74LV4066A disconnects all four inputs while MOTOR_OK is low. The
+    drivers' own 100 k pulldowns then command coast; keep those input escapes.
+  - **VREF decoupling.** `MOTOR_VREF` runs ~74 mm from U6 (rear of the socket
+    rows) to the drivers, past motor copper in the corner. C25 (2.2 nF) sits at
+    U6 and C28 (4.7 nF) where the feed splits to U4.4 and U5.4. Together they
+    stay under the TLV3012B REF's 10 nF stability limit: never enlarge either
+    without checking the sum.
+  - IPROPI tracks only the low-side current and is off in coast.
+- **Local capacitance.** C18/C20 (0.1 µF 50 V) at each VM pin. C19/C21 (22 µF
+  25 V 1206) are the bulk. Recirculation goes through the H-bridge body diodes.
+- **Motors.** Pololu Micro Metal Gearmotor HP 6V with a 12 CPR encoder:
+  1.6 A stall at 6 V, 100 mA free-run.
+  - They are over-volted on 8.4 V, so firmware caps PWM at about 71 % duty.
+  - J8 is motor A (left); J9 is motor B (right).
 
-**The old "check the EN abs-max rating" caveat is closed.** VEN is rated
-**−0.3V to +35.0V** and the datasheet states EN "can be directly connected to VIN".
-No clamp is needed and none should be added.
+## Pinout
 
-**D3 is not optional.** Without it, R9 becomes a 39k pull-*down* whenever VBUS is 0 —
-i.e. any USB cable plugged into a powered-down PC or an unpowered hub. On a full
-8.4V pack that drags EN to 0.945V and the board will not start; if it is already
-running, EN falls to 0.998V and it shuts down. No value of R9 fixes this: holding EN
-up on USB alone requires R9 ≈ R8, while not dragging it down on battery requires
-R9 ≥ 94k. The two constraints do not intersect, so the reverse path must be blocked.
-
-**Carry forward:**
-
-- R7 and R8 set a safety threshold and **must be 1%**. At 5% the per-cell cutoff
-  smears by roughly ±0.15 V/cell. This is encoded in their Value fields — keep it
-  there.
-- The divider draws **58µA at 8.4V** continuously (41µA once tripped), ≈42 mAh/month.
-  A 500mAh pack survives about a year on that, comparable to self-discharge, so it is
-  acceptable during use. **Issue 7 now puts it downstream of Q1/SW3**, so it no
-  longer has a direct battery connection with the switch off.
-- The table's voltages now refer to **post-switch `VBAT` and post-fuse `VBUS`**.
-  Battery terminal thresholds also include F1/Q1 voltage drop under load; USB
-  margin must include F2's resistance. Neither source bypasses its fuse through EN.
-- **With USB connected, hardware UVLO is intentionally defeated** — D3/R9 hold EN up
-  regardless of pack voltage. That is correct (you want to bench-run a flat board),
-  but it means a low pack left connected alongside USB can still be pulled down to
-  ~4.65V. Firmware must cover that case.
-- Primary low-voltage protection is still **firmware**, using the battery sense
-  divider from issue 5 — now built. This hardware UVLO is the coarse backstop for
-  when firmware is not running; firmware is the accurate mechanism.
-
-### 3. U1 footprint — RESOLVED
-
-U1 is now `ESP32-S3-WROOM-1-N16` with footprint `PCM_Espressif:ESP32-S3-WROOM-1`.
-No component in the design is missing a footprint.
-
-**Since 2026-09-23 the footprint is `Pixy-M2:ESP32-S3-WROOM-1_AntennaOverhang`**, in
-the project library `Pixy-M2.pretty`. It is Espressif's footprint with the
-antenna-area outline and label moved from F.SilkS to F.Fab, because the antenna
-overhangs the board edge. See "DRC clean" below. **Do not "Update footprint from
-library" back to `PCM_Espressif`**: that restores silkscreen that prints off the
-board. The cached *symbol* still says `PCM_Espressif:ESP32-S3-WROOM-1` as its
-default footprint, deliberately; editing the cache raises an ERC
-`lib_symbol_mismatch`. Only the placed U1's Footprint field changed.
-
-### 4. Dead header pins — RESOLVED
-
-The `5V0`, `GPIO19` and `GPIO20` header pins are gone. **Superseded entirely on
-2026-09-20: J2 and J3 themselves are gone**, so no header pin can be dead. The
-replacement is J11 (6 pins, all used) and TP5–TP9.
-
-Still unconnected, but on the module rather than a header: `GPIO45` (U1.26) and
-`GPIO46` (U1.16), both now carrying no-connect flags — issue 12, resolved.
-`GPIO3` (U1.15) was the third until the issue-13 status LED took it.
-
-### 5. Battery sense — RESOLVED (2026-09-19)
-
-`VBAT_SENSE` was a label on U1.39 and nothing else. The MCU can now read pack
-voltage:
-
-```
-   VBAT --[R10 470k]--+--> U1.39   GPIO1 / ADC1_CH0
-                      |
-                 [R11 220k]   [C14 100nF]
-                      |            |
-                     GND          GND
-```
-
-`GPIO1` is **ADC1**_CH0. Do not move this to an ADC2 pin — ADC2 is unusable while
-Wi-Fi is active. Use `ADC_ATTEN_DB_12` (0–3100 mV on the ESP32-S3).
-
-| Pack | V/cell | ADC sees |
-|---|---|---|
-| 8.4V full | 4.20 | 2.678V |
-| 7.4V nominal | 3.70 | 2.359V |
-| 6.90V (issue-2 UVLO turn-on) | 3.45 | 2.200V |
-| 5.94V (issue-2 UVLO cutoff) | 2.97 | 1.894V |
-| 9.5V (overcharge fault) | 4.75 | 3.029V |
-
-422 mV of headroom at a full pack, and even a badly overcharged pack stays inside
-the attenuator's range rather than railing — so an over-voltage fault is still
-*measurable* instead of just clipping.
-
-**Why 470k/220k rather than the 100k/47k originally specced, and no MOSFET gate.**
-The original note called for gating the divider with a small MOSFET. A low-side
-MOSFET — the obvious reading — is actively harmful here: it disconnects the bottom
-of the divider but leaves the top tied to VBAT, so the sense node floats up until
-GPIO1's ESD clamp conducts at ~3.6V, injecting ~46µA into the 3.3V rail through the
-pin and still draining the pack. Gating a divider whose top sits above the ADC's
-limit has to be done on the **high side**, which needs a P-FET plus an N-FET level
-shifter, because a 3.3V GPIO cannot pull a gate up to 8.4V to turn it off.
-
-That is 4 extra parts to save 12µA, on a board where the issue-2 UVLO divider
-already draws 58µA ungated and *cannot* be gated — it has to work while the MCU is
-off. Raising the divider to 470k/220k gets the drain to **12µA**, five times below
-the UVLO divider, which makes the gate pointless. The standing pair is now ~70µA
-total; the issue-7 power switch now disconnects both dividers from the battery.
-MOSFET off-state leakage remains; this is not a mechanical air gap.
-
-Dropping the gate also keeps `GPIO3` free — the last full-function unused pin — and
-removes a failure mode where firmware forgets to assert the gate, reads 0V, and
-concludes the pack is flat.
-
-**Carry forward:**
-
-- **C14 is not optional.** Source impedance is 150kΩ, far above what the SAR ADC's
-  sample-and-hold can drive directly. C14 is the charge reservoir that makes the
-  sample settle; without it readings will be low and load-dependent. RC is 15ms, so
-  allow ~50ms after any step change before trusting a reading. That is irrelevant at
-  the ~1Hz a battery monitor needs.
-- **Calibrate in firmware.** 1% resistors give ±1.37% on the ratio, ±57 mV/cell
-  before calibration, and the ESP32-S3 ADC adds its own error on top. One-point
-  calibration against a metered pack voltage removes essentially all of it. Even
-  uncalibrated this beats the issue-2 UVLO's ±0.15 V/cell.
-- After issue 7, sense voltage at **TP1 (`VBAT`)** when calibrating. The divider
-  measures the supply after F1/Q1, so motor current causes an additional drop
-  relative to the battery terminals. This is conservative for low-voltage cutoff.
-- R10 doubles as transient protection. Motor kickback on `VBAT` can only push
-  (V−3.6)/470k into GPIO1's clamp — 56µA even at 30V — and C14's 15ms rolls off
-  anything fast. No extra clamp is needed.
-
-### 6. Ground pins — DISSOLVED (2026-09-20)
-
-Was: 8 GND pins across the 44 header positions (J2.1/6/12/18, J3.7/12/17/22) carrying
-motor and sensor return current between two boards — "improved over the original 4,
-still thin". **Both headers were deleted on 2026-09-20**, so the question is not just
-dissolved in principle; the pins no longer exist.
-
-**The single-board decision removes the question.** Motor return current now flows in
-the L2 ground plane instead of through header pins, which is a change of kind rather
-than degree. Nothing to do here.
-
-J11, the debug header that replaced them, has one GND pin (pin 2) next to the console
-pair, and TP9 is a dedicated probe ground beside TP5–TP8. Neither carries power
-return, so the old concern does not transfer.
-
-### 7. Power switch, fuses and TVS — IMPLEMENTED (2026-09-19)
-
-Six components added. **F1's current rating is provisional:** the intended loads
-were unknown when this was written. They are now settled: **two high-speed N20
-gearmotors and four VL53L0X wall sensors, and no fan** — see issues 15 and 17, where
-the budget is recomputed against real numbers.
-
-```
- BT1+ -- F1 -- VBAT_FUSED -- Q1(S -> D) -- VBAT -- D2 -- VSYS
-                    |           |          |-- U4/U5 motor drivers, TP1
-                    R14         G          |-- R7/R8 UVLO
-                    |           |          |-- R10/R11 battery sense
-                    +-----------+          +-- D6(K), D6(A) -> GND
-                                |
-                           SW3 common(2)
-                           /           \
-                     OFF(1): NC    ON(3): GND
-
- J1 VBUS pins -- F2 -- VBUS -- D1 -- VSYS
-                        |-- D3/R9 USB enable
-                        +-- U2.5 ESD clamp reference
-```
-
-| Ref | Fitted part / value | Footprint | Selection |
+| GPIO | Use | GPIO | Use |
 |---|---|---|---|
-| F1 | **Littelfuse `0885005.DR`** (since 2026-09-23; was `2920L300/15DR` PPTC) | `Fuse:Fuse_Littelfuse-NANO2-885` | 5A one-time fuse, **breaks 1500A @ 125VDC** — see issue 17, "F1 is now a 1500 A-breaking fuse" |
-| F2 | Bourns `MF-MSMF050-2`, 500mA 15V | `Fuse:Fuse_1812_4532Metric` | 0.5A hold, 1A trip at 23°C |
-| Q1 | AOS `AO4407A` | `Package_SO:SOIC-8_3.9x4.9mm_P1.27mm` | −30V P-FET, ±25V gate; 17mΩ max at VGS = −6V |
-| R14 | 100kΩ | `Resistor_SMD:R_0805_2012Metric` | Gate-to-source pull-up, defaults OFF |
-| SW3 | C&K `JS102011SAQN` | `Button_Switch_SMD:SW_SPDT_CK_JS102011SAQN` | Gate control only; 2–3 ON, 2–1 OFF |
-| D6 | Vishay `SMBJ9.0A-E3/52` | `Diode_SMD:D_SMB` | Unidirectional TVS, 9V standoff, 600W pulse rating |
+| 0 | devkit BOOT button (NC here) | 19 / 20 | devkit USB D− / D+ (NC here) |
+| 1 | `VBAT_SENSE` (ADC1_CH0) | 21 / 18 | encoder B OUT A / OUT B (J9.3 / J9.2) |
+| 2 / 10 | IPROPI motor A / B (ADC1) | 39 / 40 | motor A IN1 / IN2 |
+| 3 | status LED D5 | 41 / 42 | motor B IN1 / IN2 |
+| 4–7 | XSHUT J4–J7 | 43 / 44 | devkit USB-UART (NC here) |
+| 8 / 9 | I²C SDA / SCL, R15/R16 2.2 k | 45, 46 | no-connect (strapping) |
+| 11–17 | IMU MOSI, SCK, MISO, CS, INT, RST, WAKE | 47 / 48 | encoder A OUT A / OUT B (J8.3 / J8.2) |
+| 35–37, 38 | N8R8 octal PSRAM, v1.1 RGB LED (NC here) | | |
 
-Manufacturer references: [F1](https://www.littelfuse.com/assetdocs/2920l_datasheet_update.pdf?assetguid=f237e8c2-1ed9-4c13-a738-dbe0738b3d2c),
-[F2](https://www.bourns.com/docs/product-datasheets/mf-msmf.pdf),
-[Q1](https://www.aosmd.com/sites/default/files/res/datasheets/AO4407A.pdf),
-[SW3](https://www.ckswitches.com/media/1422/js.pdf),
-[D6](https://www.vishay.com/docs/88392/smbj.pdf).
-Each specified part also has its datasheet and full MPN in the schematic fields.
+All usable GPIOs are allocated; none is spare. GPIO11/12/13 are the native FSPI
+D/CLK/Q pins.
 
-**Q1 orientation matters.** Source pins 1/2/3 connect to `VBAT_FUSED`; drain pins
-5/6/7/8 connect to `VBAT`; pin 4 is the gate. Its body diode blocks battery-to-load
-current when OFF. The stock `Transistor_FET:IRF7404` symbol is used only for its
-identical SO-8 pin map; the fitted part is **AO4407A**, as specified by Value, MPN
-and Datasheet. Do not order IRF7404 from the library identifier. At 3A and −6V gate
-drive, the calculated Q1 loss is ~0.15W at the datasheet's 25°C resistance; provide
-adequate copper and check temperature on the assembled board.
-
-**Both dividers, the TVS and all four battery header pins are downstream of Q1.**
-OFF removes their direct pack drain. R14 has essentially no voltage across it
-while OFF; its ~84µA at 8.4V is drawn only while ON. Off-state drain is limited by
-Q1 leakage rather than the former ~70µA divider load; do not promise literal zero.
-This single MOSFET does not provide reverse-polarity protection or bidirectional
-isolation: current can return to the battery through its body diode.
-
-**USB operation is preserved with SW3 OFF.** F2 sits before *every* USB supply
-branch, including the D3 enable path. D1/D2 still provide source OR-ing. The
-existing high-value R7 can weakly bias the disconnected `VBAT` node from USB's EN
-network; the switch does not guarantee a discharged/zero-volt motor rail.
-Turning the whole board off requires removing USB as well as switching off SW3.
-**With motors now on this board, that matters more than it did** — SW3 OFF plus USB
-in must not leave a driver's inputs floating against a weakly-biased `VBAT`. Give the
-drivers a defined disabled state (see issue 15).
-
-**Current-budget check — now needed before *routing*, not just before fabrication
-(issue 17):** verify steady load at the actual
-fuse temperature, both motor stalls, pack short-circuit capability,
-and the copper/header/wiring ratings. *(2026-09-23: the rest of this paragraph
-describes the original PPTC. F1 is now a one-time 885-series fuse — see issue 17.)*
-F1 was a thermal PPTC, not a hard 3A limiter:
-its specified maximum trip time is 20s at 8A, and its hold current falls to about
-2.31A at 60°C. Its 40A maximum fault-current rating must also suit the selected
-pack. Do not increase F1 without checking the entire power path. F2 similarly does not enforce a USB host's negotiated current budget;
-keep USB-only loads within that budget, including its voltage drop and derating.
-
-**D6 protects the switched motor rail.** Cathode pin 1 is on `VBAT`, anode pin 2
-on GND. Its 9V standoff exceeds the 8.4V full pack; specified breakdown is
-10–11.1V and clamp is 15.4V at 39A for a 10/1000µs pulse. It is a transient clamp,
-not a continuous braking-energy sink. On-board devices must tolerate that clamp plus
-layout overshoot, and the local motor recirculation/bulk capacitance that used to be
-the daughterboard's job is **now this schematic's job** — see issue 16.
-Capacitor voltage ratings (issue 8) still need resolving.
-
-**Verified:** netlist comparison confirms only the intended source splits and
-new protection/control connections; all other existing nets and header mappings
-are unchanged. ERC remains 0 errors and the same two GPIO45/GPIO46 warnings.
-The rendered sheet was inspected for wiring and field overlaps.
-
-### 8. Capacitor voltage ratings — RESOLVED (2026-09-20)
-
-**Every capacitor now states its rating in the Value field**, following C13's
-precedent so a reviewer sees it on the sheet rather than having to open a BOM.
-
-| Ref | Value | Footprint | Net / role |
-|---|---|---|---|
-| C1 | `10uF 16V` | 0805 | `ESP_3V3` bulk |
-| C2 | `0.1uF 16V` | 0603 | `ESP_3V3` decoupling |
-| C3 | `1uF 16V` | 0603 | CHIP_PU debounce |
-| C4 | `0.1uF 16V` | 0603 | CHIP_PU |
-| C5 | `0.1uF 16V` | 0603 | GPIO0 |
-| C6 | `0.1uF 25V` | 0603 | bootstrap, BST–SW |
-| C7 | `22uF 16V` | 0805 | 3.3V output |
-| C8 | `4.7nF 1kV` | **1206** | USB shield — see below |
-| C11 | `22uF 16V` | 0805 | 3.3V output |
-| C12 | `22uF 25V` | **1206** | `VSYS` input bulk — see below |
-| C13 | `0.1uF 50V` | 0603 | UVLO (unchanged) |
-| C14 | `0.1uF 50V` | 0603 | ADC filter (unchanged) |
-| C15 | `10uF 16V` | 0805 | ToF rail (unchanged) |
-| C16 | `0.1uF 16V` | 0603 | ToF rail (unchanged) |
-| **C17** | `0.1uF 25V` | 0603 | **new** — `VSYS` HF bypass at U3.3 |
-
-**C6 at 25V is margin, not necessity.** The datasheet's abs-max for VBST is
-`VSW − 0.3` to `VSW + 6.0`, so the cap only ever sees ≤6V *across* it even though
-both its terminals ride a node that swings to VIN. 16V would have done; 25V is free
-in an 0603.
-
-**C12: one 22µF 1206 rather than two 10µF 0805s.** Checked against the AP63203
-datasheet (DS41326 Rev 3-2) rather than against this issue's own note, **which was
-wrong**: it claimed "the AP63203 wants ~2×10µF *effective* input capacitance". It
-does not. Table 2 specifies **C1 (input) = 10µF** for the 3.3V part, and the Input
-Capacitor section says *"using a ceramic capacitor greater than 10µF is sufficient
-for most applications."* The `2 × 22µF` figure in that table is the **output**, which
-C7 ‖ C11 already match exactly.
-
-Meeting a 10µF *effective* target at 8.4V bias is the real constraint. A 25V 10µF
-0805 derates to roughly 3–4µF there, so two of them would have delivered ~7–9µF —
-still short. A 25V 22µF 1206 retains roughly 11–13µF at that bias, so **one part
-meets the recommendation where two smaller ones did not**, with one fewer placement
-inside the loop the layout rules demand be kept tight. The package grew 0805 → 1206;
-that is the cost, and it is worth it.
-
-The datasheet also asks for an RMS rating above half the maximum load current. This
-rail carries the module, four ToF sensors and the LEDs — ~0.7A, so ~0.35A — which any
-1206 ceramic clears easily.
-
-**C17 is the high-frequency bypass** the pin-3 description calls for (*"bypass VIN to
-GND with a suitably large capacitor"*), and the layout section says **"place the VIN
-capacitors as close to the device as possible"** — plural. C12 is the bulk; C17 is the
-part that must sit hard against U3.3, closer than C12 if they compete.
-
-**C8 is the one this issue's own guidance got wrong.** The original note said
-"everything else: minimum 16V". C8 is the USB shield cap — R5 (1M) ‖ C8 from `J1.SH`
-to GND — and it is an **ESD path**, not a bias node. During a strike R5 does nothing
-and C8 takes the charge. An IEC 61000-4-2 8kV contact discharge dumps a 150pF source
-into it, so the shield node divides as 8kV × 150pF / (150pF + 4.7nF) ≈ **250V across
-C8**. A 16V or 50V part is destroyed. **1kV** gives 4× margin.
-
-That rating is not available at 4.7nF in 0603 — high-voltage dielectric needs the
-volume — so **the footprint moved to 1206 with it**. Value and Footprint moved
-together deliberately: leaving `4.7nF 1kV` on an 0603 pad would have been exactly the
-half-updated component this project's working notes warn about.
-
-**Verified:** netlist diff against the previous commit shows exactly two changes —
-`C17.1` joined `/VSYS` and `C17.2` joined `GND`. Net count steady at **62**, no new
-auto-named `Net-(…)` strays, every other net byte-identical. ERC stays 0 errors,
-0 warnings. The sheet was rendered and inspected three times: the first placement put
-C17's GND label through R7's value text, the second left C12's label reading as if it
-belonged to C17, and the third is clean. Both were invisible to the netlist diff.
-
-### 9. OR-ing diodes D1/D2 — RESOLVED (2026-09-20)
-
-Both were Value `D_Schottky` with an empty Datasheet field. **Both are now
-onsemi `MBRA340T3G`**, same part in both positions — identical requirements,
-identical footprint, one fewer BOM line and reel.
-
-| Field | Value |
-|---|---|
-| Value | `MBRA340T3G` |
-| Footprint | `Diode_SMD:D_SMA` (unchanged) |
-| MPN | `MBRA340T3G` |
-| Datasheet | `https://www.onsemi.com/pdf/datasheet/mbra340t3-d.pdf` |
-
-Verified against that datasheet (MBRA340T3/D Rev. 12) rather than from memory:
-SMA / CASE 403D (DO-214AC), **VRRM 40V**, **IO 3.0A at TL = 100°C**, IFSM 100A,
-**VF 0.450V max at 3.0A / 25°C** (0.390V at 100°C), IR 0.3mA at 40V / 25°C,
-TJ −55 to +150°C, RθJL 15°C/W, RθJA 81°C/W. LCSC C26178.
-
-**Correction: this issue's original premise was wrong.** It said "D2 carries the
-entire system current from the battery — at 1A that is ~400mW", and on that basis
-floated replacing D2 with a P-FET ideal-diode controller. The netlist says otherwise.
-`VSYS` has exactly four members — `C12.1, D1.1(K), D2.1(K), U3.3(IN)` — so **D2 feeds
-the buck input and nothing else.** Motor current on `VBAT` reaches U4/U5 in
-parallel with D2 and never passes through it.
-
-Actual worst case: the 3.3V rail carries the module, four ToF sensors (76mA average,
-160mA pulsed) and the LEDs, ~0.7A. Reflected to a 6V low pack at 90% efficiency that
-is **~0.43A**, where the curve gives VF ≈ 0.30–0.33V — about **140mW**, some 11°C of
-rise on RθJA. **The ideal-diode controller is unnecessary. Do not re-propose it**
-unless something puts a real load on `VSYS`.
-
-**Why 40V and not 30V.** D6 clamps `VBAT` at 15.4V during a motor transient, and that
-propagates to `VSYS` through D2, so D1 can see ~15V reverse with USB absent. 40V
-keeps a comfortable margin over that.
-
-**Package trap, recorded so the next person does not repeat it.** "SS34" is the
-obvious commodity answer and it is **wrong for this footprint**: Vishay's SS34 is
-**SMC (DO-214AB)**, not SMA. In Vishay's numbering the first digit is the current
-class and the package scales with it — SS1x is SMA, SS2x is SMB, SS3x is SMC. Other
-manufacturers sell an "SS34" in SMA, so the part number alone does not pin the
-package down. MBRA340T3G is unambiguously SMA.
-
-**Reverse leakage is not zero**, and it lands on an existing caveat: 0.3mA at 40V and
-25°C (much less at the ~5V this circuit actually applies, but not nothing). D2's
-cathode is `VSYS` and its anode is `VBAT`, so with USB powering the board and SW3 OFF,
-leakage flows toward `VBAT` — one more reason issue 7's "the switch does not guarantee
-a discharged/zero-volt motor rail" is true.
-
-**D3 was already specified** — `BAT54W` / `Diode_SMD:D_SOD-123`, with a datasheet
-field. It carries ~70µA, so it has no thermal or Vf constraint worth revisiting.
-D1/D2 now follow its pattern, with an MPN field as well.
-
-### 10. Series resistors on USB D+/D− — RESOLVED (2026-09-20)
-
-R3 and R4 (22Ω) sat between U2 and the module's USB pins. The ESP32-S3's internal
-USB PHY is impedance-matched and Espressif's reference designs connect straight
-through, so they did nothing. **Both are deleted** and U2 now drives U1 directly:
-`/USB_D+` is `{U1.14, U2.4}`, `/USB_D-` is `{U1.13, U2.6}`.
-
-**Deleted rather than set to 0Ω.** Both options were sanctioned by the original note.
-Removal won because two 0805 jumper pads are a discontinuity in the 90Ω differential
-pair the layout rules call for, sitting exactly where routing is tightest — next to
-the USB-C connector. The pair carries Full Speed (12 Mbps), so the discontinuity
-would have been harmless in practice; this is about keeping the pair clean and the
-BOM short, not about fixing a signal-integrity fault. **If a future spin wants series
-resistors back for rework or EMI, re-adding them is a schematic edit, not a
-respin-level change** — but do not add them "just in case".
-
-**Verified:** netlist diff shows exactly four changes and nothing else — `/USB_D+`
-and `/USB_D-` absorbed U2.4 and U2.6, and the auto-named `Net-(R3-Pad2)` /
-`Net-(R4-Pad1)` disappeared. **Net count 64 → 62**, which is the expected drop.
-ERC stays 0 errors, 0 warnings. The sheet was rendered and inspected: both runs go
-straight from U2 to their labels with no junction dot picked up on the way — the
-wire-through-a-junction hazard this project has hit twice did not recur.
-
-### 11. Module variant — RESOLVED
-
-U1's Value is now **`ESP32-S3-WROOM-1-N16`**: 16MB flash, **no PSRAM**. That is the
-outcome the design needed — **GPIO35, GPIO36 and GPIO37** (module pins 28/29/30,
-now on test pads TP6/TP7/TP8) are consumed by octal PSRAM only on `-R8` parts, so on
-an N16 they are genuinely free. **Do not substitute an `-N8R8` or `-N16R8` part
-without accepting that those three pads become PSRAM signals** — probing them would
-then be actively harmful, not merely useless. Silkscreen the caveat next to them.
-
-### 12. Unused strapping pins — RESOLVED (2026-09-20)
-
-GPIO45 (U1.26) and GPIO46 (U1.16) were unconnected on the module with a net label on
-each, which is what the two `isolated_pin_label` ERC warnings were about. **Both now
-carry explicit no-connect flags and the labels are gone.** ERC is 0 errors, 0
-warnings.
-
-This was always tidiness rather than a fault — the ESP32-S3's internal weak
-pulldowns hold both pins at their safe state, so the board boots either way. What the
-flags buy is *intent*: an unconnected pin and a pin someone forgot to wire look
-identical in a netlist, and these two must stay unconnected. The flag is the only
-thing in the file that says so.
-
-**Explicit 10k pulldowns were considered and rejected.** They would also have cleared
-the warnings, and the failure mode they defend against is severe (see the table) —
-but the internal pulldown is ~45kΩ, so pulling either pin above V_IH would take a
-leakage path under ~15kΩ, which is gross contamination rather than a plausible
-board-level fault. Espressif's own reference designs leave both pins floating. Two
-parts and two more things to place, to defend a failure the module already defends
-against, is the same trade this project rejected in issue 5. **Do not re-add them
-without a new reason.**
-
-**GPIO3 is no longer one of these.** It drives the issue-13 status LED (U1.15 → R13 →
-D5 → GND), which is exactly the use the table below sanctions.
-
-Researched while choosing a gate pin for issue 5; recorded so the next person does
-not have to repeat it. **If any of these are ever used, the risk is not equal:**
-
-| Pin | Role at boot | Risk if driven high at reset |
+| Conn | Part | Pins |
 |---|---|---|
-| GPIO45 | VDD_SPI voltage select | **Sets flash rail to 1.8V — board will not boot.** Treat as unusable. |
-| GPIO46 | ROM UART print control | GPIO46=1 **with GPIO0=0 is an invalid combination** with undefined behaviour — and GPIO0 is the BOOT button (SW2), so this bites exactly when someone is trying to flash. |
-| GPIO3 | JTAG signal source | Harmless. No effect unless the `JTAG_SEL_ENABLE` eFuse is burned, and its safe state is low. The only one of the three safe to repurpose — **now used** by the status LED. |
-
-GPIO0 is also a strapping pin and is used correctly (SW2 boot button). Worth a
-silkscreen note wherever a strapping pin is exposed — on whatever debug header
-survives issue 15, and on any test point that lands on one.
-
-**Layout note:** GPIO45 and GPIO46 are now floating copper — module pad, no trace.
-Do not route anything past them, do not let a pour create a large island on either,
-and do not add a test point to either. They are already correct; the only way they
-become a problem is if layout attaches something to them.
-
-**Verified:** netlist diff shows exactly two changes and nothing else — `/GPIO45` and
-`/GPIO46` became `unconnected-(U1-GPIO45-Pad26)` and `unconnected-(U1-GPIO46-Pad16)`.
-Net count is unchanged at 64; no other net, pin or footprint moved. ERC went from 2
-warnings to 0/0. The sheet was rendered and inspected: both NC markers sit on the
-right pins, and every neighbouring label (GPIO14/17/18/21/38/47/48) is intact.
-
-### 13. Missing conveniences — RESOLVED (2026-09-19)
-
-All three are built. Nine parts added: D4/R12, D5/R13, TP1–TP4.
-
-```
-   ESP_3V3 --[R12 10k]--|>|-- GND        D4 = red    ~150uA
-   GPIO3   --[R13 2.2k]-|>|-- GND        D5 = green  ~550uA when lit
-```
-
-| Ref | Value | Footprint | Net |
-|---|---|---|---|
-| R12 | 10kOhm | `Resistor_SMD:R_0805_2012Metric` | ESP_3V3 → D4 |
-| D4 | Red | `LED_SMD:LED_0805_2012Metric` | power indicator |
-| R13 | 2.2kOhm | `Resistor_SMD:R_0805_2012Metric` | GPIO3 → D5 |
-| D5 | Green | `LED_SMD:LED_0805_2012Metric` | status indicator |
-| TP1 | VBAT | `TestPoint:TestPoint_Pad_D1.5mm` | `VBAT` |
-| TP2 | 3V3 | `TestPoint:TestPoint_Pad_D1.5mm` | `ESP_3V3` |
-| TP3 | GND | `TestPoint:TestPoint_Pad_D1.5mm` | `GND` |
-| TP4 | SW | `TestPoint:TestPoint_Pad_D1.5mm` | `Net-(U3-SW)` |
-
-**The power LED must be a high-efficiency red part.** 10k was specified, and that
-constrains the colour rather than the other way round: at 3.3V a 10k resistor only
-delivers (3.3 − Vf)/10k, so a 3.0–3.2V pure-green InGaN part would get ~10µA and
-effectively not light. Red (Vf ≈ 1.7–1.9V at these currents) gives **~150µA**, which
-is dim but clearly visible indoors on a modern part. Do not substitute blue/white/
-pure-green without raising the rail current budget or dropping the resistor.
-
-**~150µA is not free.** It does not add to the issue-7 standing-drain problem — D4
-hangs off `ESP_3V3`, so it dies with the rail when the regulator is off or UVLO
-trips, unlike the two `VBAT` dividers. But it **will dominate deep sleep**: an
-ESP32-S3 in deep sleep draws ~10µA, so the power LED is ~15× the MCU. If firmware
-ever relies on deep sleep for pack life, D4 is the first thing to cut — fit it DNP,
-or move it behind a GPIO.
-
-**D5 is wired active-high (GPIO3 → R13 → anode, cathode to GND) deliberately.** At
-reset GPIO3 is high-Z with an internal ~45kΩ pulldown and the LED cannot conduct
-below its Vf, so the pin sits at 0V — which is GPIO3's safe strapping state (see
-issue 12). An active-low arrangement (3V3 → LED → GPIO) would have held the pin near
-the rail at reset. Firmware drives GPIO3 **high** to light it.
-
-2.2k for the status LED rather than 10k: it is firmware-gated so it costs nothing
-when off, and ~550µA through a modern green 0805 is unambiguously visible, where
-10k would have been marginal. Well inside the ESP32-S3's 40mA per-pin limit.
-
-**TP4 is on the SW node and that is in tension with the layout rules below** — see
-the SW-island note in "Layout constraints". It is a 1.5mm pad, deliberately the
-smallest in the `TestPoint` library, but it still has to be placed as a stub off the
-existing island rather than allowed to grow it.
-
-### 14. VL53L0X wall sensors — IMPLEMENTED (2026-09-19)
-
-Four **VL53L0X** time-of-flight modules replace the IR emitter/receiver pairs the
-original architecture note assumed. **The sensors are off-board**: this PCB carries
-only the connectors, the shared bus pull-ups and the local rail decoupling, so the
-modules can be aimed mechanically at the maze walls. Eight parts added.
-
-**The fitted module is the GY-VL53L0XV2 (silkscreen `HW-842`)** and J4–J7 reproduce
-its 6-pin header **in the module's own order**, so the cable is a straight-through
-1:1 loom with no crossovers to get wrong:
-
-| Conn. pin | Module silkscreen | Net |
-|---:|---|---|
-| 1 | VCC | `ESP_3V3` |
-| 2 | GND | `GND` |
-| 3 | SCL | `GPIO9` |
-| 4 | SDA | `GPIO8` |
-| 5 | GPIO1 | **no-connect** (sensor interrupt, not used) |
-| 6 | XSHUT | `GPIO4` / `GPIO5` / `GPIO6` / `GPIO7` |
-
-```
-   ESP_3V3 --[R15 2.2k]-- GPIO8 (SDA) --> J4.4  J5.4  J6.4  J7.4
-   ESP_3V3 --[R16 2.2k]-- GPIO9 (SCL) --> J4.3  J5.3  J6.3  J7.3
-
-   GPIO4 --> J4.6    GPIO5 --> J5.6    GPIO6 --> J6.6    GPIO7 --> J7.6   (XSHUT)
-
-   ESP_3V3 --+--[C15 10uF]-- GND       ESP_3V3 --> J4.1  J5.1  J6.1  J7.1
-             +--[C16 100nF]-- GND      GND     --> J4.2  J5.2  J6.2  J7.2
-                                               and the MP mounting pegs
-```
-
-| Ref | Value | Footprint | Role |
-|---|---|---|---|
-| J4–J7 | `SM06B-SRSS-TB` | `Connector_JST:JST_SH_SM06B-SRSS-TB_1x06-1MP_P1.00mm_Horizontal` | one per sensor |
-| R15 | 2.2kOhm | `Resistor_SMD:R_0805_2012Metric` | SDA pull-up |
-| R16 | 2.2kOhm | `Resistor_SMD:R_0805_2012Metric` | SCL pull-up |
-| C15 | 10uF 16V | `Capacitor_SMD:C_0805_2012Metric` | ToF rail reservoir |
-| C16 | 0.1uF 16V | `Capacitor_SMD:C_0603_1608Metric` | ToF rail HF decoupling |
-
-The two `MP` mounting pegs are tied to GND. **Pin 5 carries a no-connect flag**, so
-the pad and the cable conductor exist but go nowhere on this board — wiring the
-interrupts later is a trace change, not a connector change.
-
-**Every VL53L0X powers up at I2C address 0x29 and the address is volatile**, so four
-on one bus is only possible with a per-sensor XSHUT. Firmware holds all four low,
-then releases one at a time and writes a new address to register 0x8A before moving
-on. This repeats on every power cycle — nothing is stored in the device.
-
-**GPIO4–GPIO7 float at reset, and the module pulls XSHUT up.** Verified against the
-ESP32-S3 datasheet v2.2 Table 2-1: GPIO4–8 have a *blank* "At Reset" and "After
-Reset" column — no internal pull-up, no pull-down, input buffer disabled. The
-GY-VL53L0XV2 pulls XSHUT (active low) up to its own regulated rail, so **all four
-sensors come out of reset enabled and all four answer to 0x29 at once.** That is the
-state firmware inherits; it is not a fault, but nothing works until firmware resolves
-it. Two consequences:
-
-- **Drive GPIO4–7 as open-drain outputs, not push-pull** (`GPIO_MODE_OUTPUT_OD`).
-  Pull low to shut a sensor down; release to high-Z and let the module's own pull-up
-  enable it. This matters: the module's XSHUT sits on a 2.8V rail, and the datasheet
-  says high levels "have to be equal to AVDD in 2V8 mode" — a push-pull 3.3V drive
-  is inside the 3.6V absolute maximum but outside that. Open-drain sidesteps it
-  entirely and costs nothing.
-- **Drive them low as firmware's first act**, before any I2C traffic, so the bus is
-  not contended by four devices at the same address.
-- Do **not** add a pull-down on this board to "fix" the float — it would divide
-  against the module's pull-up and park XSHUT at an indeterminate level.
-
-**3.3V is in spec; no 2.8V rail or level shifter is needed on this board.** The
-datasheet gives AVDD 2.6/2.8/3.5V recommended with a 3.6V absolute maximum, and ST
-support states plainly: *"Go ahead and use 3v3… just try to keep the voltage less
-than 3.5."* The GY-VL53L0XV2 takes 3.0–5.0V on VCC, regulates it to 2.8V itself and
-level-shifts SCL/SDA to the VCC rail — which is exactly why R15/R16 pull up to
-`ESP_3V3` and not to some other reference.
-
-**Leave the driver's 2V8 I/O mode on.** Table 7 note 4: *"The default API mode is
-1V8."* The part's pads have to be told they are running from a 2.6–3.5V supply
-rather than 1.8V; it is a single write to register 0x89
-(`VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV`) bit 0, which `VL53L0X_DataInit()` performs and
-Pololu's driver exposes as `io_2v8` — **on by default in both**. So this is "do not
-turn it off" rather than "remember to add it". Nothing is damaged either way (abs
-max on SCL/SDA/XSHUT/GPIO1 is 3.6V); 1V8 mode just leaves the pads mis-configured
-for the rail they are actually on.
-
-**R15/R16 = 2.2kΩ, and they belong here rather than on the modules.** The datasheet
-says pull-ups are *"typically fitted only once per bus, near the host"* and
-recommends 1.5–2kΩ for AVDD 2.8V at 400kHz; 2.2k is that value scaled to 3.3V. It
-sinks 1.5mA against a 4mA VOL spec, and at ~100pF of bus plus cable it gives a
-~190ns rise, inside fast mode's 300ns. **If the fitted modules carry their own 10k
-pull-ups**, four in parallel with this pair lands near 1.2kΩ — 2.8mA, still legal,
-but re-check it against the module's actual schematic. 4.7k here would have been
-too slow for 400kHz on its own.
-
-**GPIO1 (the modules' open-drain interrupt) is deliberately not wired** — the
-datasheet sanctions it: *"GPIO1 to be left unconnected if not used."* Firmware polls
-the status register, which is normal for continuous-mode ranging at ≤50Hz. The
-connector still carries the pin because it mirrors the module header, so adding
-interrupts later means running four traces to the TP5–TP8 spares (or wired-OR to one,
-since the outputs are open-drain) — the connector and cable already fit.
-
-**Current budget:** 19mA average per sensor while ranging and **40mA peak** during
-the VCSEL pulse, so ~76mA average and up to 160mA of pulsed load on `ESP_3V3` if all
-four fire together. That is nothing to the 2A AP63203, but it is why C15 exists: the
-modules' own caps sit on the far side of the cable inductance.
-
-**Not covered here:** there is no ESD protection on the sensor cables, and no way to
-power-cycle a hung module — XSHUT is the sanctioned reset and it is wired, so this
-is a considered omission rather than an oversight.
-
-**Verified:** netlist diff shows exactly the intended additions — `ESP_3V3`, `GND`,
-`GPIO4`–`GPIO9` gained the new members and **no other net changed**, with no
-auto-named `Net-(…)` strays. ERC is unchanged at 0 errors and the same two
-GPIO45/GPIO46 warnings. The sheet was rendered and inspected: no overlapping text,
-and the block sits clear of the A3 border and title block.
-
-
-### 15. On-board peripherals — MOTOR DRIVE BUILT, rest still open (2026-09-20)
-
-**Built:** two motor channels (14 parts), the **BNO08x IMU connector block**
-(J10, R23, C22), and the **debug header and spare-GPIO pads** (J11, TP5–TP9).
-**Deleted:** J2 and J3, the two 22-pin daughterboard headers.
-**Dropped:** the suction fan, removed from the design entirely.
-**Still open:** the board outline — and that is now the only thing left in this issue.
-
-#### Debug header J11 and test pads TP5–TP9
-
-J2/J3 were the de-facto debug header: 44 pins carrying every spare GPIO. Once the
-motor, IMU and console blocks claimed those signals the headers carried nothing
-unique, while remaining the heaviest and tallest parts on the board after the module.
-**They were deleted and replaced with J11 plus five pads.**
-
-**J11 is `SM06B-SRSS-TB` — the same part as J4–J7**, so it adds no BOM line and no new
-cable design:
-
-| Pin | Net | Purpose |
-|---:|---|---|
-| 1 | `ESP_3V3` | level reference for a probe — **not** a way to power the board |
-| 2 | `GND` | return, deliberately adjacent to the console pair |
-| 3 | `GPIO43` | U0TXD — console out |
-| 4 | `GPIO44` | U0RXD — console in |
-| 5 | `GPIO0` | BOOT — adapter DTR |
-| 6 | `CHIP_PU` | EN/reset — adapter RTS |
-| MP | `GND` | mounting pegs |
-
-**Pins 3–6 are an esptool auto-reset interface**, and that is the justification: it is
-the recovery path if firmware ever disables the native USB-Serial-JTAG, or if you need
-a console while debugging the USB stack itself. **`GPIO0` was previously on no
-connector at all** — only SW2 — so before J11 there was no off-board way into the
-bootloader.
-
-**JTAG deliberately has no header.** U1.13/14 are GPIO19/20 (USB D−/D+) and already
-reach the USB-C port, so the ESP32-S3's built-in USB-Serial-JTAG provides flashing,
-console and JTAG debugging over the connector that is already there. Do not add a
-JTAG header; it would duplicate working silicon.
-
-**TP5–TP8 carry the four spare GPIOs** (`GPIO18`, `GPIO35`, `GPIO36`, `GPIO37`) on
-`TestPoint_Pad_D1.5mm`, the same part as TP1–TP4. **TP9 is a dedicated probe ground**
-beside them — a spare-GPIO pad with no nearby return is not much use to a logic
-analyser. Pads rather than a connector because these are bring-up aids that only get
-touched with a probe, and four 1.5mm pads weigh essentially nothing.
-
-#### Driver selection — TI DRV8231A
-
-The brief was "headroom above the clamp", and that is what eliminated the obvious
-candidates. **D6 (SMBJ9.0A) clamps `VBAT` at up to 15.4V**, and a driver has to
-survive what the TVS lets through:
-
-| Part | VM abs max | Verdict |
-|---|---|---|
-| DRV8833 | **11.8V** | below the clamp — rejected |
-| TB6612FNG | **15.0V** | below the clamp — rejected |
-| DRV8874 / DRV8876 | 40V | good (200mΩ / 700mΩ), but **no KiCad stock symbol** |
-| **DRV8231A** | **35V** | **fitted** — 2.3× the clamp |
-
-Verified against the TI datasheet rather than from memory: **VM 4.5–33V operating,
-35V absolute maximum**, 3.7A peak output, RDS(on) 300mΩ high-side + 300mΩ low-side,
-integrated current sense and regulation, IN1/IN2 logic 0–5.5V with **internal 100kΩ
-pulldowns**, device UVLO 4.15–4.45V rising, WSON-8 2.0 × 2.0 mm, RθJA 66.5°C/W.
-
-**4.5V minimum matters more than it looks.** The board's own UVLO (issue 2) turns on
-at 6.90V and off at 5.94V, so a driver with a 6.5V or 8V minimum — DRV8871, DRV8848,
-A4950 — would be out of spec across part of the usable pack range. DRV8231A covers
-the whole of it.
-
-**The internal pulldowns are a safety property, not a detail.** ESP32-S3 GPIOs float
-at reset; the pulldowns hold IN1/IN2 low, so **both motors are off until firmware
-drives them.** Do not add external pulldowns and do not assume a different driver
-behaves this way.
-
-**600mΩ is the trade that was accepted.** At a ~0.5A running current that is 0.15W
-and 0.3V of an 8.4V supply — fine. The DRV8874's 200mΩ would be better and its
-package is the same family, but it has no stock KiCad symbol, so taking it means
-authoring one. **If thermals prove tight, the cheaper move is the DDA (HSOP-8)
-variant of the same die: RθJA 42.8°C/W against the DSG's 66.5°C/W**, at the cost of
-a 4.9 × 6.0 mm package and a different symbol.
-
-#### Current limit, and why it is set where it is
-
-`VREF` is tied to `ESP_3V3` (3.3V, inside the 0–3.6V recommended range, 6V abs max).
-With **AIPROPI = 1500 µA/A** and R17/R18 = **2.2kΩ** (1.5kΩ until 2026-09-23):
-
-```
-   ITRIP = VREF / (AIPROPI x RIPROPI) = 3.3 / (1500u x 2200) = 1.00 A
-   IPROPI sense scale = AIPROPI x RIPROPI = 3.3 V/A   (ADC full scale 3.1V ~ 0.94A)
-```
-
-**2026-09-23: the limit is now 1.00 A, set by the connector, not the driver.**
-J8/J9 became JST SH to take Pololu's own encoder cable, and SH contacts and that
-cable are rated 1 A. At 1.00 A the driver dissipates ~0.6 W (~40 °C rise) and the
-motor gets ~63 % of its 6 V stall torque. The ADC clips at ~0.94 A, just under the
-limit — a stall reads as full scale, which is still unambiguous. The paragraph
-below is the original 1.47 A reasoning, kept because the driver-thermal argument
-still bounds any future increase.
-
-**1.47A was chosen to protect the driver, not the motor.** Left unregulated, a stalled
-N20 at 8.4V draws 8.4 / (3.75Ω motor + 0.6Ω driver) ≈ **1.93A**, which puts 2.24W
-into a package with RθJA 66.5°C/W — a 149°C rise, i.e. thermal shutdown. Regulating
-at 1.47A drops that to 1.29W. The cost is small: torque is proportional to current,
-so the limit still delivers ~92% of the motor's rated stall torque.
-
-It also keeps the connector legal — see below — and it is well under the part's own
-3.7A overcurrent trip, so OCP stays a fault backstop rather than a control mechanism.
-
-**This is the hardware half of the stall protection issue 17 asks firmware for.**
-Current regulation caps the current; `IPROPI` on an ADC1 pin lets firmware *see* the
-stall and react. Both channels use ADC1 (GPIO2 = CH1, GPIO10 = CH9) because ADC2 is
-unusable while Wi-Fi is active — the same constraint as issue 5.
-
-#### Connectors J8/J9
-
-**Since 2026-09-23: `SM06B-SRSS-TB`, 1.0 mm JST SH side-entry — the same part as
-J4–J7 and J11 — in the Pololu 12 CPR encoder board's own pin order** (Pololu
-#5153–#5165 gearmotors, encoder kits #4760/#4761):
-
-| Pin | 1 | 2 | 3 | 4 | 5 | 6 | MP |
-|---|---|---|---|---|---|---|---|
-| Signal | GND | OUT B | OUT A | VCC | M2 | M1 | GND |
-| J8 net | `GND` | `GPIO48` | `GPIO47` | `ESP_3V3` | `MOT_A_2` | `MOT_A_1` | `GND` |
-| J9 net | `GND` | `GPIO38` | `GPIO21` | `ESP_3V3` | `MOT_B_2` | `MOT_B_1` | `GND` |
-
-The cable is Pololu's straight 1:1 SH-SH encoder cable (#4765–#4769), so there is
-no loom to build. It replaced 2.0 mm JST PH `S6B-PH-K` wired M1 GND A B VCC M2,
-which matched neither Pololu's pinout nor its connector: a 1:1 cable from a Pololu
-encoder into the old J8/J9 would have put motor voltage on the encoder's supply.
-
-**SH and the Pololu cable are rated 1 A, and the motor pins carry the full motor
-current** — that is why R17/R18 went to 2.2 kΩ (1.00 A). **Do not lower R17/R18
-without re-checking the connector and cable.**
-
-M1 and M2 are now adjacent (pins 5/6), so both channels route as tight pairs —
-see "J8/J9 in the Pololu pin order" under the layout notes.
-
-**R19–R22 (10kΩ) pull up the encoder outputs.** Fitted because cheap N20 encoder
-boards commonly use open-drain Hall sensors, which produce nothing at all without
-them. If the fitted encoder has push-pull outputs the resistors are harmless.
-
-#### A KiCad library bug was corrected locally — do not let it come back
-
-**`Driver_Motor:DRV8231ADSG` types pin 8 (OUT2) as `power_in`, while pin 6 (OUT1) is
-`output`.** It is a library error — `DRV8871DDA` in the same library types both
-outputs correctly. Left alone it produces two `power_pin_not_driven` ERC errors on
-the motor output nets.
-
-The cached copy of the symbol **in this schematic** has OUT2 corrected to `output`.
-**"Update Symbols from Library" will silently revert it** and the two errors will
-reappear. If they do, this is the cause — re-apply the fix rather than papering over
-it with PWR_FLAGs on the motor outputs.
-
-A PWR_FLAG *was* legitimately needed elsewhere: **`#FLG04` on `VBAT`**, because the
-rail reaches the drivers through BT1 → F1 → Q1 and ERC cannot see a power source
-through them. That one is correct and should stay.
-
-#### IMU — BNO08x module on SPI (J10)
-
-**Off-board, like the ToF sensors.** This PCB carries J10 (`SM09B-SRSS-TB`, 9-pin
-JST-SH, side-entry, mounting pegs to GND), R23 and C22. Nine conductors:
-VIN, GND, SCK, MOSI, MISO, CS, INT, **RST** and **WAKE**.
-
-**INT and RST are not optional in SPI mode** — the BNO08x signals data-ready on INT
-and the host must wait for it; the datasheet calls both required for stable SPI.
-That is why the connector is 9-way and not 6.
-
-**WAKE is pin 9, and it is the same physical pin as PS0.** PS0/PS1 select the
-protocol and are *sampled at reset*: both high selects SPI, both low selects I²C.
-**After reset, PS0 is repurposed as WAKE**, which the host pulls low to ask a sleeping
-device for attention. Hard-jumpering PS0 high on the module would select SPI but leave
-the host unable to wake it, so WAKE is brought to a GPIO and **PS1 alone is the module
-jumper**. SparkFun's driver expects a WAK pin; Adafruit's does not — bringing it out
-costs one GPIO and suits both.
-
-**The module must have PS1 jumpered high.** This is the single most likely bring-up
-failure: a stock BNO08x breakout ships configured for I²C and will simply not answer
-on SPI until that jumper is changed. Silkscreen it next to J10.
-
-**GPIO11/12/13 are the ESP32-S3's native FSPI D/CLK/Q pins**, so SPI2 can drive them
-through the IO MUX rather than the GPIO matrix. At the BNO08x's 3MHz ceiling that
-buys nothing in bandwidth, but it costs nothing either, and it keeps the clock off a
-matrix-routed pin. CS is on GPIO14 because GPIO10 — the native FSPICS0 — is taken by
-motor B's IPROPI; CS has no timing requirement, so the matrix is fine for it.
-
-**R23 (10k) holds RST high while GPIO16 floats.** ESP32-S3 GPIOs float at reset, and
-a floating RST on a module without its own pull-up is indeterminate. With R23 the
-module comes up running regardless, and firmware resets it deliberately.
-
-**C22 is 0.1µF and there is no bulk cap here, unlike the ToF block.** C15 exists
-because four VL53L0X modules pulse 40mA each into a cable; the BNO08x draws a low,
-steady current, so HF decoupling is all this rail needs at J10.
-
-**I²C was reconsidered and rejected, but it was closer than it first looked.** An
-earlier note in this file claimed sharing the ToF bus would "cap gyro rate and couple
-sensor timing" — that overstated it. Four VL53L0X at 50Hz is roughly 3% of a 400kHz
-bus and a BNO08x rotation vector at 400Hz adds about 20%, so throughput was never the
-problem. The real cost is **latency jitter**: an IMU interrupt arriving mid-ToF-read
-waits up to ~150µs, which is 15% of a 1kHz control period. SPI was kept for that
-reason, and because it leaves the I²C bus entirely to the wall sensors. The costs are
-real and worth recording: three more conductors, a second cable design, four more
-GPIOs, and a 3MHz clock on a ribbon cable rather than 400kHz.
-
-#### What is still missing from this issue
-
-| Decision | Status | What it gates |
-|---|---|---|
-
-**Direction settled 2026-09-20; exact parts still outstanding.** Three of the five
-decisions below have answers now. They are recorded here rather than implemented —
-the schematic is untouched — so the next session starts from them instead of
-re-asking.
-
-| Motor part number, gear ratio | **Class chosen: high-speed N20** (Pololu micro metal gearmotor HP 6V class), 1.6A stall at 6V. Exact gear ratio still needed | Nothing on this board — the electrical figures are the same across ratios |
-| Motor driver part | **DONE — DRV8231A ×2** | — |
-| Encoder type | **DONE — integrated with the motor**, 12 CPR quadrature on J8/J9 | — |
-| IMU part and bus | **DONE — BNO08x module on SPI**, off-board via J10 | 7 GPIOs |
-| Suction fan | **DROPPED** — no fan in the design | nothing; it was never built |
-| Debug/expansion header | **DONE — J11 + TP5–TP9**; J2/J3 deleted | 2 GPIOs used, 4 on spare pads |
-| Board outline | **Open — the only thing left** | Chassis, antenna keep-out, four ToF connectors, J8–J11, SW3, USB-C |
-
-**Superseded 2026-09-20:** an earlier revision of this section recorded a
-"high-power, ≥3A stall" class and concluded from it that F1 was undersized. The motor
-choice changed to high-speed N20 before anything was built against it. The ≥3A
-figures are gone from this file; **issue 17's F1 verdict is revised, not merely
-softened** — see there.
-
-**Reference figures** (Pololu 10:1 HP 6V, a representative high-speed variant, from
-its product page): 3100 RPM free-run at 6V, **100mA free-run**, **1.6A stall**, 0.22
-kg·cm stall torque. Gear ratio changes speed and torque but not the electrical
-figures, so F1 and the driver can be sized before the ratio is fixed.
-
-**Encoders are no longer this board's mechanical problem.** N20 gearmotors ship in
-encoder variants with a 12 CPR quadrature encoder already mounted, brought out on a
-back or side connector. That replaces the on-board AS5047P-plus-shaft-magnet scheme
-the previous revision anticipated, and with it the constraint that the PCB sit at a
-fixed small distance under each motor shaft. **This board needs two GPIOs and a
-connector per motor, nothing more.** It is the single largest simplification the N20
-choice buys, and it materially loosens the outline problem below.
-
-**12 CPR is low, and that is a firmware consequence, not a hardware one.** 12 counts
-per motor revolution before gearing; useful resolution comes from the gear ratio, so
-a high-speed (low-ratio) variant gives *fewer* counts per wheel revolution than a
-geared-down one. Check that the chosen ratio still yields enough edges for the
-control loop rate before committing — this is the one place the "high speed" choice
-costs something.
-
-**The N20 is a 6V-nominal motor on an 8.4V pack.** That is a deliberate over-volt
-for speed, and Pololu states plainly that higher voltages "could start negatively
-affecting the life of the motor." It also scales stall current: 1.6A × 8.4/6 =
-**2.24A per motor at a full pack**. Firmware should cap PWM duty — roughly 71% gives
-a 6V equivalent from 8.4V — and that cap is also what keeps F1 comfortable (issue 17).
-
-**Choosing SPI for the IMU also protects the ToF bus.** GPIO8/9 already carry four
-VL53L0X sensors at 400kHz (issue 14); adding a gyro that wants high-rate reads would
-have made sensor timing and gyro timing contend with each other, which matters
-precisely during the fast turns where both are needed.
-
-**Mechanical gate, not just electrical:** with the motors on this board, the outline
-is now set by the chassis — wheel positions, motor body clearance, ground clearance —
-*and* it must still satisfy the antenna keep-out, four outward-facing ToF connectors,
-an accessible SW3 and a reachable USB-C port. Check the combined footprint before
-committing to the outline; this is the constraint most likely to force a rethink.
-
-**Done:** that header is J11, sized once the real GPIO surplus was known — 6 pins for
-console and programming, with the four genuine spares on probe pads instead of
-connector pins.
-
-### 16. Motor noise shares the board with the ADC and the buck — RESOLVED (2026-09-20)
-
-Created by the single-board decision, and closed when the motor block was built.
-**C19 and C21 (22µF 25V, 1206) are the local bulk capacitance** on `VBAT` at each
-driver, with C18/C20 (0.1µF 50V) as the high-frequency bypass the DRV8231A datasheet
-asks for at the VM pin. Recirculation needs no external parts — the H-bridge's own
-body diodes handle it — and D6 remains the transient clamp.
-
-The placement discipline below still applies and is now a layout requirement, not a
-plan. Motor switching is inches from U1, from the 150kΩ `VBAT_SENSE` node and from
-the buck's feedback:
-
-- **`VBAT_SENSE` (issue 5) will see real motor sag and real switching noise.** Its
-  15ms RC helps a lot, but firmware should average across whole PWM periods rather
-  than trusting a single conversion, and should not sample during a stall event and
-  conclude the pack is flat.
-- **Bulk capacitance is built** — C19/C21, one per driver. Issue 7 told the
-  daughterboard to "retain local motor recirculation/bulk capacitance"; there is no
-  daughterboard, so it lives here now. Both are 25V parts because D6 clamps `VBAT`
-  at up to 15.4V.
-- **That bulk capacitance interacts with F1 inrush**, though only 2 × 22µF of it
-  (~22µF effective at 8.4V after DC-bias derating), which is small next to a PPTC's
-  thermal time constant. It does **not** sit behind D2 — `VBAT` reaches the drivers
-  directly, so D2's forward drop is not in this path (see issue 9).
-
-The mitigation is placement, not plane splitting — see "Board stackup".
-
-### 17. F1 and the `VBAT` path now carry motor current on *this* board (2026-09-20)
-
-A promotion of issue 7's open item rather than a new fault. The current budget was
-already outstanding, but with motors off-board it only had to be right before
-*ordering parts*. Now the same number also sets **trace width, copper weight, via
-count and thermal relief on this PCB**, so it has become a layout input.
-
-Answer it before routing the power path, not before fabrication. F1's provisional 3A
-hold was chosen without knowing the motors; if the real stall current moves it, the
-copper sized around it moves too.
-
-### F1 with N20 motors — revised 2026-09-20, verdict reversed
-
-**An earlier revision of this section declared F1 undersized.** That was computed
-against the "≥3A stall" motor class, which is no longer the plan. Recomputed against
-high-speed N20s (issue 15), **F1's 3A hold is defensible** — but it is not
-comfortable everywhere, and the margin depends on firmware.
-
-F1 is a 3A-hold / 5A-trip PPTC whose hold falls to about **2.31A at 60°C**. Two
-things have changed since that first estimate, and both help: **the fan is gone**, and
-**the DRV8231A regulates each channel at 1.47A** (issue 15), so motor current is now
-bounded by hardware instead of by motor impedance.
-
-Everything on `VBAT` passes through F1, including the buck — BT1 → F1 → Q1 → `VBAT` →
-D2 → `VSYS` → U3 — so the 3.3V rail's ~0.43A reflected input current counts too.
-
-| Condition | `VBAT` current | vs F1 |
-|---|---|---|
-| Both motors free-running | ~0.7A | trivial |
-| Normal driving, both motors loaded | ~1.4A | comfortable |
-| Hard acceleration, ~1A per motor | ~2.4A | just above the **60°C** hold; fine for a 30s run, not indefinitely |
-| **Both** motors at the current limit — 1.00A since 2026-09-23 | **~2.4A** | under the 3A hold at room temperature, just above the 60°C hold (was ~3.4A at the old 1.47A limit) |
-| Unregulated double stall (**cannot happen now**) | 4.9A | this is what the limit removes |
-
-**The verdict is that F1 is adequate, with one caveat.** The worst case the hardware
-permits is ~3.4A, where before it was an unbounded ~4.9A. A polyfuse only trips
-*quickly* well above its hold, so at 2.4A it will carry a speed run indefinitely in
-practice, and at 3.4A it trips slowly — which is the right behaviour for a jammed
-robot. **The caveat is thermal:** the 60°C hold of 2.31A is below hard-acceleration
-current, so a hot board driven hard for minutes rather than seconds is the case that
-trips. That is a competition-realistic scenario, so measure it on the assembled board.
-
-**Firmware stall detection is now the primary protection, and it is finally
-possible.** IPROPI on GPIO2/GPIO10 lets firmware see per-motor current directly
-(2.25 V/A), so it can cut drive on a stall long before F1's thermal time constant
-matters. The hardware current limit is the backstop; F1 is the backstop's backstop.
-
-**What still has to be checked before fabrication:**
-
-- **The actual N20 variant.** 1.6A is Pololu's HP figure; other N20s differ, and some
-  cheaper ones are worse. A higher-stall motor does not change the *supply* current
-  any more — the 1.47A limit caps it — but it does change how hard regulation works
-  and therefore how hot U4/U5 run.
-- **F1's maximum fault current against the pack — RESOLVED 2026-09-23.** The
-  chosen pack (OVONIC 2S 450 mAh 100C, XT30, see `BOM.md`) exceeded the old PPTC's
-  40 A rating, and a lower-C pack was rejected: the burst current is the point of
-  it. F1 is now a fuse that breaks 1500 A — see "F1 is now a 1500 A-breaking fuse"
-  below.
-- **Q1 (AO4407A, 17mΩ at VGS = −6V).** At 4.5A that is ~0.34W in a SOIC-8 — fine with
-  reasonable copper on all three source and all four drain pads, where the previous
-  ≥3A-class figure of ~0.61W was pushing it.
-
-**D6's clamp voltage now constrains the driver, and this is new.** D6 (SMBJ9.0A)
-clamps at up to **15.4V** at full surge current, sitting nearer 11–12V at the few-amp
-kickback an N20 actually produces. Several obvious micromouse drivers are rated below
-that: **DRV8833 has an 11.8V absolute maximum** and **TB6612FNG 15V**. A driver must
-survive what D6 lets through, not just the 8.4V pack. Either pick a driver with
-headroom above 15.4V, or accept the risk knowingly — **do not assume the TVS protects
-the driver**, because at these ratings it does not.
-
-### F1 is now a 1500 A-breaking fuse (2026-09-23)
-
-**Why.** The pack's short-circuit current is set by its internal resistance, which
-Ovonic does not publish. Taking 8–15 mΩ per cell for a fresh high-C 450 mAh pack,
-plus the XT30s, the lead, the fuse and the copper, a dead short on a full pack
-(8.4 V) comes to roughly **200–400 A**. The 2920L300/15DR PPTC was rated to break
-40 A. Littelfuse's 451/453 NANO2 parts, 300–400 A @ 32 VDC, sit inside that
-estimate, so they were rejected too.
-
-**Part.** F1 is now a Littelfuse **0885005.DR**: 885 series, 5 A, fast-acting,
-**1500 A breaking at 125 VDC**, 11.9 mΩ cold resistance, AEC-Q200-based
-qualification. It opens in at least 1 h at 125 % of rating, at most 2 min at 200 %,
-and at most 1 s at 1000 %.
-
-**Why 5 A.** The largest normal `VBAT` load is ~2.4 A: both motors at the 1.00 A
-limit plus the buck. After the datasheet's standard 25 % derating, 5 A still
-carries 3.75 A continuous at 25 °C, with room for the temperature rerating on top.
-Its 35 A²s melting I²t is ~20× the bulk capacitors' charge at switch-on.
-
-**What changed in behaviour.** F1 is **one-time**. It no longer trips slowly on a
-jammed robot and resets. That job is now done by the drivers' 1.00 A current limit
-plus firmware stall detection on IPROPI. F1 only opens on a real fault, and
-replacing it means reworking an SMD part. The symbol changed from
-`Device:Polyfuse` to `Device:Fuse` (same pins). **F2 stays a PPTC**: USB fault
-current is small.
-
-**Layout** (`tools/autoroute/f1_fuse.py`, after `pololu_conn.py`):
-- **F1's position.** The land pattern is 16.1 × 7.3 mm, so F1 moved to
-  (110.2, 100.7). Pad 1 sits under BT1's + pin, and pad 2 has a short run to Q1's
-  source pins.
-- **BT1 moved 0.4 mm north,** to (105, 93.6). F1's 7.76 mm courtyard did not fit
-  the 7.65 mm gap between BT1 and D6. D6 stays put, since it sits in the tuned
-  motor region. J6 is still 2.6 mm above BT1, and BT1's holes still clear the
-  underside reservations (`layout/verify_placement.py`: no clashes).
-- **Routing.** `/VBAT_RAW` and `/VBAT_FUSED` are re-routed at 1.0 mm. No other
-  net changed.
-- **D6's silkscreen reference** moved off F1's pad 2.
-- **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. ERC 0. The aperture
-  audit passes.
-
-**Do not simply fit a bigger fuse** if measurement shows F1 nuisance-blowing.
-Raising F1 raises the fault current every downstream part must survive. The cheaper
-fixes come first: lower the ITRIP resistors, or tighten the firmware duty cap.
-
-## Board stackup — 4 layers (decided 2026-09-20)
-
-Decided together with dropping the daughterboard. Two layers cannot carry on-board
-motor drivers, a clean ADC reference, a 1.4MHz buck and a 90Ω USB pair at the same
-time. The extra layers are bought primarily for **L2**.
+| J4–J7 | SM06B-SRSS-TB, GY-VL53L0XV2 order | **1 VCC (3V3)**, 2 GND, 3 SCL, 4 SDA, 5 INT (NC), 6 XSHUT. J4 FL/GPIO4, J5 FR/GPIO5, J6 look-left/GPIO6, J7 look-right/GPIO7 |
+| J8, J9 | SM06B-SRSS-TB, Pololu encoder order | 1 GND, 2 OUT B, 3 OUT A, 4 VCC (3V3), 5 M2, 6 M1, MP GND |
+| J10 | SM09B-SRSS-TB | 1 VIN, 2 GND, 3 SCK, 4 MOSI, 5 MISO, 6 CS, 7 INT, 8 RST, 9 WAKE/PS0, MP GND |
+| U1 | 2 × 1×22 2.54 mm SMD female header | the DevKitC-1, USB ports toward the front (silkscreen arrow between the rows). Turned round, it puts 3V3 on GND pins |
+| TP1–TP4, TP9–TP11 | 1.5 mm pads | VBAT, 3V3, GND, SW, GND, MOTOR_OK, MOTOR_VREF. BUCK_3V3 is probed at L1.2 or C26, both in front of the devkit |
+
+- **ToF sensors.**
+  - Every VL53L0X wakes at address 0x29, and the address is volatile, so each
+    sensor needs its own XSHUT.
+  - GPIO4–7 float at reset, and the module pulls XSHUT up to 2.8 V. Firmware
+    drives them open-drain. Add no pulldown on this board.
+  - 3.3 V is within spec, so no level shifter.
+  - R15/R16 are the only bus pull-ups. If the modules add 10 k each, the bus
+    sees about 1.2 k in total, which is still legal.
+  - C15 (10 µF) and C16 (0.1 µF) serve the pulsed VCSEL load.
+- **IMU.**
+  - SPI was chosen over the shared I²C bus for **latency jitter**, not
+    throughput.
+  - INT and RST are required in SPI mode. R23 (10 k) holds RST high.
+  - WAKE is the same pin as PS0. **The module needs PS1 jumpered high.**
+  - C22 (0.1 µF) is the only decoupling it needs.
+- **Encoders.** R19–R22 (10 k) pull the outputs up, for open-drain Hall sensors.
+- **Pololu cable risk.** A non-Pololu motor plugged into J8/J9 with a 1:1 cable
+  can put motor voltage on its encoder.
+
+## PCB
+
+**Coordinates.** KiCad = board + (100, 60). The board origin is the front-left
+corner, with +Y toward the rear. The rotation centre is board (33, 66), which is
+KiCad (133, 126). Mechanical reservations are in `layout/README.md`.
+
+### Stackup and zones
+
+JLC04161H-7628, 1.6 mm, with ~0.2 mm prepreg between L1 and L2. Outer copper is
+1 oz. The AP63203 datasheet asks for 2 oz, but at its full 2 A; this rail draws
+~0.7 A.
 
 | Layer | Use |
 |---|---|
-| **L1** (top) | components; short high-speed runs — USB D+/D− pair, the SW island, the motor-driver power loops |
-| **L2** | **unbroken GND plane** — the whole reason for going to 4 layers |
-| **L3** | power pours: `VBAT` (motor rail) and `ESP_3V3`, as separate regions |
-| **L4** (bottom) | secondary signal routing plus a GND pour stitched to L2 |
+| F.Cu | Components, the SW island and the driver loops. Zone `GND pour motor region`, x 104.2–123.2, y 104.6–120.2 |
+| In1.Cu | **Solid GND plane. Never split it, cut it or route through it.** |
+| In2.Cu | `ESP_3V3` pour, plus a `VBAT` island (priority 1) at x 100.5–127, y 88–122 |
+| B.Cu | Secondary routing, plus a GND pour stitched to In1 |
 
-**L2 is never split, cut, or routed through.** No signal traces on L2; no plane split
-under the USB pair, the SW node, the ToF I2C pair or `VBAT_SENSE`. A split plane
-forces return current around the gap and causes worse problems than the separation it
-appears to buy.
+- All zones use solid pad connections, with island removal on.
+- **Noise is controlled by placement, not plane splits.** The motor drivers,
+  bulk capacitors, D6, F1/Q1 and the battery entry share the left corner. U1,
+  the ADC nodes and I²C stay away from it.
+- The devkit's antenna overhangs the rear edge by ~6.5 mm, about 10 mm above
+  the board. The devkit's own PCB ends 0.75 mm inside the board edge. A
+  board-level all-layer copper keep-out covers x 143.5–159.5, y ≥ 158.8.
+- The `IMU module and bracket reservation` keepout (x 112.1–136.7,
+  y 121–146) forbids footprints. Tracks and vias are allowed.
+- **B.Cu GND pour stitching.** Long B.Cu signal runs cut the pour into pieces,
+  and island removal drops any piece with no GND via. Rework stage 20 finishes
+  with `stitch_islands`: one GND via, at the legal spot deepest inside, in each
+  piece of 2 mm² or more that has none.
 
-**Partition by placement, not by plane splits.** Motor drivers, D6 and the battery
-input go in one region; U1, the ADC nodes and the ToF I2C go in another. Keeping the
-high-di/dt return currents physically out from under the quiet circuitry is what
-makes a single plane work — it is the job the 8 header ground pins used to do badly
-(old issue 6).
+### Rules (`Pixy-M2.kicad_pro`, `Pixy-M2.kicad_dru`)
 
-- Assume a standard 1.6mm 4-layer stackup with **thin L1↔L2 prepreg** (~0.2mm on
-  JLCPCB's JLC04161H-7628 and its equivalents elsewhere). That tight spacing is what
-  makes the 90Ω pair achievable with sane trace geometry and keeps every L1 return
-  path directly beneath its trace.
-- **Compute the USB pair geometry against the fab's actual stackup** with their
-  impedance calculator. Do not carry a number over from another board. **Done
-  2026-09-22 (review issue 7), by field solver: 0.25 mm trace / 0.15 mm gap, about
-  88–94 Ω across 0.200/0.2104 mm prepreg and 10–25 µm mask.** The earlier guess in
-  this bullet, 0.2 mm / 0.15 mm, solves to ~100 Ω, which is outside 90 Ω ± 10 %.
-  The solver's figure is still not the fab's — confirm it with JLCPCB's
-  calculator, or order impedance control, before fabrication.
-- **The antenna keep-out must now be cut out of four layers, including both pours.**
-  This is the main new risk the stackup introduces: it is far easier to let a ground
-  or power pour flood under the antenna than it was to forget a trace. Define the
-  keep-out as a board-level rule area so the pours respect it automatically, and
-  verify it on all four layers before fab.
-- Stitch L2 to the L4 ground pour generously — especially around the SW island, the
-  motor-driver return paths and the module's thermal pad.
-- 1oz outer copper is fine for signals, but **check the `VBAT` and motor-return
-  copper against the final stall current** (issue 17). If the motor path is tight,
-  widen on L1/L4 or specify 2oz outers; do not rely on L3's pour alone to carry it.
-- **The AP63203 datasheet asks for 2oz on both outer layers** and for the ground
-  layer to sit directly under the device for heat spreading (DS41326 §PCB Layout,
-  items 1–3). L2 already provides the latter. The 2oz request is made at the part's
-  full 2A; this rail draws ~0.7A, so 1oz is defensible — but if 2oz is taken for the
-  motor path anyway, U3 gets it for free.
-- Give the input and output capacitors' **GND pads their own via stitching to L2**,
-  which the same datasheet section asks for by name. **Done 2026-09-22 for C7, C11,
-  C17 and U3.4 itself; C12 keeps the via it already had.**
+**Netclasses:**
 
-## Routing — done 2026-09-21
+| Class | Width | Nets |
+|---|---|---|
+| Default | 0.2 | everything else |
+| Battery | 1.0 | `/VBAT_RAW`, `/VBAT_FUSED` |
+| Motor | 0.8 | `/MOT_*` |
+| Power | 0.6 | `/VSYS` |
 
-The board was routed with a purpose-written grid router (A* on a 0.05 mm grid over
-F.Cu and B.Cu, planes and pours on the inner layers). **2241 mm of track, 242 vias,
-1247 mm on F.Cu and 994 mm on B.Cu.** *(Those are this pass's figures. The motor
-region was reworked later the same day — see "Motor-region rework" below — after which
-the board carries 2253 mm and 249 vias.)* Every net in the netlist is connected:
-`kicad-cli pcb drc --refill-zones` reports **0 unconnected items** and **0 clearance,
-shorting, dangling, isolated-copper or hole-clearance errors from the routing**.
+`/VBAT` is deliberately in no class. Its current runs in the In2 island, and its
+tracks are only pad-to-plane stubs.
 
-The copper zones implement the stackup decided on 2026-09-20. The first four came
-from this routing pass; the F.Cu pour was added by the motor-region rework below:
+**Custom rules, in file order:**
 
-| Zone | Layer | Net | Priority |
-|---|---|---|---|
-| GND plane | In1.Cu | `GND` | 0 — solid, unbroken, via antipads only |
-| 3V3 pour | In2.Cu | `/ESP_3V3` | 0 |
-| VBAT motor rail island | In2.Cu | `/VBAT` | 1 — x 100.5–127, y 88–122 |
-| GND pour bottom | B.Cu | `GND` | 0 — fragmented by B.Cu routing, as expected |
-| GND pour motor region | F.Cu | `GND` | 0 — x 104.2–123.2, y 104.6–120.2 (rework) |
-
-All zones use **solid pad connections, not thermal reliefs** (island removal on).
-Every SMD pad on `GND`, `/ESP_3V3` and `/VBAT` reaches its plane through a stitching
-via: 77 GND vias, 28 on 3V3, 27 on VBAT.
-
-Track widths, set by net and then widened wherever clearance allowed:
-
-| Net(s) | Width |
+| Rule | Constraint |
 |---|---|
-| `VBAT_RAW`, `VBAT_FUSED`, `VBAT` trunk | 1.0 mm (tapering to 0.2 at small pads) |
-| `MOT_A_*`, `MOT_B_*` | **superseded by the rework: 0.8 mm throughout, 0.2–0.4 mm only in the driver pin escapes** |
-| `VSYS`, `VBUS`, `Net-(F2-Pad1)` | 0.6 mm — **was not true of `VBUS`/`Net-(F2-Pad1)` until issue 8**: they were 0.24 mm |
-| `Net-(U3-SW)` | 0.5 mm |
-| GND / 3V3 stubs | 0.4 mm |
-| signals | 0.2 mm, 0.15 mm for escapes from the 0.25 mm-wide DRV8231A pads — **issue 8: the router had used 0.15 mm end to end on five nets; now only inside the pin fields** |
-
-Escapes from fine-pitch parts (U4/U5 WSON-8, J1's 0.3 mm CC/D± pads) are 0.15–0.2 mm
-and sit inside the pad they leave. Plane stitching for those parts is deliberately done
-**after** their signal nets are routed — stitching them first walls in the neighbouring
-pads and makes OUT1 unroutable on both drivers.
-
-### What the router did NOT do — review these by hand
-
-- ~~**`/USB_D+` and `/USB_D-` are ordinary 0.2 mm traces, not a 90 Ω differential pair.**~~
-  **Fixed by review issue 7 (2026-09-22)** — see "Issue 7" below. As routed here they
-  were 0.2 mm traces with lengths of 18.4 mm and 13.7 mm, and the issue-6 via pass
-  later pushed the connector-side D− onto B.Cu through four vias.
-- **None of the placement-sensitive rules below were modelled**: the C12→U3.3→U3.4
-  input loop, the size of the SW island, keeping `REG_EN` and `VBAT_SENSE`
-  (150 kΩ) away from SW and motor current, routing `MOT_x_1/2` as tight pairs, and
-  keeping `GPIO2`/`GPIO10` IPROPI analog runs clear of the motor outputs. The router
-  optimised length and via count only. Walk these five nets in the GUI.
-  **The rework below moved `REG_EN` and the SW node clear (0.26 → 8.51 mm and
-  0.28 → 6.62 mm) and paired `MOT_B_1/2`; the IPROPI runs are still open.**
-- ~~**Thermal vias are 2 per driver EP**~~ — **this was never true.** U4's exposed pad
-  had no via in it at all and U5 had one; both reached GND through a narrow neck to an
-  offset via. Fixed by the rework below, which also corrects the "0.45/0.25 would fit
-  ~6" estimate: at the board's 0.45 mm hole-to-hole rule only two fit.
-  U1's 12 EP pads do have one via each.
-- No teardrops, no length matching, no via stitching of the two GND layers beyond the
-  signal/plane vias already placed.
-
-### Pre-existing DRC errors, not caused by routing — RESOLVED 2026-09-23
-
-Four `hole_clearance` errors between J1's GND pads (A1/A12/B1/B12) and J1's own NPTH
-mounting holes — 0.25 mm against a 0.3 mm rule. ~~They are inside the
-`USB_C_Receptacle_Amazon` footprint~~. **Correction: J1 is the stock
-`Connector_USB:USB_C_Receptacle_Amphenol_12401948E412A`. The
-`USB_C_Receptacle_Amazon.kicad_mod` in the repo root is not used by anything.**
-They were present before any track was laid, as was the `lib_footprint_mismatch`
-warning on U1. **Both are resolved; see "DRC clean" below.**
-
-## Motor-region rework — 2026-09-21 (review issues 1–3)
-
-A second pass over the motor region, driven by `REVIEW.md`.
-`tools/autoroute/rework.py` reproduces it from `tools/autoroute/base-routed.kicad_pcb`
-(the router's own output). It never edits the file it reads, but it does write the
-board without zone fills, so **always follow it with**
-
-```
-kicad-cli pcb drc --schematic-parity --refill-zones --save-board --format json \
-    -o /tmp/drc.json Pixy-M2.kicad_pcb
-```
-
-**DRC after the rework is identical to before it**: 0 unconnected items, 0 schematic
-parity issues, and the only violations left are the four pre-existing J1
-`hole_clearance` errors and the pre-existing U1 `lib_footprint_mismatch` warning.
-Board totals went 2241 → **2253 mm of track** and 242 → **249 vias**.
-
-### Issue 1 — motor output copper
-
-`MOT_B_1` carried 38.8 mm of its 42 mm at 0.15 mm and `MOT_B_2` 41.3 mm of its 48 mm.
-All four nets are now 0.8 mm trunks, and the only sub-0.5 mm copper left is the escape
-inside each driver's own pin field.
-
-| Net | length | sub-0.5 mm | DC resistance |
-|---|---|---|---|
-| `MOT_A_1` | 15.0 → 16.7 mm | 11.0 → **2.5 mm** | 39 → **14 mΩ** |
-| `MOT_A_2` | 16.2 → 19.0 mm | 6.4 → **1.0 mm** | 27 → **13 mΩ** |
-| `MOT_B_1` | 42.0 → 43.5 mm | 38.8 → **2.5 mm** | 129 → **31 mΩ** |
-| `MOT_B_2` | 48.1 → 59.4 mm | 41.3 → **1.0 mm** | 138 → **37 mΩ** |
-
-Resistance is DC at 20 °C into 35 µm copper. The motor-B pair goes from 0.267 Ω to
-0.068 Ω, so at the DRV8231A's 1.47 A limit **0.393 V and 0.578 W become 0.100 V and
-0.147 W**. The "before" column reproduces the review's own 0.268 Ω / 0.394 V / 0.579 W
-exactly — that is the cross-check that this is the same measurement, not a new one.
-(`MOT_B_2`'s length and resistance include the 11.3 mm the issue-4 pairing and the
-issue-5 retune added; see those sections.)
-
-0.8 mm of 1 oz external copper carries roughly 2.3 A for a 10 °C rise (IPC-2152), so
-1.47 A is about a 4 °C rise — the trunks are sized on temperature, not just on drop.
-**No 0.15 mm copper is left on any motor net**; the widths in use are 0.2, 0.3, 0.4
-and 0.8 mm.
-
-**The escapes are the only narrow copper and they are now fenced in.** OUT1 leaves
-pin 6 between the bypass cap's two pads — a 0.65 mm slot — so it runs 0.2 mm for
-2.1 mm, 0.4 mm for 0.4 mm, then 0.8 mm. OUT2 leaves pin 8 upward at 0.3 mm for 0.5 mm
-and 0.4 mm for 0.5 mm. Worst case is ~11.5 squares, about 6 mΩ, on copper heat-sunk by
-a wide trunk at one end and the pad at the other.
-
-**A netclass and a custom DRC rule enforce it**, which is what the review asked for.
-`Pixy-M2.kicad_pro` gains a `Motor` netclass (0.8 mm default width, matched by the
-pattern `/MOT_*`), and the new `Pixy-M2.kicad_dru` carries:
-
-```
-(rule "Motor trunk minimum width"
-	(constraint track_width (min 0.6mm))
-	(condition "A.NetClass == 'Motor' && !A.enclosedByArea('Motor pin escape')"))
-```
-
-`Motor pin escape` is two named rule areas on F.Cu, one per driver, sized to contain
-the escapes and nothing else. **`enclosedByArea`, not `intersectsArea`** — with
-`intersects`, a trunk that merely *starts* inside the area is exempt along its whole
-length, and that was observed: the first version of this rule silently passed a
-deliberately narrowed `MOT_A_1` trunk. The rule was verified in both directions:
-narrowing one 0.8 mm segment on each of the four nets produces four `track_width`
-errors, and the real escapes produce none.
-
-### Issue 2 — exposed-pad heat path
-
-U4's exposed pad had **no via in it at all** and reached GND through a 0.4 mm neck to
-a single via; U5 had one. Per driver the pad now has:
-
-- **two in-pad thermal vias at 0.45 mm / 0.25 mm.** The board's own rules already
-  allow this — `min_via_diameter` is 0.45 and `min_through_hole_diameter` 0.2 — and
-  the 0.8 mm pitch leaves 0.55 mm hole-to-hole against the 0.45 mm rule. **Three do
-  not fit:** the 0.45 mm hole-to-hole rule forces a 0.7 mm pitch, which puts the outer
-  vias' copper outside a 1.6 mm pad. The earlier note in this file that
-  "0.45/0.25 would fit ~6" was wrong — it counted copper and ignored hole-to-hole.
-- **0.8 mm-wide copper out of the pad** to a further GND via above it.
-- GND vias within 3 mm of the pad: U4 2 → 4, U5 1 → 4. With the in-pad pair that is
-  six vias per driver into the In1 plane.
-- a new F.Cu zone, **`GND pour motor region`** (x 104.2–123.2, y 104.6–120.2), which
-  fills **165 mm² of top-side ground copper** around both drivers, D6 and the bulk
-  caps. Solid pad connections, island removal on, same settings as the other pours.
-
-**There is deliberately no copper neck out of the *lower* end of either pad.** The
-`ESP_3V3` feed to pin 4 (VREF) passes within 0.43 mm of it on both drivers and nothing
-0.6 mm wide fits past. `rework.py` prints `! no neck+via for GND from (…)` when it
-gives up on this; that message is expected, not a failure. Widening it means rerouting
-the VREF feed first.
-
-**The via-in-pad still needs an assembly decision** — see issue 6 below, which
-closed the rest of the board's vias-in-pads and put the requirement for these four
-on a fabrication note. Confirming the fill-and-cap option with the fabricator is the
-one part of it that is not a drawing change.
-
-### Issue 3 — local bypass loops
-
-C18 and C20 sat 4.95 mm and 3.61 mm from their driver's VM pin and reached it only
-through the In2 plane, 1.065 mm of core away from the In1 return. Both now sit
-**1.33 mm away, directly across VM (pin 5) and GND (pin 7)**, and the loop closes
-entirely in top copper: pin 5 → cap pad 1 → cap → cap pad 2 → pin 7. No plane hop.
-
-| | C18 / U4 | C20 / U5 |
-|---|---|---|
-| position | (106, 111) → **(111.25, 114.25)** rot 90 | (120, 111) → **(119.25, 114.25)** rot 90 |
-| VBAT pad to VM pad | 4.95 → **1.33 mm** | 3.61 → **1.33 mm** |
-
-**The 0.5 mm pin pitch caps those runs at 0.3–0.35 mm** for their 1.3 mm, because OUT1
-sits between VM and GND and needs 0.2 mm of clearance either side. That is about
-2 mΩ, 4 mV and 4 mW at 1.47 A, and it cannot be widened without moving OUT1 off the
-package midline, which the pinout does not allow.
-
-**C21 moved to (119.3, 109.4)** because its old position at (113, 114) sat squarely in
-the new OUT1 escape corridor. Two constraints shaped where it went, both worth
-remembering:
-
-- it kept **rot 90**. Changing a footprint's rotation while leaving its text fields
-  alone raises a `lib_footprint_mismatch` warning, which is how the first attempt at
-  (120.5, 117) rot 0 was caught.
-- the **`IMU module and bracket reservation` keepout (x 120.5–145.5, y 113.5–138.5,
-  footprints not allowed)** rules out the obvious spot right of C20. Tracks and vias
-  are allowed there; footprints are not.
-
-Silkscreen references for C18, C20, C21 and U5 were moved off the pads they would
-otherwise have covered.
-
-### Issue 4 — the motor-B pair (2026-09-21, second rework pass)
-
-`MOT_B_1` ran at y ≈ 113 while `MOT_B_2` detoured through the regulator at
-y ≈ 97–105, so the two were **7.2 mm apart on average and 9.7 mm at worst** and the
-loop they enclose was **423.6 mm²** as first routed (347.9 mm² after the issue-1–3
-pass, which widened them but did not move them together).
-
-`rework.py` now routes `MOT_B_1` first, samples its finished polyline, offsets each
-sample 1.15 mm to the side `MOT_B_2` has to end up on, and routes `MOT_B_2` through
-those points as waypoints. A waypoint that cannot be reached is skipped rather than
-failing the net.
-
-| | first routed | after issues 1–3 | now |
-|---|---:|---:|---:|
-| enclosed loop area | 423.6 mm² | 347.9 mm² | **83.4 mm²** ¹ |
-| pair separation, mean / worst (x < 149) | — | 7.17 / 9.65 mm | **1.39 / 5.27 mm** |
-| motor copper to `REG_EN` | 0.27 mm | 1.00 mm | **8.51 mm** |
-| motor copper to the SW node | 0.28 mm | 1.33 mm | **6.62 mm** |
-| motor copper to `VSYS` at U3 | 0.28 mm | 5.52 mm | **9.00 mm** |
-
-¹ 111.5 mm² when this pass landed; the issue-5 rework moved C7/C11, which let the
-fan-out be retuned. Loop area is measured by `tools/autoroute/loop.py`.
-
-The regulator is now decisively out of the motor current's way, which was the other
-half of the finding.
-
-**U5 was deliberately not moved**, which is the review's first suggestion. Three
-things argue against it, and they are worth recording because the idea will come back:
-
-- **The In2 VBAT island stops at x = 127** and J9 is at x = 158. A driver next to J9
-  would be off the motor supply plane entirely, so VM would need either a long trunk
-  or the island extended east across the In2 3V3 pour that feeds J4–J7, J9.5, the
-  encoder pull-ups and U1.
-- **The space west of J9 is the buck output** — L1, C7, C11. Moving U5 there puts a
-  switching driver hard against the regulator, which is the opposite of the placement
-  partition the stackup section calls for, and it would undo the clearances above.
-- **It splits the motor region.** D6, the bulk capacitance and the battery entry are
-  all at the other end of the board; the partition only works while the motor drive
-  stays in one corner.
-
-**Two costs, both recorded rather than hidden:**
-
-- `MOT_B_2` is longer — 48.6 → 55.0 mm here, 59.4 mm after the issue-5 retune — so
-  the motor-B pair's resistance goes 61.5 → 68.1 mΩ: **+10 mV and +14 mW** at the
-  1.47 A limit. Trivial against a 5× loop reduction.
-- **Motor copper within 0.6 mm of the BNO08x SPI nets doubles, 5.0 → 11.0 mm**,
-  because the corridor the pair now shares passes under J10's fan-out. That total is
-  ~13 separate encounters of 0.2–2.0 mm — crossings and brushes, not a parallel run —
-  and the longest is against `GPIO16`, which is the module's RST line with a 10 kΩ
-  pull-up, not a clock or data line. The trade was taken deliberately: coupling into
-  `REG_EN` trips a comparator and stops the robot, while a disturbed SPI word is
-  something firmware can detect and retry.
-
-**Motor A was measured with the same mechanism and gained nothing** (103.3 mm² either
-way), so U4 is left unpaired. The reason is structural: both of its outputs have to
-leave the WSON on the east side, while J8's two motor pins sit either side of the
-driver in x, so `MOT_A_2` has to round U4 however it is routed. Do not re-attempt this
-without moving U4 or J8.
-
-
-### Issue 5 — the buck power stage (2026-09-22)
-
-Four separate complaints, all about the regulator block being spread out rather
-than wrong. Fixed by moving six parts and hand-routing the block; `rework.py`'s
-`buck_block()` lays every track before it searches for a single via, because a
-stitching via dropped into a corridor a later track needs is how the first
-attempt shorted SW to GND under the package.
-
-| | before | after |
-|---|---:|---:|
-| SW node copper area | 5.17 mm² | **3.57 mm²** |
-| SW node on B.Cu | 2.55 mm | **0 mm** |
-| SW node vias | 2 | **0** |
-| C6 (BST) pad to U3.6 | 4.15 mm | **2.25 mm** |
-| BST net track | 3.72 mm | **2.11 mm** |
-| U3.4 return via ↔ C17 return via | 5.88 mm | **0.95 mm** |
-| L1.2 → C11.1 through copper | *none* — plane only | **6.95 mm on F.Cu** |
-| C7.1 → C11.1 | 4.00 mm | **2.30 mm** |
-| FB / 3V3 copper to SW or BST | 0.27 mm | **1.35 mm** *(recorded as 2.10 mm; see below)* |
-| VSYS copper to SW or BST | 0.83 mm | **2.07 mm** |
-
-Six parts moved: **C6** (140, 91) → (139.5, 93.3), **C17** (136, 96) rot 90 →
-(139, 98.6) rot 0, **C7** (147, 100) → (147, 99), **C11** (147, 104) →
-(147, 101.3), **R8** (137, 100) → (136.6, 100.6), **TP4** (143, 100) →
-(141.9, 99.6).
-
-**The input capacitor now straddles the package.** U3 is a TSOT-23-6 with
-FB/EN/IN down the left edge and GND/SW/BST down the right, so IN (pin 3) and
-GND (pin 4) sit at the *same y on opposite sides*. C17 therefore goes underneath,
-spanning the two, which is the tightest input loop this pinout allows. The metric
-the review cited — the distance between C17's return via and U3's — goes from
-5.88 mm to 0.95 mm, and U3.4 now has its own via 1.11 mm from the pin, hand-placed
-because the search has no room left between the C17 pad, the TP4 stub and the two
-B.Cu signal runs that pass under the package.
-
-**TP4's back-layer branch is gone.** It was an F.Cu stub, two vias and 2.55 mm of
-B.Cu hanging off the switch node; it is now a single 3.2 mm top-layer stub to a
-pad that sits clear of the inductor body and can still be probed. The node has no
-vias at all and 31 % less copper. TP3 (the probe ground) stayed at (142, 104),
-4.4 mm away — within reach of a scope ground spring.
-
-**The bootstrap capacitor could not go where it belongs.** BST (6) and SW (5) are
-adjacent pins on the right edge, so the ideal spot is a vertical 0603 straddling
-them — but **L1's courtyard starts 0.45 mm past U3's**, leaving nothing there.
-C6 went above the package instead, with its SW pad pointing at L1 and its BST pad
-at U3.6. That halves the BST run rather than perfecting it. Moving L1 east would
-buy the ideal placement at the cost of a longer SW island, which is the wrong
-trade — the island is the primary radiator and the bootstrap carries gate charge.
-
-**The output filter is now one top-layer run.** Before, L1.2, C7.1 and C11.1 each
-tapped the In2 3V3 pour independently and **no copper path joined them at all** —
-`loop.py`'s path finder reports "no path" on the old board, which is the sharpest
-statement of the review's complaint. Now L1 → C7 → C11 is a 0.8 mm F.Cu run, with
-the plane tapped at the capacitors.
-
-**Feedback has a dedicated sense line.** U3.1 used to reach the 3V3 plane through
-a via 1.2 mm from BST. It now runs as its own 0.2 mm trace round the south of the
-block to **C11.1, the far output capacitor** — about 21 mm, which is long, but it
-never comes within 2.1 mm of SW or BST where the old tap was 0.27 mm away. For a
-fixed-output part FB is the output sense into a ~1 MΩ internal divider, so it is
-noise, not DC drop, that decides where it should run. *(Corrected 2026-09-24:
-the run along y = 101.8 passes TP4, the SW probe pad, at **1.35 mm**, measured
-by DRC. FB now also turns south at x = 132.2, round the outside of R8/C13, and
-is 26.3 mm long, still top-layer only with no via. See "REG_EN beside U3.2".)*
-
-**`/VSYS` is pinned to the corridor north of the buck** by a waypoint. Left to
-itself A* prefers a shorter path that threads the 8.4 V input rail straight
-between L1 and C7/C11; it now enters the block only as the 4.4 mm IN→C17 leg and
-the bulk feed from C12.
-
-**One thing got worse and is not hidden:** `REG_EN` copper now passes **0.99 mm**
-from switching copper where it was 2.12 mm. *(Corrected by issue 8: measured
-exactly, the EN via under the package is **0.40 mm** from the SW pin. 0.99 mm was
-not the closest pair. The issue-8 rule set guards 0.35 mm.)* Its via moved out of U3.2's pad —
-which is review issue 6's defect, so that part is an improvement — into the
-0.95 mm gap between the pin columns, the only spot left once vias are barred from
-pads. With the In1 plane 0.2 mm below both, a via-to-trace gap of 1 mm is not a
-coupling problem, but the real fix is the standing layout rule to put R8 and C13
-next to U3.2, which needs the EN network re-placed and is not part of this issue.
-*(Fixed 2026-09-24: R8 and C13 sit beside U3.2 and the EN via under the package
-is gone. REG_EN's closest approach is now U3's own 0.95 mm pin gap. See
-"REG_EN beside U3.2".)*
-
-**Motor B improved as a side effect.** Moving C7/C11 changed what `MOT_B_2` had
-to route around, so the pair's fan-out was retuned (`skip_end` 3.0 → 1.5 mm): the
-enclosed loop goes **111.5 → 83.4 mm²**, at the cost of 4.4 mm more `MOT_B_2`
-(55.0 → 59.4 mm, 34.6 → 37.3 mΩ).
-
-**A KiCad file-format trap, recorded because it cost a debugging cycle.** Every
-text *and pad* inside a footprint stores its angle in the board frame. Rotating
-only the footprint's own `(at …)` leaves the pads behind — C17's 0.9 × 0.95 mm
-pads silently stayed 0.95 × 0.9 — and DRC reports it as
-`lib_footprint_mismatch`, which reads like a library problem rather than a bad
-edit. `pcbedit.move_footprint` now turns every `(at …)` in the block.
-
-
-### Issue 6 — vias inside pad openings (completed 2026-09-22)
-
-The first pass moved via **centres** out of pads, but that was not sufficient:
-12 ordinary drill holes still overlapped solder-mask openings, and another 23
-had less than 0.10 mm edge clearance. It also overlooked the independent,
-unnumbered paste apertures over the four U4/U5 thermal vias. The earlier claim
-that none of the remaining vias was under paste was incorrect.
-
-The completion pass moves these **35 vias locally**, retaining every existing
-track segment, all footprints, all via sizes and all 247 vias. Short connections
-on the affected copper layers preserve the original routes. The P3 GPIO48
-cleanup, USB routing and motor-output trunks are unchanged.
-
-| Check | Before completion | After completion |
-|---|---:|---:|
-| Ordinary drill holes overlapping pad openings | 12 | **0** |
-| Ordinary vias below the 0.10 mm opening clearance | 35 | **0** |
-| Intentional thermal vias under paste | 4 | **4, explicitly filled/capped** |
-
-`tools/autoroute/via_openings.py` checks complete drill circles against all front
-and back mask and paste apertures, including paste-only pads, pad rotation and
-rounded corners. It uses the pad's resolved mask/paste margins and fails on
-unsupported geometry. The minimum measured ordinary drill-to-opening clearance
-is **0.10 mm**; this is a board design allowance, not a quoted fabricator minimum.
-`Pixy-M2.kicad_dru` also enforces 0.10 mm physical hole-to-SMD-pad clearance,
-regardless of net. The only exceptions pair the four specified thermal vias with
-their own U4/U5 exposed-pad apertures; the Python audit additionally requires
-explicit fill and cap on each one.
-
-**KiCad 10 supports filling and capping per via.** The earlier assertion that
-these properties were board-wide only was wrong. Each 0.45/0.25 mm GND via at
-(109, 113.6), (109, 114.4), (117, 113.6) and (117, 114.4) now has `(filling yes)`
-and `(capping yes)`, verified after saving and reopening. Board-wide filling and
-capping remain off. The `Dwgs.User` fabrication note requires resin fill and
-copper cap, IPC-4761 type VII, for these four holes. The fabrication order must
-include that process; tenting does not replace it.
-
-`finish_issue6.py` replays the local repairs after the historical centre-based
-pass and the P3 correction. Regeneration now audits apertures before replacing
-the output board and stops if the expected geometry has changed. Always refill
-zones and run DRC plus schematic parity afterward. The saved board has zero
-unconnected items and zero parity issues; DRC still reports only the four known
-J1 hole-clearance errors and the U1 library-footprint warning.
-
-Measurements and validation: `layout/issue6-complete/README.md`.
-
-
-### Issue 7 — the USB pair (2026-09-22)
-
-D+/D− were ordinary 0.2 mm traces. They had varying separation, a D+ detour round
-U2, and asymmetric layer changes. By the time issue 6 had finished, D− had 4 vias
-and 8 mm on B.Cu, and the end-to-end skew was 8.08 mm. **Both polarities now run
-as one pair, J1 to U1, entirely on F.Cu over the In1 plane, with no via anywhere
-on the USB path.** `tools/autoroute/usb_pair.py` does it. `rework.py` runs it as
-its last routing stage, after the issue-6 repairs, so no earlier stage changes.
-
-| | before | after |
-|---|---:|---:|
-| USB vias / B.Cu copper | 4 / 8.01 mm | **0 / 0** |
-| width, module-side gap | 0.20 mm, 0.25–0.35 mm | **0.25 mm, 0.15 mm** |
-| J1 → U2 → U1 path, D+ / D− | 24.54 / 32.62 mm | **20.15 / 19.11 mm** |
-| end-to-end skew | 8.08 mm | **1.04 mm** (≈ 6 ps) |
-| U2 GND pin to plane via | 1.11 mm | **0.71 mm** |
-
-**U2 turned 90°**, (154, 148) rot 0 → (153.5, 149.5) rot 90. That is the change
-that makes a clean pair possible. The USBLC6-2SC6 is flow-through: D− enters on
-pin 1 and leaves on pin 6, D+ enters on 3 and leaves on 4, and each pair of pins
-sits on opposite sides of the package. At rot 0 that flow ran west→east across a
-signal travelling south→north-west, so D+ had to wrap round the part. At rot 90
-the connector row (1, 2, 3) faces J1 and the module row (6, 5, 4) faces U1, with
-D− on the west in both. **Do not turn U2 back without re-routing the pair.**
-
-**U2's middle pins leave under the body.** GND (2) and VBUS (5) sit between the
-two lines of the pair, so both use the 1 mm gap between the pin rows:
-
-- GND goes to a plane via *under the package* at (153.0, 149.5), which clears
-  pins 1, 5 and 6 by 0.22 mm of copper and every pad opening by ≥ 0.37 mm of
-  drill.
-- VBUS runs east, between pins 3 and 4, to the existing feed from F2.
-
-**J1's USB-C pads alternate D−, D+, D−, D+** (B7 A6 A7 B6), so one polarity has
-to cross the other. Both crossings stay on F.Cu:
-
-- D+ bridges A6 → B6 over the top of A7.
-- D− loops A7 → B7 under the bottom of A6, where the old route used a via.
-
-Each join is a ~1.4 mm stub, which is irrelevant at 12 Mbps. The pair is 0.25 mm
-wide there too; that leaves 0.225 mm to the neighbouring pads.
-
-**The 1.04 mm of remaining skew is geometric, not an oversight.** Two sources
-make it:
-
-- D− is the inner line at both 45° bends, so it is shorter there.
-- D+ climbs into U1 pin 14.
-
-The skew is below the 1.25 mm (50 mil) figure commonly used for *High* Speed
-matching, and the ESP32-S3 PHY is Full Speed only. **Do not add a serpentine**;
-it would cost more coupling than it buys.
-
-**CC1/CC2 were ripped and re-searched**, because their vias sat where the pair now
-runs. They cross under the pair on B.Cu with the In1 plane in between. While
-they were routed, the pair was inflated by 0.15 mm, so their F.Cu copper and
-vias keep that extra distance, except in J1's pad field. CC1 is 4.92 → 5.81 mm;
-CC2 is 13.57 → 8.53 mm.
-
-**Enforced by rules, and each rule was tested by breaking it.** The new rules
-are:
-
-- a **`USB` netclass** in `Pixy-M2.kicad_pro`, with 0.25 mm width, a 0.15 mm
-  gap, and 0.15 mm clearance *inside* the class (0.2 mm to everything else).
-  It matches `/USB_D*` and `Net-(J1-D*`.
-- a **width rule** in `Pixy-M2.kicad_dru`: 0.24–0.26 mm.
-- a **layer rule**: no track or via of a USB net on B.Cu.
-- a **coupling rule** on `/USB_D±`: the gap must be 0.14–0.16 mm, with at most
-  4 mm uncoupled. The routed pair has 3.4 mm uncoupled, forced by U2's 1.9 mm
-  and U1's 1.27 mm pin pitch.
-
-KiCad pairs nets by a trailing ±, so the connector-side nets get the width and
-layer rules but not the coupling rule. Each rule fired on a copy of the board
-with the matching defect: a 0.20 mm segment, a D− loop on B.Cu, and D− spread
-0.10 mm. This covers the USB half of review issue 8. The netclass and rules
-belong to this fix, because they are the geometry it chose.
-
-**Impedance is a calculation, not a fab figure.** `tools/impedance/zdiff.py` is a
-2D field solver of the coupled microstrip, and it gives:
-
-| prepreg | mask 10 µm | mask 25 µm |
-|---|---:|---:|
-| 0.200 mm | 93.0 Ω | 89.5 Ω |
-| 0.2104 mm | 94.2 Ω | 90.6 Ω |
-
-At its default 5 µm mesh it reads about 1.5 Ω high. IPC-2141 gives 90.4 Ω. Call
-it 88–94 Ω. Confirm with JLCPCB's calculator, or order impedance control.
-
-DRC is unchanged: 0 unconnected, 0 parity issues, and only the four J1
-`hole_clearance` errors and the U1 warning. The aperture audit passes, with 243
-vias, down from 247. A track/via diff against the issue-6 board touches only the
-USB nets, CC1, CC2, and U2's own GND and VBUS stubs. Motor loop areas are
-unchanged at 103.3 / 83.4 mm².
-
-**Not touched:** the shield return (J1 shell → C8/R5), which the review lists as a
-separate observation, still takes its long B.Cu path behind U2.
-
-Measurements and validation: `layout/issue7-usb/README.md`.
-
-
-### Issue 8 — the rule set (2026-09-22)
-
-Review issue 8 said the project rules did not encode its routing requirements.
-There was only the Default netclass and a 0.15 mm global minimum, so narrow
-copper anywhere passed DRC. Issue 1 added the `Motor` class and trunk rule;
-issue 7 added the `USB` class and its width, layer and coupling rules. **This
-pass does the rest, and fixes the copper the new rules caught.** The copper
-stage is `tools/autoroute/issue8.py`, which runs after `usb_pair.py`.
-
-**New netclasses** in `Pixy-M2.kicad_pro`:
-
-- `Battery`: `/VBAT_RAW`, `/VBAT_FUSED`, 1.0 mm.
-- `Power`: `/VBUS`, `/VSYS`, `Net-(F2-Pad1)`, 0.6 mm.
-
-`/VBAT` is in neither. Its current runs in the In2 island, and its tracks are
-pad-to-plane stubs sized by pin pitch, so a width rule on it would test nothing.
-
-**New rules** in `Pixy-M2.kicad_dru`:
-
-| rule | floor | exception |
-|---|---|---|
-| Signal minimum width | every track 0.2 mm | `Motor pin escape` areas (DRV8231A pin fields) |
-| Power path width | 0.5 mm | `Power pin escape` area: U2's VBUS pin, out under the package |
-| Battery path width | 0.8 mm | none |
-| REG_EN clear of the switch node | 0.35 mm; **0.9 mm since 2026-09-24** | — |
-| Sense nodes clear of motor and switch copper | 5 mm for `REG_EN` to motor, and for `VBAT_SENSE` to motor, SW and BST | — |
-| IPROPI clear of motor outputs | 0.25 mm | — |
-
-**Three KiCad behaviours fix how these rules must be written.** Each was
-verified, and each will bite whoever edits them next:
-
-- **The board-setup minimum track width is absolute.** A custom rule cannot
-  relax it, so it stays at 0.15 mm, what the pin fields need, and the 0.2 mm
-  floor is a custom rule. Raising the board setting to 0.2 mm breaks the pin
-  fields.
-- **The later of two rules setting the same constraint wins.** "Signal minimum
-  width" is therefore the **first rule in the file**. Move it below the motor,
-  USB, power or battery rule and it silently relaxes that rule to 0.2 mm.
-- **`enclosedByArea` tests the whole track outline, round caps included.** A
-  segment ending exactly on an area edge is *not* enclosed.
-
-**The clearance rules are floors just under what the board achieves, not the
-constraints in "Layout constraints".** Two sit well below them:
-
-- **`REG_EN`**: 0.40 mm from the SW pin, via the EN via under U3; see issue 5.
-- **IPROPI**: 0.29 mm from a `MOT_A_2` trunk near U4.
-
-They stop further erosion; they do not certify either constraint. *(2026-09-24:
-REG_EN is fixed. It is now 0.95 mm, U3's own EN-to-SW pin gap, and the floor
-is 0.9 mm; see "REG_EN beside U3.2". IPROPI has been 0.53 mm since J8/J9
-moved.)*
-
-**Copper the rules required:**
-
-| | before | after |
-|---|---:|---:|
-| track below 0.2 mm | 219.4 mm | **8.7 mm**, all inside the pin fields |
-| `/VBUS` F2 → D1 | 0.24 mm, 105.4 mΩ | **0.6 mm, 44.4 mΩ** |
-| `Net-(F2-Pad1)`, J1.A9 / J1.A4 → F2 | 9.7 / 32.7 mΩ | **4.0 / 8.2 mΩ** |
-| `/VBAT_FUSED` R14 tap | 0.2 mm | 0.8 mm |
-
-- **The five 0.15 mm nets** were `GPIO39/40/41` (motor IN) and `GPIO2/10`
-  (IPROPI). The router had used 0.15 mm end to end because it takes one width
-  per net. Each segment is split at the pin-field areas, shrunk by 0.1 mm for
-  the caps, and widened outside them. One GPIO41 corner doglegs round the GPIO47
-  via that issue 6 moved.
-- **The USB supply carries the whole board on USB**, yet it was 0.24 mm despite
-  the width table above. It is re-routed at 0.6 mm. **The D3 tap is pinned to
-  its old corridor along the top edge.** Left free, A* ran it 0.5 mm from C6's
-  switch-node pad, and that tap feeds `REG_EN` through R9.
-- **`Router.route_waypoints` can leave a leg unconnected.** Each waypoint is
-  offered on both layers, so consecutive legs can meet on different layers with
-  no via. The MOT_B_2 pairing happens not to hit this; `issue8.py` pins its
-  waypoints to F.Cu.
-- **The router's via-to-pad bar is too small for issue 6's floor.** It keeps via
-  centres 0.15 mm from pads, which lets a drill touch the mask opening; this
-  landed 0.04 mm from both J1 VBUS pads. `issue8.py` rebuilds the bar at drill
-  radius + 0.10 mm + one grid step, for its own stage only.
-
-DRC is unchanged: 0 unconnected, 0 parity issues, and the same five
-pre-existing items. The aperture audit passes with 243 vias. Every new rule
-fired on a copy of the board broken to violate it, including the motor rule
-under the new generic rule. A track/via diff against the issue-7 board touches
-only the eight nets above. Exact clearances, from `layout/issue8-rules/clearmin.py`,
-are identical before and after.
-
-**Measuring clearance with DRC needs care.** With a large threshold, DRC
-reports the first violating shape pair it meets, not the closest. A single
-20 mm threshold gave 0.95 mm for `REG_EN` and 0.75 mm for IPROPI, both wrong.
-`clearmin.py` descends from several thresholds.
-
-Measurements and validation: `layout/issue8-rules/README.md`.
-
-
-### DRC clean — J1 hole clearance and the U1 footprint (2026-09-23)
-
-The five DRC items carried since placement are gone. **DRC reports 0
-violations, 0 unconnected items, and 0 schematic-parity issues.** ERC is still
-0. No copper, geometry or placement changed.
-
-**J1: the land pattern stays, and the rule is scoped.** The stock Amphenol
-12401948E412A footprint puts its GND pads 0.25 mm from its own 0.6 mm locating
-holes. That is the land pattern KiCad's librarians merged against Amphenol's
-drawing c12401948 (kicad-footprints MR !3540). Amphenol blocks automated
-download, so I have not re-measured the drawing myself. JLCPCB's stated
-NPTH-to-track minimum is 0.20 mm. Board-setup hole clearance is **absolute**:
-like the minimum track width, custom rules cannot relax it. So the board setup
-is 0.30 → **0.20 mm**, and a custom **"Hole clearance"** rule restores 0.30 mm
-for every pair except J1's own pads against J1's own holes. Both directions
-were tested:
-
-- a track 0.25 mm from an SW3 hole still fails at 0.30 mm;
-- J1's hole moved to 0.15 mm fails the 0.20 mm floor.
-
-**U1: the customization is now a library footprint.** The mismatch was five
-items: the antenna-area outline and label, moved to F.Fab because the antenna
-overhangs the board edge (recorded in `layout/README.md`). They now live in:
-
-- `Pixy-M2.pretty/ESP32-S3-WROOM-1_AntennaOverhang.kicad_mod`, which is
-  Espressif's file with those five layer changes and nothing else;
-- the project `fp-lib-table`, which registers the `Pixy-M2` library;
-- U1's footprint id in the board, and in the schematic's placed-U1 field;
-- `rework.py`, which now sets the same id through `Pcb.set_fpid`.
-
-Evidence: `layout/drc-clean/`.
-
-
-### J8/J9 in the Pololu pin order (2026-09-23)
-
-J8/J9 moved from 2.0 mm JST PH (M1 GND A B VCC M2) to `SM06B-SRSS-TB` in the
-Pololu 12 CPR encoder order (GND B A VCC M2 M1, MP to GND), so the motors plug in
-with Pololu's straight SH-SH cable; R17/R18 went 1.5 → 2.2 kΩ for the 1 A contact
-rating. See "Connectors J8/J9" and "Current limit". The copper is
-`tools/autoroute/pololu_conn.py`, which runs after `issue8.py`.
-
-- **Placement.** J8 is at (110, 125.5) rot 180 and J9 is at (160, 103.4) rot 90.
-  Each keeps its old rotation, so its cable still exits toward its motor, and
-  each sits inside the old PH courtyard. J9's x is the eastmost that stays clear
-  of the 0.6 mm `/VBUS` run at x ≈ 160.
-- **What moved with it.** The PH part was through-hole, so `GPIO2`, `GPIO39` and
-  `GPIO40` ran between its pins. The new SMD pad row lands on them, so they were
-  cut and re-routed round or under it. So were the encoder nets and U4's VREF
-  feed. That feed was a B.Cu run to the old through-hole J8 pin 5, and it is
-  the only 3V3 path under the In2 VBAT island. It now reaches the J8.4 stitch
-  via, about 22 mm on B.Cu, because no 3V3 via sits between the island edge
-  and J8.
-- **Only 13 nets changed.** A track/via diff against the previous board touches
-  only the four motor nets, the four encoder nets, `GPIO2/39/40`, `/ESP_3V3` and
-  `GND`. There are 253 vias, up from 243.
-- **Checks.**
-  - DRC: 0 violations, 0 unconnected, 0 schematic-parity issues.
-  - ERC: 0.
-  - The aperture audit passes.
-  - The Motor trunk rule still holds; the fan-in stubs are 0.6 mm, the rule's
-    floor.
-
-| | before | after |
-|---|---:|---:|
-| motor A loop area | 103.3 mm² | **23.9 mm²** |
-| motor B loop area | 83.4 mm² | **9.8 mm²** |
-| `MOT_A_1` / `MOT_A_2` path | 17.2 / 19.2 mm | 20.3 / 23.7 mm |
-| `MOT_B_1` / `MOT_B_2` path | 44.0 / 60.9 mm | 47.0 / 52.8 mm |
-| IPROPI to motor copper | 0.29 mm | **0.53 mm** |
-| `REG_EN` to motor, and other guarded clearances | — | unchanged |
-
-**Motor A pairs now.** Issue 4's "do not re-try it" was about J8's M1/M2
-straddling U4 at opposite ends of a PH header. They are now adjacent pins, and
-both trunks drop straight from U4 onto pins 6/5 under the housing.
-
-**Expected output, not failures.** J8.1, J8's west MP and J9.1 have no room for
-a via of their own, so the stage prints `! no stitch via for GND …` for them and
-then ties each to the nearest stitched pad or GND via.
-
-### Assembly marks on the silkscreen (2026-09-23)
-
-The mechanical reservations in `layout/README.md` were only on Dwgs.User and
-User.1/2, and those layers are not fabricated. `tools/autoroute/assembly_marks.py`
-prints marks for the off-board parts. `rework.py` runs it after `f1_fuse.py`.
-
-- **ToF sensors (F.SilkS).** Four 13 × 18 mm mount outlines. These are the
-  14 × 19 mm reservations inset 0.5 mm, so the corner ones clear the R3 corners.
-  Each has its aim arrow and the connector its cable plugs into: LOOK L → J6,
-  FL → J4, FR → J5, LOOK R → J7. The outlines mark mounting areas, not the
-  module's outline. The GY-VL53L0XV2 is quoted as 25 × 13 mm, so it has to stand
-  upright or angled in a bracket.
-- **IMU (F.SilkS).** The Adafruit BNO085 #4754 outline (25.4 × 22.86 mm), its
-  four 2.5 mm holes, and a circle at the chip centre, which sits on the
-  rotation centre (133, 126). The geometry comes from Adafruit's
-  `Adafruit_BNO08x.brd`. **Module +Y points forward and +X to the right**, so
-  the sensor frame is the robot frame. That puts the BT/P0/P1/RST/DI/CS header
-  at the front, nearest J10. The module is 0.2 mm wider than the 25 mm
-  reservation on each side. It stands on its own holes, above the parts, so
-  nothing collides.
-- **Motors (B.SilkS, mirrored text).** Both Pololu HP 6V bodies, 12 mm wide:
-  gearbox 9, motor 15 and encoder 8 mm (Pololu drawing 0J949). The gearbox face
-  is on the board edge and the shaft is on the wheel axle, y = 110 (left,
-  **motor A → J8**) and y = 142 (right, **motor B → J9**). The label
-  sits in the 4 mm side-connector allowance. *Since 2026-09-24 that allowance
-  faces outboard; see "Battery between the axles".*
-- **C20 and R15 reference fields moved** 0.6 mm west and 0.45 mm south, clear of
-  the IMU outline.
-- **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit
-  passes. Tracks and vias are unchanged. The B.Cu pour fill differs from the
-  previous commit only because that fill was stale: refilling the previous board
-  gives the same polygons.
-
-### Battery between the axles (2026-09-24)
-
-The underside battery reservation from placement predates the pack.
-It is 40 × 30 × 15 mm at board X 13–53, Y 5–35. The OVONIC 2S 450 mAh measures
-61.5 × 15.77 × 13.48 mm by its listing and 62 × 17 × 14 mm by its maker, so it
-fits that reservation neither way round. **The pack now lies across the
-underside, between the two motors.** `tools/autoroute/battery_bay.py` does
-this, and `rework.py` runs it after `assembly_marks.py`.
-
-- **Why not the front strip.** The pack fits there, and `BOM.md` suggested it.
-  But the wheels are at Y = 50 and 82, so the front half of the board sits
-  ahead of the front axle. The 31 g pack is about 30 % of the robot. At Y ≈ 13
-  it moves the estimated CG to about 6 mm ahead of the front axle, and the
-  robot rests on its nose. Between the axles, the pack's centre sits on the
-  rotation centre's Y (66). Its yaw inertia is about a ninth of the
-  front-strip figure.
-- **Geometry** (board frame; KiCad = board + (100, 60)):
-
-  | | now | was |
-  |---|---|---|
-  | battery body (User.1) | X 0.5–62.5, Y 57.5–74.5 (62 × 17) | X 13–53, Y 5–35 |
-  | `Battery underside reservation` | the body, extended to X = 66 for the lead exit | the body |
-  | left motor envelope | X 0–38, Y 40–56 | Y 44–60 |
-  | right motor envelope | X 28–66, Y 76–92 | Y 72–88 |
-
-- **The motors' 4 mm allowance now faces outboard.** Pololu's encoder board
-  stands 3 mm (side connector, #5155) or 4 mm (back connector, #5154) proud of
-  one face of the gearmotor, at the encoder end. That is what the allowance was
-  for, and it used to face the middle of the board. Mount each motor with that
-  face outboard or toward the floor. The drawn pack envelope sits 1.5 mm from
-  each motor body.
-- **Brackets fasten on the outboard side only.** The inboard attachment bands
-  and both battery strap bands are deleted. The outboard bands move 4 mm out
-  with their envelopes. Motor B's band stops either side of J1, because J1's
-  shell tabs and body sit under the rear edge. Hook-and-loop tape holds the
-  pack: the drive lanes beside it leave no path for a strap.
-- **The lead is the cost.** The XT30 and balance leads leave the pack's +X end
-  and run forward along X = 64.5. They cross the front strip at Y = 29.5 and
-  wrap the left edge between J6 and BT1. From the pack to the back of the XT30
-  plug that is **about 13 cm**, probably more than the pack's own lead, so
-  plan on an XT30 extension. User.2 shows the route. Moving BT1 to the pack's
-  end would drag F1, Q1 and the unfused `/VBAT_RAW` run out of the motor
-  corner, and "Keep unfused copper short" rules that out.
-- **Checks.**
-  - DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit passes.
-    Copper is unchanged.
-  - `battery_bay.py` checks all 10 drilled pads (BT1, J1, SW3) against the new
-    envelopes and bands: no clashes. BT1 is 1.5 mm from motor A's band. J1 is
-    1.57 mm from motor B's envelope.
-  - `layout/verify_placement.py` cannot load a routed board, so this check
-    stands in for it on these envelopes.
-- **Silkscreen (B.SilkS).** The stage also prints these marks:
-  - the pack outline, labelled `BATTERY  2S LiPo 450 mAh` and
-    `62 x 17 face on board, hook-and-loop`;
-  - an arrow at the +X end, labelled `XT30 + balance leads`;
-  - the lead route as a dashed line, ending in an arrow at the left edge
-    beside BT1's pins.
-
-  `assembly_marks.py` moves each motor's `Pololu HP 6V N20` into its now
-  outboard allowance and adds `ENC CONN SIDE` over the encoder. The old spot
-  is inside the battery outline. Standalone, `battery_bay.py` makes that move
-  on an already-marked board. DRC stays at 0 / 0 / 0, and the aperture audit
-  passes. `docs/images/pcb-3d-bottom.png` is re-rendered with
-  `kicad-cli pcb render --side bottom -w 1408 -h 2024 --background opaque
-  --quality high`.
-
-### REG_EN beside U3.2 (2026-09-24)
-
-The last layout constraint the routing did not meet. `REG_EN` is a ~20 kΩ node
-sitting 1.2 V above the EN comparator threshold (issue 2). The rule was to put
-R8 and C13 next to U3.2 and run the long leg from R7/R9 into them. Issue 5's
-buck block did the reverse:
-
-- FB left U3.1 west and ran down x = 136.6, 0.5 mm from U3's west pins, which
-  fenced in U3's whole west side.
-- So EN could only leave through a via **under the package, 0.40 mm from the
-  SW pin**.
-- R8 sat 7.35 mm of copper from the pin, straddling FB. C13 sat 9.9 mm away,
-  below it.
-
-`tools/autoroute/reg_en.py` fixes it. `rework.py` runs it after
-`battery_bay.py`.
-
-- **Placement.** C13 is at (136.18, 97.0) and R8 at (134.47, 97.175), both
-  rot 270, so each REG_EN pad (pad 1) is to the north, level with EN.
-  U3.2 → C13.1 → R8.1 is one straight top-layer run along y = 96, filter
-  capacitor first. The GND pads face south, each with its own plane via.
-  C13's courtyard is 0.04 mm clear of U3's; R8's is 0.2 mm clear of C12's.
-- **FB stays via-free.** It keeps issue 5's dedicated top-layer trace to
-  C11.1, but it now leaves U3.1 along y = 95.4, between C12 and the new
-  parts, and turns south at x = 132.2 instead of 136.6. **Do not drop FB to
-  B.Cu to shorten it.** That was tried first. A via on FB bonds to the In2
-  3V3 pour beside U3, which is the plane pickup review finding 5 removed. The
-  pour connects to same-net vias whatever the trace does.
-- **The long leg takes the vias instead.** It leaves R8.1 west, drops to B.Cu
-  at (133.0, 96.35) inside FB's turn, crosses under FB and comes up beside R7
-  at (130.1, 98.2). From there it runs down x = 130.1 to R7.2 and R9.2, as
-  before. `REG_EN` is a signal-only net, so its vias tie nothing to a plane.
-  The nearer one is 5.65 mm from switching copper, C6's BST pad.
-- **VSYS.** The C12 → C17 hop moves its upper via north of FB, to
-  (135.45, 94.55). Its lower via and the C17 stub stay.
-- **Planes.** Every new via is at least 1.35 mm from any other non-plane via,
-  so each 1.1 mm antipad stays a separate hole in In1 and In2. In the
-  B.Cu-FB attempt, the FB via sat 1.0 mm from the VSYS via, and their
-  antipads merged into a 2 mm void. In1 directly under U3 is now unbroken:
-  the old EN via's antipad sat between the pin columns.
-
-| | before | after |
-|---|---:|---:|
-| `REG_EN` to SW/BST, DRC | **0.40 mm** (EN via under U3) | **0.95 mm** (U3.2 to U3.5: the package's own pin gap) |
-| `REG_EN` copper outside U3.2 to SW/BST | 0.40 mm | **1.88 mm** |
-| copper path U3.2 → C13.1 / R8.1 | 9.90 / 7.35 mm | **1.91 / 3.66 mm** |
-| `REG_EN` track, vias | 17.7 mm, 2 (one under U3) | 14.3 mm, 2 (both ≥ 5.65 mm from SW/BST) |
-| FB path U3.1 → C11.1 | 18.1 mm, top only, 0 vias | 26.3 mm, top only, 0 vias |
-| FB to SW/BST | 1.35 mm | 1.35 mm (unchanged: TP4, see below) |
-| VSYS C12.1 → C17.1 | 5.91 mm | 6.65 mm |
-| vias on the board | 253 | 253 |
-
-- **Rule.** "REG_EN clear of the switch node" goes from 0.35 to **0.9 mm**,
-  just under the 0.95 mm U3's own pins set. The floor now sits at the
-  physical limit, where it used to sit below the intent: any REG_EN copper
-  put back under U3 fails it. The placement half of the rule, R8/C13 beside
-  U3.2, is still for review; DRC cannot check it. The floor fires on the old
-  board (0.40 mm) and on a copy with a REG_EN track run under U3 toward SW
-  (0.675 mm).
-- **Correction to issue 5.** FB was never "2.1 mm clear of SW or BST". Its
-  run to C11 along y = 101.8 passes TP4, the SW probe pad, at **1.35 mm**.
-  DRC measures that on both boards, and this pass does not touch that run.
-- **Checks.** DRC: 0 violations, 0 unconnected, 0 parity. The aperture audit
-  passes with 253 vias. A track/via diff against the previous board touches
-  only `/REG_EN`, `/ESP_3V3` (FB), `/VSYS` and the two GND stitches. Every
-  other guarded clearance is unchanged. A full `rework.py` replay reproduces
-  the board.
-- **Renders.** `docs/images/pcb-3d-top.png` is re-rendered with
-  `kicad-cli pcb render --side top -w 1408 -h 2024 --background opaque
-  --quality high`. `docs/images/pcb-copper-top.png` is
-  `kicad-cli pcb export svg --mode-single --page-size-mode 2
-  --exclude-drawing-sheet --layers F.Cu,Edge.Cuts`, then
-  `rsvg-convert -w 1000 -b white`; that pair reproduces the previous image to
-  the pixel. `pcb-3d-iso.png` is **not** re-rendered: its camera settings are
-  not recorded, and it still shows R8/C13 at their old positions.
-
-Measurements and validation: `layout/reg-en/README.md`.
-
-### What this pass did not touch
-
-- **Review issue 4** was still open after this pass and is closed by the next one.
-- **Review issue 5** was open after this pass and is closed by the next one.
-- **Review issue 6** was open after this pass and is closed below.
-- **Review issue 7** (the USB pair) was open after this pass and is closed above,
-  together with the USB half of issue 8.
-- **Review issue 8** (the rule set) was open after this pass and is closed above.
-- `GPIO2` / `GPIO10` (IPROPI) still pass within **0.29 mm** of motor copper near U4,
-  essentially unchanged from 0.26 mm (confirmed exactly by issue 8, which guards
-  0.25 mm). The review's own note applies: their 1.5 kΩ
-  source impedance is not `VBAT_SENSE`'s 150 kΩ, so validate this on hardware rather
-  than assuming it is a fault.
-
-## Layout constraints (written before layout; the routing above does not satisfy all of them)
-
-Read "Board stackup" first — several rules below assume the L2 plane exists.
-
-- Put **F1 immediately after BT1** and F2 immediately after J1's joined VBUS pins.
-  Keep unfused copper short; every downstream branch must go through its fuse.
-- Put **SW3 at an accessible edge**, marked BAT ON/OFF (USB can still power the
-  controller). Route only Q1 gate control to it, not motor current. Keep R14 close
-  to Q1 and connect all three source and all four drain pads with adequate copper.
-- Place **D6 next to the motor drivers** — it used to be "near J2.19–22", but the
-  load it protects is now on this board. Put it across switched `VBAT` with a short,
-  wide GND return, in the motor region of the partition. Keep its surge-current loop
-  away from the ADC and MCU ground paths. Size the battery/return copper for the
-  final load and F1's fault-clearing interval (issue 17).
-- **Put the motor drivers, their bulk capacitance and D6 in one corner**, as far
-  from U1, `VBAT_SENSE` and the ToF I2C as the outline allows, with their power loops
-  closed locally on L1 over the L2 plane. This placement *is* the noise strategy
-  (issue 16) — there is no plane split to fall back on.
-- **Antenna keep-out is non-negotiable.** The module's antenna must overhang a board
-  edge with zero copper on every layer in the keep-out region — no traces, no pours,
-  no components.
-- Place U3 as far from the antenna as the outline allows.
-- The **C12 → U3.3 → U3.4 loop must be as tight as physically possible.** This is
-  the highest-di/dt loop on the board. **Closed 2026-09-22 by C17, not C12: the HF
-  bypass now straddles IN (pin 3) and GND (pin 4) under the package and its return
-  via sits 0.95 mm from U3.4's, where the two were 5.88 mm apart. C12 stays outside
-  as bulk.**
-- Keep the **SW copper island small** — it is the primary radiator. Note the SRP5030T
-  is a 5×5mm part, so its SW-side pad is already a substantial copper area. Place the
-  inductor tight against U3 and do not let that pad grow into a pour. **2026-09-22:
-  3.57 mm² of copper, entirely on F.Cu, no vias. L1's courtyard starts 0.45 mm past
-  U3's — that gap is why the bootstrap cap sits above the package rather than across
-  BST/SW, and it is why L1 must not be moved east to make room.**
-- **TP4 sits on that same SW island, so it fights the rule above.** Hang it off the
-  U3.5–L1.1 run as a short stub on the *quiet* side, away from the L1 pad; do not
-  centre the island on it and do not widen the trace to reach it. If the island ends
-  up marginal, TP4 is the part to drop — the scope probe can go on the L1 pad
-  instead. Keep its ground return short: TP3 (GND) should be within probe-tip reach
-  of TP4, otherwise the measurement it exists for will be worthless. **Done
-  2026-09-22: a single 3.2 mm top-layer stub, no vias, no back-layer branch; TP4 sits
-  clear of the inductor body and TP3 is 4.4 mm away.**
-- Route the **FB trace** back to the output caps away from SW and L1. **Done
-  2026-09-22: a dedicated 0.2 mm trace from U3.1 round the south of the block to
-  C11.1. It was a plane via 1.2 mm from BST. Since 2026-09-24 it turns south
-  round the outside of R8/C13 and is still top-layer only, with no via. Its
-  closest approach is TP4, the SW probe pad, at 1.35 mm; issue 5 recorded
-  2.1 mm, which missed TP4. Keep it via-free: a via on FB bonds to the In2 3V3
-  pour.**
-- Keep the **`REG_EN` node away from SW and L1**. It is a ~20kΩ-impedance node sitting
-  1.2V above a comparator threshold, so it is easy to couple into. Put R8 and C13
-  physically next to U3.2 and run the long leg from R7/R9 into them, not the reverse.
-  **Done 2026-09-24: C13 and R8 stand in a row beside U3.2, and EN → C13.1 → R8.1
-  is one top-layer run. The long leg crosses under FB on B.Cu, 5.65 mm from
-  switching copper. Nothing of REG_EN's is under U3 any more. Its closest
-  approach, 0.95 mm, is U3's own EN-to-SW pin gap, and DRC guards 0.9 mm.**
-- **`VBAT_SENSE` is worse — 150kΩ.** Same rule, more strictly: C14 goes hard against
-  U1.39 and R10/R11 sit behind it, so the high-impedance run is as short as possible.
-  Keep the whole node away from SW, L1 and any motor current on `VBAT`, and do not
-  route it as a long thin trace beside a switching node.
-- USB D+/D− as a **90Ω differential pair** over unbroken ground reference. **Done
-  2026-09-22 (issue 7): 0.25 / 0.15 mm on F.Cu over In1, no vias, J1 to U1.**
-- Ground the module's thermal pad with a via array.
-- **D4 (power LED) goes where a user can see it**, near the USB-C port or a board
-  edge. With the daughterboard gone nothing shadows the board any more, so the old
-  "not under the mezzanine" caveat is void — but the chassis, wheels and motors will
-  now obstruct parts of the board instead, so check visibility against the mechanics.
-  Same for D5. Neither is timing- or noise-critical, so placement is otherwise free;
-  just keep both out of the antenna keep-out.
-- **J4–J7 go at the board edges, facing the walls they sense**, with their cable
-  exits pointing outward — they are side-entry parts, so the connector body sets the
-  cable direction. Keep all four out of the antenna keep-out. The daughterboard no
-  longer competes for edge space, but the motors, wheels and the drivers' thermal
-  copper now do — edge budget is the scarce resource in this layout, not area.
-- Put **C15 in the middle of the four connectors**, not next to the regulator: it is
-  there to serve the pulsed VCSEL load at the cable ends. C16 goes hard against
-  whichever connector is furthest from C15.
-- Route **SDA/SCL as a pair with a ground reference**, and keep R15/R16 near U1
-  rather than out at the connectors — "once per bus, near the host". The XSHUT lines
-  are DC and need no care beyond not running them alongside the SW node.
-- **Silkscreen J4–J7 with pin 1 and the sensor position** (FL/FR/L/R, or whatever the
-  mechanical design calls them), and silkscreen which XSHUT GPIO each one carries —
-  the address assignment order is a firmware constant that has to match the wiring.
-  Pin 1 is **VCC**, not GND: the connector follows the module's header order, so a
-  cable built "the usual way round" with GND first will put 3.3V into the sensor's
-  ground pin. Mark pin 1 unambiguously on the silkscreen.
-- **U4/U5 thermal pads carry the heat, and the WSON-8 has almost no other path.**
-  RθJA is 66.5°C/W and the datasheet asks for "large ground planes on multiple layers
-  and multiple nearby vias". Put a dense via array under each pad into L2, and do not
-  neck the pad's connection with thermal relief spokes — this is a heat path, not a
-  solderability concern. **Built by the 2026-09-21 rework, as far as the geometry
-  allows: 2 in-pad vias (the hole-to-hole rule caps it there), 4 more within 3 mm, a
-  0.8 mm neck out of the pad and an F.Cu ground pour. "Dense" is not achievable in a
-  0.9 × 1.6 mm pad — do not re-specify it without changing the package.**
-- **Keep C18/C20 (0.1µF) hard against each driver's VM pin**, closer than the 22µF
-  bulk. The bulk caps C19/C21 go next, and both must sit in the motor region of the
-  placement partition, not near U1 or the ADC nodes. **Done 2026-09-21: both caps are
-  1.33 mm from their VM pin, across pins 5 and 7, with the loop closed in top copper.
-  C21 moved to (119.3, 109.4) to clear the OUT1 escape; C19 is unchanged.**
-- **`MOT_A_1/2` and `MOT_B_1/2` are the only high-di/dt nets outside the buck.**
-  Route each pair together and keep the loop from the driver through the connector
-  tight. Size them for the 1.47A regulated limit, not the free-run current.
-  **Sized and paired 2026-09-21. 0.8 mm trunks enforced by the `Motor` netclass and
-  `Pixy-M2.kicad_dru`; `MOT_B_1`/`MOT_B_2` now run as a pair (loop 423.6 → 111.5 mm²)
-  without moving U5. `MOT_A_1`/`MOT_A_2` cannot be paired usefully — see issue 4
-  below for why, and do not re-try it.** *Superseded 2026-09-23: with M1/M2 on
-  adjacent SH pins both pairs route together — see "J8/J9 in the Pololu pin
-  order".*
-- **`GPIO2` and `GPIO10` carry IPROPI analog current**, not logic. Keep them short,
-  away from the motor outputs and the SW node. They no longer run anywhere else —
-  J2/J3 are gone, so there is no header stub on them to keep short.
-- **Place J8/J9 facing their motors** with the cable exit pointing at the motor, and
-  keep them out of the antenna keep-out. Silkscreen pin 1 and which motor each one
-  is. Since 2026-09-23 the pinout is Pololu's own and the cable is Pololu's
-  straight SH-SH encoder cable, so the cable cannot be built wrong — but a
-  non-Pololu motor plugged in 1:1 can still put motor voltage on its encoder.
-- **J11 and TP5–TP9 go where a hand and a probe can reach them** — a board edge, not
-  under the chassis or behind a motor. J11 is the only way back in if USB-Serial-JTAG
-  is ever disabled, so burying it defeats the point. Keep TP9 within probe-tip reach
-  of TP5–TP8, the same rule TP3/TP4 already follow.
-- **J10 (IMU) placement is mechanical, not electrical.** A fusion IMU should sit as
-  near the robot's centre of rotation as the outline allows, and its cable should not
-  run alongside the motor outputs — `MOT_x_1/2` are the only high-di/dt nets outside
-  the buck, and a 3MHz SPI cable beside them is asking for trouble. Give SCK a ground
-  return: J10 pin 2 (GND) is deliberately adjacent to pin 3 (SCK), so the cable should
-  keep that pair together.
-- **Silkscreen J10 with "PS1 HIGH = SPI"** next to pin 1. A stock BNO08x breakout
-  ships in I²C mode and will not answer until that jumper is changed; the board gives
-  no other hint.
-- **Silkscreen the test points** with their net names (VBAT, 3V3, GND, SW). An
-  unlabelled 1.5mm pad is not a test point. Per issue 12, also silkscreen any exposed
-  strapping pin on whatever debug header survives issue 15.
-
-## Working notes for this session
-
-- Treat the extracted netlist above as ground truth over anything inferred from a
-  rendered schematic view.
-- **ERC passing means nothing here.** Do not use "ERC is clean" as evidence that a
-  change is correct.
-- When changing a component, update **Value, Footprint, and any datasheet/MPN field
-  together.** Half-updated components are how the wrong part gets ordered.
-- Re-run the netlist extraction after structural edits and diff against the table
-  above rather than trusting that an edit did what was intended.
-- **Also render and look at it.** A netlist diff cannot see overlapping text or a
-  wire routed through another net's junction. Both bugs happened while adding the
-  issue-2 network and both were caught visually:
-
-  ```
-  kicad-cli sch export svg --exclude-drawing-sheet --black-and-white -o /tmp/svg Pixy-M2.kicad_sch
-  rsvg-convert -z 8 -b white /tmp/svg/Pixy-M2.svg -o /tmp/sheet.png   # ~30 px/mm
-  ```
-
-  Watch for wires crossing a point where two other wires meet end-to-end: KiCad
-  treats that endpoint as a connection, so a crossing there silently shorts two nets.
-  Symbol *fields* inherit the symbol's rotation — a field on a 90°-rotated part needs
-  its own angle set to 90 to render horizontally. **Field `justify` rotates with it
-  too, and flips:** on a 90°-rotated symbol `justify left` renders *right*-justified,
-  so the stored `(at x y)` becomes the text's right-hand edge and the text grows
-  leftward into the symbol. Write `justify right` to get text starting at the anchor.
-  This was caught on D4/D5, whose Value text landed on top of the LED body the first
-  time round; it is invisible in a netlist diff, so render and look.
-- **Check the board, not just the schematic.** Zones are only filled by KiCad, so a
-  CLI DRC without a refill reports every plane-connected pad as unconnected:
-
-  ```
-  kicad-cli pcb drc --refill-zones --save-board --format json -o /tmp/drc.json Pixy-M2.kicad_pcb
-  ```
-
-  `--save-board` writes the filled zones back, so the file you commit shows the pours
-  as KiCad will. Read `unconnected_items` as well as `violations` — a net that is not
-  routed at all shows up only there.
-- **`Driver_Motor:DRV8231ADSG` is patched in this file.** Its cached copy has OUT2
-  retyped from `power_in` to `output` to fix a stock-library bug. Never run "Update
-  Symbols from Library" on U4/U5 without re-applying it — see issue 15.
-- **Ask before deleting connector pins or renaming nets.** J2/J3 were deleted on
-  2026-09-20, and the reason it was safe is worth remembering as the rule: every GPIO
-  they carried already terminated on a real part first. Deleting a connector before
-  its nets have somewhere else to go strands them and buries real ERC warnings under
-  noise.
+| Signal minimum width | ≥ 0.2 mm, except inside the `Motor pin escape` areas |
+| Motor trunk minimum width | ≥ 0.6 mm outside `Motor pin escape` |
+| Via drill to solder pad | 0.10 mm |
+| Filled capped driver thermal vias | the exception for U4/U5's in-pad vias |
+| Power path width | ≥ 0.5 mm |
+| Battery path width | ≥ 0.8 mm |
+| REG_EN clear of the switch node | ≥ 0.9 mm from SW and BST |
+| Sense nodes clear of motor and switch copper | 5 mm: `REG_EN` to motor copper; `VBAT_SENSE` to motor, SW and BST copper |
+| Motor UVLO clear of switching copper | MOTOR_UVLO ≥ 5 mm from motor, SW and BST copper |
+| SPI clear of motor and switch copper | GPIO11–17 ≥ 5 mm from motor, SW and BST copper (closest: GPIO14, 10.0 mm) |
+| Encoders clear of the switch node | GPIO18/21/47/48 ≥ 5 mm from SW and BST copper (closest: GPIO21, 9.7 mm) |
+| I2C clear of the switch node | GPIO8/9 ≥ 3 mm from SW and BST copper (closest: SCL to BST, 4.4 mm) |
+| IPROPI clear of motor outputs | ≥ 0.75 mm |
+| Hole clearance | 0.30 mm everywhere (the board-setup floor stays at JLCPCB's 0.20 mm) |
+
+**KiCad behaviours these rules depend on:**
+
+- **Board-setup minimums are absolute**, and custom rules cannot relax them.
+  Track width therefore stays at 0.15 mm and hole clearance at 0.20 mm in board
+  setup, and the higher floors are custom rules.
+- **When two rules set the same constraint, the later one wins.** "Signal minimum
+  width" must stay the **first** rule. Moved lower, it relaxes the motor,
+  power and battery rules to 0.2 mm.
+- **Use `enclosedByArea`, never `intersectsArea`.**
+  - With `intersectsArea`, a track that merely starts inside the area is exempt
+    along its whole length.
+  - `enclosedByArea` tests the whole outline, round caps included, so a segment
+    ending exactly on the area edge is *not* enclosed.
+- **DRC with a large threshold reports the first violating pair, not the
+  closest.** To measure a clearance, descend through several thresholds
+  (`layout/issue8-rules/clearmin.py`).
+- **Test every new rule by breaking a copy of the board** and confirming that
+  DRC fires. Every existing rule was verified this way.
+
+### Layout pipeline
+
+- **The board is generated.** `tools/autoroute/rework.py` rebuilds
+  `Pixy-M2.kicad_pcb` from `tools/autoroute/base-routed.kicad_pcb` through a
+  fixed sequence of stages (listed in `tools/autoroute/README.md`).
+  - It **discards hand edits** to the board.
+  - It writes zones unfilled, so always follow it with the DRC command above.
+  - A run takes minutes; run it in the background. Do not watch it with
+    `pgrep -f "python3 rework.py"`: the pattern matches the watching shell and
+    the loop never exits.
+- **New layout work is a new stage script.**
+  - Assert the old geometry it replaces, and let it also convert an existing
+    board standalone.
+  - Hook it into `rework.py` in order, before stage 22 (`octilinear.py`) if
+    it lays copper, and document it in `tools/autoroute/README.md`.
+  - Put the evidence in `layout/<topic>/README.md`.
+  - Confirm that a full replay reproduces the board.
+- **Expected messages, not failures:**
+  - `! no neck+via for GND from (109.0,114.8)` and the same for (117.0,114.8);
+  - `! no stitch via for GND near …` for J8.1, J8's west MP pad and J9.1
+    (stage 13, before the devkit stage moves J8/J9 and re-taps them);
+  - `(waypoint … skipped)` and `(M1 waypoint … skipped)` lines;
+  - `no clear silkscreen position, hidden on F.SilkS: R28, R29` (stage 21: the
+    front cluster has no room left for two more 1 mm designators; F.Fab
+    still names them).
+- **Stage 21 (`power_integrity.py`) traps:**
+  - Any re-routable net (`devkit.FULL`, and GPIO2/GPIO10 outside the motor
+    corner) that a new part or cluster displaces is **ripped whole and routed
+    again**. Ripping only the conflicting pieces once made A* patch the loose
+    ends around the new parts: SPI ran along motor B's trunk and GPIO21 past
+    the switch node.
+  - Keep the clusters out of the existing corridors: the SPI diagonal between
+    the socket rows, GPIO21's run south of motor B's trunk, and the I²C and
+    XSHUT runs along the right row.
+  - SCL and SDA are always ripped and routed again, with a 3 mm router floor
+    from SW/BST. SCL's lane past the buck runs under C15, between C15 and C12.
+  - `silk_refs.py` places the designators before any copper; it needs the
+    board's measured text extents (0.9 mm a character at 1 mm) to agree with
+    DRC.
+- **Stage 20 (`devkit.py`) traps:**
+  - It reads only routed copper; every hand edit to the board is discarded with
+    the rest of the replay.
+  - Do every text-level edit (footprints, fields, texts, zones) before the
+    first track edit. One `drop_text` after the rip once threw the rip away
+    silently.
+  - A regex with nested repetition and `re.S` across the 2 MB board text
+    backtracks for good. Locate items by uuid and `rindex` instead.
+  - `pkill -f`/`pgrep -f` with a pattern from your own command line kills or
+    matches the calling shell. Use a bracket, e.g. `pgrep -f "devki[t].py"`.
+- **`pcbedit` traps:**
+  - A footprint or text edit re-splits the file and drops pending track and via
+    edits. Do moves first, or call `sync()`.
+  - Rotating a footprint must turn every `(at …)` inside it, pads and texts
+    included. A missed one shows up as `lib_footprint_mismatch`, which reads like
+    a library problem rather than a bad edit.
+- **Router traps:**
+  - `Router.route_waypoints` can leave consecutive legs on different layers with
+    no via between them. Pin waypoints to one layer.
+  - `G.smd_block` keeps via centres only 0.15 mm off pads. Rebuild it at drill
+    radius + 0.10 mm.
+  - Lay tracks before stitching vias. A stitching via dropped first once shorted
+    SW to GND.
+  - Stitch fine-pitch parts after their signals.
+  - A* turns for free on its 0.05 mm grid, so any angle other than 0/45/90
+    comes out as a staircase of 0.05–0.3 mm steps that renders as a curve.
+- **Traces are straight 0/45/90° runs with 45° turns.** The user rejected the
+  router's curvy staircases on sight. Stage 22 (`octilinear.py`) straightens
+  every chain it may touch. It must stay the last copper stage: a stage added
+  after it brings the staircases back. Before reporting layout work done, look
+  at the copper, not only the DRC counts.
+  - It joins pieces that meet only by overlapping (`_heal`) before cutting
+    chains. Without that, most motor and signal runs had loose ends and stayed
+    frozen.
+  - It never moves the buck block (SW, BST, REG_EN, chains on U3, L1, C6, R8,
+    C13) or the piece on each U4/U5 pin. Necks below the class minimum move
+    only inside their `Motor pin escape` area.
+- **In tight spots, hand-placed copper beats A\*.** The buck, REG_EN and
+  IPROPI near the drivers are all hand-placed, because A* failed or wandered on
+  each. Stage 20 re-routes the IPROPI runs only beyond the motor corner.
+- **New vias** go ≥ 1.35 mm from any other non-plane via, so their antipads do
+  not merge into one void in In1/In2.
+- **No ordinary via drill within 0.10 mm of any mask or paste opening.**
+  `via_openings.py` checks this. The only exceptions are the four thermal vias.
+
+### Placement and routing invariants — do not undo
+
+- **Devkit (U1).**
+  - **At (162.7, 157.98), rot 180**: pad 1 (3V3) at the rear right, socket rows
+    at x 139.84 and 162.7. Pad 1 clears the R3 corner by 0.27 mm. The antenna
+    end is to the rear, and the USB ports face the front at y ≈ 96.5.
+  - **SMD sockets, not through-hole.** U1's area lies over the underside
+    battery bay and motor B.
+  - **The courtyard is the two socket bodies only.** The devkit stands ~10 mm up
+    (7.5 mm socket + 2.5 mm header spacer). Parts under it must stay below
+    ~8 mm, and nothing under it is reachable once it is fitted. TP4 sits under
+    its USB end; C1/C2, R15/R16, R19–R23 and the motor-cutoff cluster sit
+    between the rows.
+  - **It fits nowhere else** at 25.4 × 62.7 mm. The left corner is the motor
+    and power region, and the middle is too narrow beside the IMU.
+- **Power-integrity clusters** (stage 21; part data in
+  `tools/power_integrity_data.py`).
+  - **Front, in front of the devkit's USB end:** U8, Q2, Q3, R28–R31, C26.
+    BUCK_3V3 goes straight from L1.2 into U8 VIN (0.4 mm, no via), U8 VOUT to
+    Q2's source is 1.4 mm, the gate drive stays within the cluster. Motor B's
+    trunk (MOT_B_1 on B.Cu, MOT_B_2 on F.Cu, stacked) walls this area off from
+    the socket rows, so DEVKIT_5V arrives under J9. U8's GND pin is tapped
+    between its pad columns to a via below the package: a via under an SC70
+    body does not fit.
+  - **Rear, between the socket rows:** U7 with the 2026-10-14 escape pattern (every
+    signal pin to its own staggered via) and C24; below it U6, R24–R27,
+    C23/C25/C27 with the MOTOR_UVLO node held to 5 mm of copper, and C30.
+    VBAT is taken from R10.1.
+  - **C28** at (115.0, 120.2), on the MOTOR_VREF diagonal where it splits to
+    U4.4 and U5.4. **TP11** (MOTOR_VREF) at (124.9, 117.0) beside the corner;
+    **TP10** (MOTOR_OK) at (132.0, 156.6), rear-left, outside the devkit.
+  - **TP2/TP3** moved to (148.4, 86.6) / (151.8, 86.6), between J5 and J7,
+    labelled `3V3` and `GND`.
+- **Buck.**
+  - **C17 straddles U3.3 (IN) and U3.4 (GND)** under the package.
+  - The SW node is 3.57 mm² of F.Cu with **no vias**.
+  - **L1's courtyard is 0.45 mm from U3's.** That is why C6 sits above the
+    package. Do not move L1 east.
+  - TP4 is a single 3.2 mm top-layer stub. If the island ever grows marginal,
+    drop TP4.
+  - `/VSYS` is pinned by a waypoint to the corridor north of the buck.
+  - U3.4, C7, C11 and C17 each have their own GND via.
+  - C12's GND via sits east of its GND pad, at (135.55, 91.53). North of the
+    pad it closed SCL's lane under C15, and SCL ran past C6's BST pad at 0.45 mm.
+- **FB (BUCK_3V3).** A dedicated via-free top-layer trace runs U3.1 → C11.1 (26.3 mm),
+  round the outside of R8/C13. Its closest approach is TP4, at 1.35 mm.
+  **Never put a via on FB**: it would risk bonding BUCK_3V3 to the In2 ESP_3V3 pour beside U3.
+- **REG_EN.**
+  - C13 (136.18, 97.0) and R8 (134.47, 97.175) sit beside U3.2, and
+    EN → C13.1 → R8.1 is one top-layer run.
+  - The leg to R7 crosses under FB on B.Cu.
+  - Nothing of REG_EN's runs under U3. Its closest approach, 0.95 mm, is U3's
+    own EN-to-SW pin gap.
+- **IPROPI.**
+  - R17 sits at (104.5, 120.3), west of U4's IN escapes. R18 sits at
+    (118.5, 118.6), east of U5's pair. **Keep them on those sides.**
+  - GPIO2 stays ≥ 1.20 mm and GPIO10 ≥ 0.80 mm from motor copper. GPIO2's
+    limit is its via by J8, against the MOT_A_1 diagonal (1.30 mm on main,
+    before stage 20 moved J8). GPIO10's limit is its escape via.
+    `octilinear.py` holds new legs to 0.85 mm (raster) from IPROPI copper.
+- **Motor copper.**
+  - 0.8 mm trunks. The only narrower copper is in the `Motor pin escape` areas.
+  - M1/M2 route as pairs. `tools/autoroute/loop.py` measures the loop areas:
+    A 25.9 mm², B 24.3 mm² (main: 23.9 / 9.8). `loop.py`'s area is signed,
+    and B's pair crosses itself, so opposite lobes cancel. On main they nearly
+    balanced; `layout/devkit/measure.py` reports the lobes.
+  - **Do not move U5 toward J9.** It would be off the VBAT island (x ≤ 127),
+    into the buck output, and it would split the motor region.
+- **Driver exposed pads.**
+  - Two in-pad 0.45/0.25 mm vias per pad. The hole-to-hole rule allows no more
+    in a 0.9 × 1.6 mm pad.
+  - All four are **filled and capped (IPC-4761 type VII)**. The note on
+    `Dwgs.User` says so, and the fab order must include it; tenting is no
+    substitute.
+  - Each pad also has a 0.8 mm neck up to a further via, four GND vias within
+    3 mm and the F.Cu pour.
+  - There is no neck out of the lower end: the VREF feed blocks it.
+- **Bypass loops.**
+  - C18/C20 sit 1.33 mm from VM, across pins 5/7, with the loop closed in top
+    copper. The 0.5 mm pin pitch caps those runs at 0.3–0.35 mm.
+  - C21 is at (119.3, 109.4), rot 90.
+- **Battery input.**
+  - F1 is at (110.2, 100.7) and BT1 at (105, 93.6). Keep unfused copper short.
+  - U4/U5 VREF now uses MOTOR_VREF from U6, not J8.4's ESP_3V3 feed.
+    J8.4 has its own 3V3 stitch outside the VBAT island. Never rejoin them.
+- **Connectors.**
+  - J8 is at (106.6, 125.5), rot 180; J9 at (162.3, 97.3), rot 90. Each cable
+    exits toward its motor, as before.
+  - **J8's motor pins fan in north, under its own housing.** At J8's new x the
+    old corridor along the board edge is gone. `devkit.fan_in_j8` lays the
+    stubs; M2's steps 1.6 mm east over pin 4 so the pair can leave
+    north-east.
+  - **J9 is in front of the devkit**, so the motor B trunks keep their old
+    corridor. MOT_B_1 follows layer-pinned waypoints that pass 5 mm south of
+    REG_EN and cross under the left socket on B.Cu.
+  - **J10 sits behind the IMU, rot 180, facing it**, with C22 beside its pins
+    1/2. In front of the IMU it blocked the motor B trunks' exit from U5 and
+    put the SPI bus beside motor copper.
+- **IMU.** Chip centre (124.4, 133.5), 8.6 mm left of and 7.5 mm behind the
+  rotation centre. The reservation is x 112.1–136.7, 0.04 mm off the left
+  socket's courtyard. J8 and SW3 moved 3.4 / 0.4 mm west to clear it.
+- **Battery bay.**
+  - The pack lies across the underside, between the motors: board
+    X 0.5–62.5, Y 57.5–74.5.
+  - Each motor's 4 mm encoder allowance faces outboard, and brackets fasten on
+    the outboard side only. Hook-and-loop tape holds the pack.
+  - The right motor's attachment band on User.2 is still split either side of
+    where J1 stood. With J1 gone it could be continuous.
+  - The front strip was rejected: the pack there moves the CG ahead of the
+    front axle.
+  - The lead to BT1 is about 13 cm, so plan an XT30 extension. Do not move BT1
+    to the pack's end: that would drag unfused copper out of the motor corner.
+- **Silkscreen.** `assembly_marks.py` and `battery_bay.py` print the ToF mounts,
+  the IMU outline, the motors and the battery. Test points, `BAT ON/OFF` and
+  `PS1 HIGH = SPI` are labelled. The devkit footprint prints an arrow and
+  `DEVKIT USB END` between the socket rows, plus `3V3`/`GND` at pins 1/44.
+  Every stage-21 part except R28/R29 carries a designator (`silk_refs.py`).
+
+### Still checked by eye (DRC cannot see these)
+
+- C14 hard against U1.41 (GPIO1), with R10/R11 either side of it.
+- C15 among J4–J7, and C16 against the connector furthest from C15.
+- D4/D5 visible past the mechanics (rear-left corner).
+- TP1–TP3 and TP9–TP11 reachable by hand and probe; TP4 sits under the
+  devkit's USB end.
+- The SPI bus (GPIO11–17) keeps its diagonal corridor between the socket rows
+  (DRC checks only the 5 mm floor, not the route).
+- The devkit's USB ports reachable with a cable plugged in from the front.
+- The J10 cable not run alongside the motor outputs.

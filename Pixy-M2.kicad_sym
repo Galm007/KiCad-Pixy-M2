@@ -1,0 +1,443 @@
+(kicad_symbol_lib (version 20241209) (generator "pixy-m2")
+(symbol "TLV3012BDBV"
+		(pin_names
+			(offset 0.635)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TLV3012BDBV"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "TLV3012BDBV_0_1"
+			(rectangle
+				(start -5.08 5.08)
+				(end 5.08 -5.08)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "TLV3012BDBV_1_1"
+			(pin output line
+				(at 7.62 2.54 180)
+				(length 2.54)
+				(name "OUT"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 2.54 0)
+				(length 2.54)
+				(name "IN+"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -2.54 0)
+				(length 2.54)
+				(name "IN-"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at 7.62 -2.54 180)
+				(length 2.54)
+				(name "REF"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 7.62 270)
+				(length 2.54)
+				(name "VCC"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+		)
+	)
+(symbol "SN74LV4066APW"
+		(pin_names
+			(offset 0.635)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SN74LV4066APW"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "SN74LV4066APW_0_1"
+			(rectangle
+				(start -7.62 12.7)
+				(end 7.62 -12.7)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "SN74LV4066APW_1_1"
+			(pin bidirectional line
+				(at -10.16 7.62 0)
+				(length 2.54)
+				(name "1A"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 10.16 7.62 180)
+				(length 2.54)
+				(name "1B"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -10.16 2.54 0)
+				(length 2.54)
+				(name "2A"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 10.16 2.54 180)
+				(length 2.54)
+				(name "2B"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -10.16 -2.54 0)
+				(length 2.54)
+				(name "3A"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 10.16 -2.54 180)
+				(length 2.54)
+				(name "3B"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -10.16 -7.62 0)
+				(length 2.54)
+				(name "4A"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "11"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 10.16 -7.62 180)
+				(length 2.54)
+				(name "4B"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 -12.7 0)
+				(length 2.54)
+				(name "EN"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "13"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 -12.7 0)
+				(length 2.54)
+				(hide yes)
+				(name "~"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 -12.7 0)
+				(length 2.54)
+				(hide yes)
+				(name "~"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -10.16 -12.7 0)
+				(length 2.54)
+				(hide yes)
+				(name "~"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "12"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 15.24 270)
+				(length 2.54)
+				(name "VCC"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "14"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at 0 -15.24 90)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 1.0 1.0)
+						)
+					)
+				)
+			)
+		)
+	)
+)

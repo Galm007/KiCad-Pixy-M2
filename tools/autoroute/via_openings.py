@@ -10,6 +10,11 @@ import json
 import math
 import pcbnew as pcb
 
+# KiCad 10.0.6's SWIG bindings iterate with it.next(), which the SwigPyIterator
+# of this Python (3.14.7) no longer has: every GetTracks() raised AttributeError.
+if not hasattr(pcb.SwigPyIterator, 'next'):
+    pcb.SwigPyIterator.next = pcb.SwigPyIterator.__next__
+
 MARGIN = 0.10
 TOL = 0.000002  # KiCad stores integer nanometres.
 THERMAL = {(109.0, 113.6): 'U4', (109.0, 114.4): 'U4',

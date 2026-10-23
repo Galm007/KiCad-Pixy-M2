@@ -1,0 +1,139 @@
+net /BUCK_3V3:
+  - None
+  + [('C11', '1'), ('C26', '1'), ('C7', '1'), ('L1', '2'), ('R30', '1'), ('U3', '1'), ('U8', '1')]
+net /BUCK_ENABLE:
+  - None
+  + [('Q3', '1'), ('R30', '2'), ('U8', '5')]
+net /BUCK_GATE:
+  - None
+  + [('Q2', '1'), ('Q3', '3'), ('R31', '2')]
+net /BUCK_PASS:
+  - None
+  + [('Q2', '2'), ('R31', '1'), ('U8', '6')]
+net /DEVKIT_5V:
+  - None
+  + [('R28', '1'), ('U1', '21')]
+net /DRV_A_IN1:
+  - None
+  + [('U4', '3'), ('U7', '2')]
+net /DRV_A_IN2:
+  - None
+  + [('U4', '2'), ('U7', '3')]
+net /DRV_B_IN1:
+  - None
+  + [('U5', '3'), ('U7', '9')]
+net /DRV_B_IN2:
+  - None
+  + [('U5', '2'), ('U7', '10')]
+net /ESP_3V3:
+  - [('C1', '1'), ('C11', '1'), ('C15', '1'), ('C16', '1'), ('C2', '1'), ('C22', '1'), ('C7', '1'), ('J10', '1'), ('J4', '1'), ('J5', '1'), ('J6', '1'), ('J7', '1'), ('J8', '4'), ('J9', '4'), ('L1', '2'), ('R12', '1'), ('R15', '1'), ('R16', '1'), ('R19', '1'), ('R20', '1'), ('R21', '1'), ('R22', '1'), ('R23', '1'), ('TP2', '1'), ('U1', '1'), ('U1', '2'), ('U3', '1'), ('U4', '4'), ('U5', '4')]
+  + [('C1', '1'), ('C15', '1'), ('C16', '1'), ('C2', '1'), ('C22', '1'), ('C23', '1'), ('C24', '1'), ('C30', '1'), ('J10', '1'), ('J4', '1'), ('J5', '1'), ('J6', '1'), ('J7', '1'), ('J8', '4'), ('J9', '4'), ('Q2', '3'), ('R12', '1'), ('R15', '1'), ('R16', '1'), ('R19', '1'), ('R20', '1'), ('R21', '1'), ('R22', '1'), ('R23', '1'), ('TP2', '1'), ('U1', '1'), ('U1', '2'), ('U6', '6'), ('U7', '14')]
+net /GPIO39:
+  - [('U1', '36'), ('U4', '3')]
+  + [('U1', '36'), ('U7', '1')]
+net /GPIO40:
+  - [('U1', '37'), ('U4', '2')]
+  + [('U1', '37'), ('U7', '4')]
+net /GPIO41:
+  - [('U1', '38'), ('U5', '3')]
+  + [('U1', '38'), ('U7', '8')]
+net /GPIO42:
+  - [('U1', '39'), ('U5', '2')]
+  + [('U1', '39'), ('U7', '11')]
+net /MOTOR_OK:
+  - None
+  + [('R26', '2'), ('R27', '1'), ('TP10', '1'), ('U6', '1'), ('U7', '12'), ('U7', '13'), ('U7', '5'), ('U7', '6')]
+net /MOTOR_UVLO:
+  - None
+  + [('C27', '1'), ('R24', '2'), ('R25', '1'), ('R26', '1'), ('U6', '3')]
+net /MOTOR_VREF:
+  - None
+  + [('C25', '1'), ('C28', '1'), ('TP11', '1'), ('U4', '4'), ('U5', '4'), ('U6', '4'), ('U6', '5')]
+net /USB_PRIORITY:
+  - None
+  + [('R28', '2'), ('R29', '1'), ('U8', '3')]
+net /VBAT:
+  - [('C18', '1'), ('C19', '1'), ('C20', '1'), ('C21', '1'), ('D2', '2'), ('D6', '1'), ('Q1', '5'), ('Q1', '6'), ('Q1', '7'), ('Q1', '8'), ('R10', '1'), ('R7', '1'), ('TP1', '1'), ('U4', '5'), ('U5', '5')]
+  + [('C18', '1'), ('C19', '1'), ('C20', '1'), ('C21', '1'), ('D2', '2'), ('D6', '1'), ('Q1', '5'), ('Q1', '6'), ('Q1', '7'), ('Q1', '8'), ('R10', '1'), ('R24', '1'), ('R7', '1'), ('TP1', '1'), ('U4', '5'), ('U5', '5')]
+net GND:
+  - [('BT1', '2'), ('C1', '2'), ('C11', '2'), ('C12', '2'), ('C13', '2'), ('C14', '2'), ('C15', '2'), ('C16', '2'), ('C17', '2'), ('C18', '2'), ('C19', '2'), ('C2', '2'), ('C20', '2'), ('C21', '2'), ('C22', '2'), ('C7', '2'), ('D4', '1'), ('D5', '1'), ('D6', '2'), ('J10', '2'), ('J10', 'MP'), ('J4', '2'), ('J4', 'MP'), ('J5', '2'), ('J5', 'MP'), ('J6', '2'), ('J6', 'MP'), ('J7', '2'), ('J7', 'MP'), ('J8', '1'), ('J8', 'MP'), ('J9', '1'), ('J9', 'MP'), ('R11', '2'), ('R17', '2'), ('R18', '2'), ('R8', '2'), ('SW3', '3'), ('TP3', '1'), ('TP9', '1'), ('U1', '22'), ('U1', '23'), ('U1', '24'), ('U1', '44'), ('U3', '4'), ('U4', '7'), ('U4', '9'), ('U5', '7'), ('U5', '9')]
+  + [('BT1', '2'), ('C1', '2'), ('C11', '2'), ('C12', '2'), ('C13', '2'), ('C14', '2'), ('C15', '2'), ('C16', '2'), ('C17', '2'), ('C18', '2'), ('C19', '2'), ('C2', '2'), ('C20', '2'), ('C21', '2'), ('C22', '2'), ('C23', '2'), ('C24', '2'), ('C25', '2'), ('C26', '2'), ('C27', '2'), ('C28', '2'), ('C30', '2'), ('C7', '2'), ('D4', '1'), ('D5', '1'), ('D6', '2'), ('J10', '2'), ('J10', 'MP'), ('J4', '2'), ('J4', 'MP'), ('J5', '2'), ('J5', 'MP'), ('J6', '2'), ('J6', 'MP'), ('J7', '2'), ('J7', 'MP'), ('J8', '1'), ('J8', 'MP'), ('J9', '1'), ('J9', 'MP'), ('Q3', '2'), ('R11', '2'), ('R17', '2'), ('R18', '2'), ('R25', '2'), ('R27', '2'), ('R29', '2'), ('R8', '2'), ('SW3', '3'), ('TP3', '1'), ('TP9', '1'), ('U1', '22'), ('U1', '23'), ('U1', '24'), ('U1', '44'), ('U3', '4'), ('U4', '7'), ('U4', '9'), ('U5', '7'), ('U5', '9'), ('U6', '2'), ('U7', '7'), ('U8', '2')]
+net unconnected-(U1-5V-Pad21):
+  - [('U1', '21')]
+  + None
+net unconnected-(U8-NC-Pad4):
+  - None
+  + [('U8', '4')]
+part C23:
+  - None
+  + ('0.1uF 16V', 'Capacitor_SMD:C_0603_1608Metric', (('Datasheet', ''), ('Description', 'X7R ceramic capacitor.'), ('Footprint', 'Capacitor_SMD:C_0603_1608Metric'), ('MPN', '')))
+part C24:
+  - None
+  + ('0.1uF 16V', 'Capacitor_SMD:C_0603_1608Metric', (('Datasheet', ''), ('Description', 'X7R ceramic capacitor.'), ('Footprint', 'Capacitor_SMD:C_0603_1608Metric'), ('MPN', '')))
+part C25:
+  - None
+  + ('2.2nF 16V', 'Capacitor_SMD:C_0603_1608Metric', (('Datasheet', ''), ('Description', 'X7R ceramic capacitor.'), ('Footprint', 'Capacitor_SMD:C_0603_1608Metric'), ('MPN', '')))
+part C26:
+  - None
+  + ('1uF 16V', 'Capacitor_SMD:C_0603_1608Metric', (('Datasheet', ''), ('Description', 'X7R ceramic capacitor.'), ('Footprint', 'Capacitor_SMD:C_0603_1608Metric'), ('MPN', '')))
+part C27:
+  - None
+  + ('0.1uF 16V', 'Capacitor_SMD:C_0603_1608Metric', (('Datasheet', ''), ('Description', 'X7R ceramic capacitor.'), ('Footprint', 'Capacitor_SMD:C_0603_1608Metric'), ('MPN', '')))
+part C28:
+  - None
+  + ('4.7nF 16V', 'Capacitor_SMD:C_0603_1608Metric', (('Datasheet', ''), ('Description', 'X7R ceramic capacitor.'), ('Footprint', 'Capacitor_SMD:C_0603_1608Metric'), ('MPN', '')))
+part C30:
+  - None
+  + ('100uF 6.3V X5R', 'Capacitor_SMD:C_1206_3216Metric', (('Datasheet', 'https://www.murata.com/en-us/products/productdetail?partno=GRM31CR60J107ME39L'), ('Description', 'ESP_3V3 hold-up across the USB-to-buck handover. X5R 1206; ~45 uF at 3.3 V bias.'), ('Footprint', 'Capacitor_SMD:C_1206_3216Metric'), ('MPN', 'GRM31CR60J107ME39L')))
+part Q2:
+  - None
+  + ('AO3401A', 'Package_TO_SOT_SMD:SOT-23', (('Datasheet', 'https://www.aosmd.com/sites/default/files/res/datasheets/AO3401A.pdf'), ('Description', 'P-FET source at BUCK_PASS, drain at ESP_3V3. Opposes the LM66100 body diode for off-state isolation.'), ('Footprint', 'Package_TO_SOT_SMD:SOT-23'), ('MPN', 'AO3401A')))
+part Q3:
+  - None
+  + ('MMBT3904', 'Package_TO_SOT_SMD:SOT-23', (('Datasheet', 'https://www.onsemi.com/pdf/datasheet/mmbt3904lt1-d.pdf'), ('Description', 'ST high-impedance enables Q2 through this NPN; ST low turns Q2 off.'), ('Footprint', 'Package_TO_SOT_SMD:SOT-23'), ('MPN', 'MMBT3904LT1G')))
+part R17:
+  - ('2.2kOhm 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', ''), ('Description', 'RIPROPI. ITRIP = VREF/(AIPROPI*R) = 3.3/(1500u*2200) = 1.00A (JST SH contact rating 1A); sense scale 3.3 V/A.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric')))
+  + ('1kOhm 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', 'https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071KL'), ('Description', 'ITRIP nominal 0.828A from U6 REF=1.242V; IPROPI scale 1.5V/A.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', 'RC0805FR-071KL')))
+part R18:
+  - ('2.2kOhm 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', ''), ('Description', 'RIPROPI. ITRIP = VREF/(AIPROPI*R) = 3.3/(1500u*2200) = 1.00A (JST SH contact rating 1A); sense scale 3.3 V/A.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric')))
+  + ('1kOhm 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', 'https://yageogroup.com/component-documentation/download/specsheet/RC0805FR-071KL'), ('Description', 'ITRIP nominal 0.828A from U6 REF=1.242V; IPROPI scale 1.5V/A.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', 'RC0805FR-071KL')))
+part R24:
+  - None
+  + ('100k 0.1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', 'https://www.mouser.com/datasheet/2/447/PYu_RT_1_to_0_01_RoHS_L_12-1995645.pdf'), ('Description', 'Motor UVLO: thin film 0.1%, <=25 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', 'RT0805BRD07100KL')))
+part R25:
+  - None
+  + ('23.2k 0.1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', 'https://www.mouser.com/datasheet/2/447/PYu_RT_1_to_0_01_RoHS_L_12-1995645.pdf'), ('Description', 'Motor UVLO: thin film 0.1%, <=25 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', 'RT0805BRD0723K2L')))
+part R26:
+  - None
+  + ('825k 0.1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', 'https://www.mouser.com/datasheet/2/447/PYu_RT_1_to_0_01_RoHS_L_12-1995645.pdf'), ('Description', 'Motor UVLO: thin film 0.1%, <=25 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', 'RT0805BRD07825KL')))
+part R27:
+  - None
+  + ('100k 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', ''), ('Description', '1% thick-film resistor, <=100 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', '')))
+part R28:
+  - None
+  + ('10k 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', ''), ('Description', '1% thick-film resistor, <=100 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', '')))
+part R29:
+  - None
+  + ('82k 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', ''), ('Description', '1% thick-film resistor, <=100 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', '')))
+part R30:
+  - None
+  + ('100k 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', ''), ('Description', '1% thick-film resistor, <=100 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', '')))
+part R31:
+  - None
+  + ('100k 1%', 'Resistor_SMD:R_0805_2012Metric', (('Datasheet', ''), ('Description', '1% thick-film resistor, <=100 ppm/C.'), ('Footprint', 'Resistor_SMD:R_0805_2012Metric'), ('MPN', '')))
+part TP10:
+  - None
+  + ('MOTOR_OK', 'TestPoint:TestPoint_Pad_D1.5mm', (('Datasheet', ''), ('Description', 'Test point, U6 motor-enable output'), ('Footprint', 'TestPoint:TestPoint_Pad_D1.5mm'), ('MPN', '')))
+part TP11:
+  - None
+  + ('MOTOR_VREF', 'TestPoint:TestPoint_Pad_D1.5mm', (('Datasheet', ''), ('Description', 'Test point, 1.242 V driver current reference'), ('Footprint', 'TestPoint:TestPoint_Pad_D1.5mm'), ('MPN', '')))
+part U6:
+  - None
+  + ('TLV3012B', 'Package_TO_SOT_SMD:SOT-23-6', (('Datasheet', 'https://www.ti.com/lit/ds/symlink/tlv3012.pdf'), ('Description', 'Independent motor UVLO with power-on reset; REF also supplies the driver current reference.'), ('Footprint', 'Package_TO_SOT_SMD:SOT-23-6'), ('MPN', 'TLV3012BIDBVR')))
+part U7:
+  - None
+  + ('SN74LV4066APW', 'Package_SO:TSSOP-14_4.4x5mm_P0.65mm', (('Datasheet', 'https://www.ti.com/lit/ds/symlink/sn74lv4066a.pdf'), ('Description', 'Four normally-open motor input switches. Disabled by U6, independent of firmware and USB.'), ('Footprint', 'Package_SO:TSSOP-14_4.4x5mm_P0.65mm'), ('MPN', 'SN74LV4066APWR')))
+part U8:
+  - None
+  + ('LM66100DCK', 'Package_TO_SOT_SMD:SOT-363_SC-70-6', (('Datasheet', 'https://www.ti.com/lit/ds/symlink/lm66100.pdf'), ('Description', 'USB-priority buck isolation. Q2 blocks its forward body diode while disabled; Q3 follows ST.'), ('Footprint', 'Package_TO_SOT_SMD:SOT-363_SC-70-6'), ('MPN', 'LM66100DCKR')))
+72 nets, 79 parts; 46 differences
